@@ -177,6 +177,10 @@ class KanbanView(Widget):
         Binding('right', 'focus_right', 'Right', show=False),
         Binding('up', 'focus_up', 'Up', show=False),
         Binding('down', 'focus_down', 'Down', show=False),
+        Binding('shift+up', 'move_up', 'Promote', show=False),
+        Binding('shift+down', 'move_down', 'Demote', show=False),
+        Binding('shift+left', 'move_left', 'Move Left', show=False),
+        Binding('shift+right', 'move_right', 'Move Right', show=False),
         Binding('enter', 'open_detail', 'Detail', show=False),
         Binding('e', 'edit_task', 'Edit', show=False),
         Binding('n', 'open_notes', 'Notes', show=False),
@@ -409,6 +413,62 @@ class KanbanView(Widget):
                 self.call_after_refresh(self.recompose)
 
         self.app.push_screen(_SelectModal('Change priority:', options), on_priority)
+
+    def action_move_up(self) -> None:
+        ft = self._focused_task()
+        if ft is None:
+            return
+        idx, task = ft
+        pri_idx = PRIORITY_VALUES.index(task.priority)
+        if pri_idx == 0:
+            return
+        updated = replace(task, priority=PRIORITY_VALUES[pri_idx - 1])
+        update_task(self.data_dir, idx, updated)
+        self._tasks = load_tasks(self.data_dir)
+        self.call_after_refresh(self.recompose)
+
+    def action_move_down(self) -> None:
+        ft = self._focused_task()
+        if ft is None:
+            return
+        idx, task = ft
+        pri_idx = PRIORITY_VALUES.index(task.priority)
+        if pri_idx == len(PRIORITY_VALUES) - 1:
+            return
+        updated = replace(task, priority=PRIORITY_VALUES[pri_idx + 1])
+        update_task(self.data_dir, idx, updated)
+        self._tasks = load_tasks(self.data_dir)
+        self.call_after_refresh(self.recompose)
+
+    def action_move_left(self) -> None:
+        ft = self._focused_task()
+        if ft is None:
+            return
+        idx, task = ft
+        col_idx = (
+            _STATUS_ORDER.index(task.status) if task.status in _STATUS_ORDER else -1
+        )
+        if col_idx <= 0:
+            return
+        updated = replace(task, status=_STATUS_ORDER[col_idx - 1])
+        update_task(self.data_dir, idx, updated)
+        self._tasks = load_tasks(self.data_dir)
+        self.call_after_refresh(self.recompose)
+
+    def action_move_right(self) -> None:
+        ft = self._focused_task()
+        if ft is None:
+            return
+        idx, task = ft
+        col_idx = (
+            _STATUS_ORDER.index(task.status) if task.status in _STATUS_ORDER else -1
+        )
+        if col_idx < 0 or col_idx >= len(_STATUS_ORDER) - 1:
+            return
+        updated = replace(task, status=_STATUS_ORDER[col_idx + 1])
+        update_task(self.data_dir, idx, updated)
+        self._tasks = load_tasks(self.data_dir)
+        self.call_after_refresh(self.recompose)
 
     def action_delete_task(self) -> None:
         ft = self._focused_task()
