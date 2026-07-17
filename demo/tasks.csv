@@ -1,0 +1,37 @@
+Name,Category,Date Created,Delegated To,Due,Feedback From,Key Resource,Last edited time,Priority,Status
+Prep 1:1 with Alex Chen,People,"July 14, 2026 9:00 AM",,,,,"July 16, 2026 8:45 AM",High,Now
+Review ENG-412 incident post-mortem,Engineering,"July 13, 2026 2:00 PM",,,Marcus Webb,https://linear.app/acme/issue/ENG-412,"July 16, 2026 9:30 AM",High,Now
+Finalise Platform team Q3 roadmap,Strategy,"July 10, 2026 10:00 AM",,"July 18, 2026 5:00 PM",,https://confluence.acme.io/q3-roadmap,"July 16, 2026 10:15 AM",High,Now
+Interview debrief — Jordan Lee (Staff Eng),Hiring,"July 15, 2026 11:30 AM",,,,,"July 16, 2026 11:00 AM",High,Now
+Unblock Data Infra migration PR #889,Engineering,"July 15, 2026 3:00 PM",,"July 17, 2026 12:00 PM",,https://github.com/acme/data-infra/pull/889,"July 16, 2026 2:00 PM",High,Feedback
+Review Priya Nair promotion case,People,"July 11, 2026 9:30 AM",,"July 21, 2026 5:00 PM",Priya Nair,,"July 15, 2026 4:30 PM",High,Feedback
+Growth team velocity retrospective,Engineering,"July 14, 2026 1:00 PM",,,,,"July 15, 2026 5:00 PM",Medium,Feedback
+Define acceptance criteria for search revamp,Product,"July 12, 2026 10:00 AM",,"July 22, 2026 5:00 PM",,https://linear.app/acme/issue/PROD-88,"July 16, 2026 9:00 AM",Medium,Todo
+Draft engineering hiring plan H2 2026,Hiring,"July 10, 2026 8:00 AM",,"July 25, 2026 5:00 PM",,,"July 13, 2026 3:00 PM",High,Todo
+Write ADR for event-sourcing approach,Engineering,"July 9, 2026 11:00 AM",,,,https://confluence.acme.io/adr-template,"July 14, 2026 10:00 AM",Medium,Todo
+Organise team offsite — venue shortlist,Work Life,"July 8, 2026 2:00 PM",,"August 1, 2026 5:00 PM",,,"July 12, 2026 9:00 AM",Low,Todo
+Set up oncall rotation for August,Engineering,"July 13, 2026 3:30 PM",,"July 20, 2026 5:00 PM",,,"July 14, 2026 8:30 AM",Medium,Todo
+Explore OpenTelemetry for internal services,Ideas,"July 11, 2026 5:00 PM",,,,,"July 11, 2026 5:00 PM",Low,Todo
+Refine rubric for senior engineer levelling,Strategy,"July 7, 2026 9:00 AM",,,,https://confluence.acme.io/eng-levels,"July 13, 2026 2:00 PM",Low,Todo
+Merge authentication service refactor,Engineering,"July 1, 2026 9:00 AM",,,,https://github.com/acme/auth/pull/204,"July 9, 2026 4:45 PM",High,Done
+Close Sam Okafor offer — backend role,Hiring,"July 2, 2026 10:00 AM",,,,,"July 8, 2026 3:00 PM",High,Done
+ENG-391 hotfix deploy to production,Engineering,"June 30, 2026 11:00 PM",,,,https://linear.app/acme/issue/ENG-391,"July 1, 2026 1:30 AM",High,Done
+Platform on-call handoff — week 27,Engineering,"July 6, 2026 8:00 AM",,,,,"July 6, 2026 9:00 AM",Medium,Done
+Reviewed Marcus Webb mid-year self-assessment,People,"July 3, 2026 2:00 PM",,,,,"July 4, 2026 11:00 AM",Medium,Done
+Shipped feature flags for Growth A/B tests,Product,"July 5, 2026 10:00 AM",,,,https://linear.app/acme/issue/PROD-71,"July 7, 2026 6:00 PM",High,Done
+Delivered Q2 engineering metrics to exec,Strategy,"June 28, 2026 9:00 AM",,,,,"June 30, 2026 4:00 PM",High,Done
+Completed team norms workshop,People,"June 25, 2026 1:00 PM",,,,,"June 26, 2026 5:30 PM",Medium,Done
+Resolved Postgres replication lag incident,Engineering,"June 24, 2026 3:00 PM",,,,https://linear.app/acme/issue/ENG-378,"June 24, 2026 11:59 PM",High,Done
+Onboarded Kenji Park to Platform team,People,"June 23, 2026 9:00 AM",,,,,"June 27, 2026 5:00 PM",Medium,Done
+Closed PROD-60 — search ranking regression,Product,"June 20, 2026 2:00 PM",,,,https://linear.app/acme/issue/PROD-60,"June 23, 2026 3:00 PM",High,Done
+Ran H1 retrospective with full eng org,Strategy,"June 19, 2026 10:00 AM",,,,,"June 19, 2026 5:00 PM",Medium,Done
+Deprecated legacy CSV import service,Engineering,"June 17, 2026 11:00 AM",,,,,"June 20, 2026 2:00 PM",Low,Done
+Set up Grafana dashboard for API latency,Engineering,"June 15, 2026 9:00 AM",,,,https://grafana.acme.io/d/api-latency,"June 18, 2026 4:00 PM",Medium,Done
+Published team RFC on rate-limiting strategy,Engineering,"June 12, 2026 10:00 AM",,,,https://confluence.acme.io/rfc-rate-limit,"June 16, 2026 3:30 PM",Low,Done
+Delegated vendor security review to Priya Nair,Engineering,"July 8, 2026 10:00 AM",Priya Nair,"July 23, 2026 5:00 PM",,,"July 8, 2026 10:30 AM",Medium,Delegated
+Delegated sprint planning facilitation to Marcus Webb,Engineering,"July 7, 2026 9:00 AM",Marcus Webb,,,,"July 7, 2026 9:15 AM",Low,Delegated
+Delegated GDPR data-deletion audit to Data Infra,Strategy,"July 3, 2026 2:00 PM",Data Infra,"July 31, 2026 5:00 PM",,,"July 3, 2026 2:30 PM",High,Delegated
+Delegated candidate screening for frontend role to Kenji Park,Hiring,"July 5, 2026 11:00 AM",Kenji Park,,,,"July 5, 2026 11:30 AM",Medium,Delegated
+Cancelled — async standup tooling PoC (low ROI),Ideas,"June 22, 2026 3:00 PM",,,,,"June 29, 2026 2:00 PM",Low,Stopped
+Dropped — migrate wiki to Notion (team prefers Confluence),Work Life,"June 18, 2026 10:00 AM",,,,,"June 21, 2026 9:00 AM",Low,Stopped
+Stopped — manual QA sign-off process (automated),Engineering,"July 2, 2026 9:00 AM",,,,,"July 6, 2026 11:00 AM",Medium,Stopped

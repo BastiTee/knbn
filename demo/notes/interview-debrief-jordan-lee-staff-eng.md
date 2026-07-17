@@ -1,0 +1,2 @@
+- Really good candidate
+- We should hire him
