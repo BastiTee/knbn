@@ -41,7 +41,9 @@ def test_load_tolerates_malformed_json(tmp_path: Path) -> None:
     assert result == SETTINGS_DEFAULTS
 
 
-def test_atomic_save_uses_tmp_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_atomic_save_uses_tmp_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     renamed_from: list[Path] = []
     original_rename = Path.rename
 

@@ -17,7 +17,9 @@ def test_env_var_override(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> No
     assert resolve_data_dir() == tmp_path
 
 
-def test_env_var_is_path_object(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_env_var_is_path_object(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(tmp_path))
     result = resolve_data_dir()
     assert isinstance(result, Path)

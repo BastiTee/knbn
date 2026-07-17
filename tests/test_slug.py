@@ -40,12 +40,18 @@ def test_no_collision() -> None:
 
 def test_collision_suffix_2() -> None:
     existing = {'research-feedback-models'}
-    assert unique_slug('Research feedback models', existing) == 'research-feedback-models-2'
+    assert (
+        unique_slug('Research feedback models', existing)
+        == 'research-feedback-models-2'
+    )
 
 
 def test_collision_suffix_3() -> None:
     existing = {'research-feedback-models', 'research-feedback-models-2'}
-    assert unique_slug('Research feedback models', existing) == 'research-feedback-models-3'
+    assert (
+        unique_slug('Research feedback models', existing)
+        == 'research-feedback-models-3'
+    )
 
 
 def test_unique_slug_no_existing() -> None:

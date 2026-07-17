@@ -31,7 +31,7 @@ def _make_task(**kwargs: str) -> Task:
         'date_modified': 'July 1, 2026 2:27 PM',
     }
     defaults.update(kwargs)
-    return Task(**defaults)  # type: ignore[arg-type]
+    return Task(**defaults)
 
 
 def test_ensure_data_dir_creates_structure(tmp_path: Path) -> None:
@@ -91,7 +91,9 @@ def test_round_trip(tmp_path: Path) -> None:
         assert orig.category == reloaded_task.category
 
 
-def test_atomic_save_uses_tmp_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_atomic_save_uses_tmp_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     ensure_data_dir(tmp_path)
     tasks = [_make_task()]
     # Patch rename to capture that tmp file was used

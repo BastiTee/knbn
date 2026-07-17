@@ -65,11 +65,27 @@ def board() -> None:
 
 @cli.command()
 @click.option('--title', '-t', default=None, help='Task title (skips prompt)')
-@click.option('--status-default', 'status_default', is_flag=True, help='Use default status (Todo)')
-@click.option('--priority-default', 'priority_default', is_flag=True, help='Use default priority (Medium)')
-@click.option('--category-default', 'category_default', is_flag=True, help='Use default category (Ideas)')
-@click.option('--no-resource', 'no_resource', is_flag=True, help='Skip key resource prompt')
-@click.option('--fast', '-f', is_flag=True, help='Use all defaults and skip all optional prompts')
+@click.option(
+    '--status-default', 'status_default', is_flag=True, help='Use default status (Todo)'
+)
+@click.option(
+    '--priority-default',
+    'priority_default',
+    is_flag=True,
+    help='Use default priority (Medium)',
+)
+@click.option(
+    '--category-default',
+    'category_default',
+    is_flag=True,
+    help='Use default category (Ideas)',
+)
+@click.option(
+    '--no-resource', 'no_resource', is_flag=True, help='Skip key resource prompt'
+)
+@click.option(
+    '--fast', '-f', is_flag=True, help='Use all defaults and skip all optional prompts'
+)
 def add(
     title: str | None,
     status_default: bool,

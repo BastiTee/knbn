@@ -61,7 +61,9 @@ def test_add_fast_with_title(data_dir: Path, monkeypatch: pytest.MonkeyPatch) ->
     assert task.key_resource == ''
 
 
-def test_add_fast_flag_sets_all_defaults(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_fast_flag_sets_all_defaults(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     with patch('knbn.cli.add_task') as mock_add:
@@ -73,7 +75,9 @@ def test_add_fast_flag_sets_all_defaults(data_dir: Path, monkeypatch: pytest.Mon
     assert task.category == 'Ideas'
 
 
-def test_add_prompts_title_when_not_provided(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_prompts_title_when_not_provided(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     with patch('knbn.cli.add_task'):
@@ -82,13 +86,22 @@ def test_add_prompts_title_when_not_provided(data_dir: Path, monkeypatch: pytest
     assert '✓ Task added: Prompted title' in result.output
 
 
-def test_add_status_default_flag(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_status_default_flag(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     with patch('knbn.cli.add_task') as mock_add:
         result = runner.invoke(
             add,
-            ['--title', 'Task', '--status-default', '--priority-default', '--category-default', '--no-resource'],
+            [
+                '--title',
+                'Task',
+                '--status-default',
+                '--priority-default',
+                '--category-default',
+                '--no-resource',
+            ],
         )
     assert result.exit_code == 0
     task: Task = mock_add.call_args[0][1]
@@ -106,7 +119,9 @@ def test_add_stores_dates(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> No
     assert task.date_created == task.date_modified
 
 
-def test_add_confirmation_message(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_confirmation_message(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     with patch('knbn.cli.add_task'):
@@ -114,7 +129,9 @@ def test_add_confirmation_message(data_dir: Path, monkeypatch: pytest.MonkeyPatc
     assert '✓ Task added: Confirm me' in result.output
 
 
-def test_add_interactive_prompts_full(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_interactive_prompts_full(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Test add with all prompts answered interactively (no flags)."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
@@ -131,26 +148,50 @@ def test_add_interactive_prompts_full(data_dir: Path, monkeypatch: pytest.Monkey
     assert task.key_resource == ''
 
 
-def test_add_interactive_feedback_status(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_interactive_feedback_status(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Selecting Feedback status prompts for Feedback From."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     # status list: 1=Todo,2=Now,3=Feedback — pick 3; then feedback_from; priority default; category default; no resource
     with patch('knbn.cli.add_task') as mock_add:
-        result = runner.invoke(add, ['--title', 'Blocked task', '--priority-default', '--category-default', '--no-resource'], input='3\nCarol\n')
+        result = runner.invoke(
+            add,
+            [
+                '--title',
+                'Blocked task',
+                '--priority-default',
+                '--category-default',
+                '--no-resource',
+            ],
+            input='3\nCarol\n',
+        )
     assert result.exit_code == 0
     task: Task = mock_add.call_args[0][1]
     assert task.status == 'Feedback'
     assert task.feedback_from == 'Carol'
 
 
-def test_add_interactive_delegated_status(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_interactive_delegated_status(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Selecting Delegated status prompts for Delegated To."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     # status: 4=Delegated
     with patch('knbn.cli.add_task') as mock_add:
-        result = runner.invoke(add, ['--title', 'Hand off', '--priority-default', '--category-default', '--no-resource'], input='4\nAlex\n')
+        result = runner.invoke(
+            add,
+            [
+                '--title',
+                'Hand off',
+                '--priority-default',
+                '--category-default',
+                '--no-resource',
+            ],
+            input='4\nAlex\n',
+        )
     assert result.exit_code == 0
     task: Task = mock_add.call_args[0][1]
     assert task.status == 'Delegated'
@@ -163,7 +204,13 @@ def test_add_with_key_resource(data_dir: Path, monkeypatch: pytest.MonkeyPatch) 
     with patch('knbn.cli.add_task') as mock_add:
         result = runner.invoke(
             add,
-            ['--title', 'Resource task', '--status-default', '--priority-default', '--category-default'],
+            [
+                '--title',
+                'Resource task',
+                '--status-default',
+                '--priority-default',
+                '--category-default',
+            ],
             input='https://example.com/thread\n',
         )
     assert result.exit_code == 0
@@ -171,13 +218,21 @@ def test_add_with_key_resource(data_dir: Path, monkeypatch: pytest.MonkeyPatch) 
     assert task.key_resource == 'https://example.com/thread'
 
 
-def test_add_dash_clears_resource(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_add_dash_clears_resource(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     with patch('knbn.cli.add_task') as mock_add:
         result = runner.invoke(
             add,
-            ['--title', 'No link', '--status-default', '--priority-default', '--category-default'],
+            [
+                '--title',
+                'No link',
+                '--status-default',
+                '--priority-default',
+                '--category-default',
+            ],
             input='-\n',
         )
     assert result.exit_code == 0

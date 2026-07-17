@@ -11,8 +11,20 @@ from textual.widgets import Static
 from knbn.model.task import STATUS_TERMINAL, Task
 
 _DATE_FMT = '%B %d, %Y %I:%M %p'
-_MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+_MONTH_ABBR = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+]
 
 
 def _parse_modified(s: str) -> datetime | None:
@@ -30,6 +42,7 @@ def _week_range_label(dt: datetime) -> str:
     week = iso[1]
     # Monday of that ISO week
     import datetime as dt_module
+
     monday = dt_module.date.fromisocalendar(year, week, 1)
     sunday = dt_module.date.fromisocalendar(year, week, 7)
     start_month = _MONTH_ABBR[monday.month - 1]

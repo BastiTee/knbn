@@ -36,6 +36,7 @@ _HELP_TEXT = """\
   [cyan]e[/cyan]           Edit task
   [cyan]n[/cyan]           Open notes
   [cyan]o[/cyan]           Open key resource URL
+  [cyan]d[/cyan]           Delete task (confirm)
 
 [bold]Form[/bold]
   [cyan]Tab[/cyan]         Next field

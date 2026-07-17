@@ -149,7 +149,9 @@ class LaneHeader(Static):
     LaneHeader:focus { background: $accent; }
     """
 
-    def __init__(self, priority: str, collapsed: bool = False, **kwargs: object) -> None:
+    def __init__(
+        self, priority: str, collapsed: bool = False, **kwargs: object
+    ) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self._priority = priority
         self._collapsed = collapsed
@@ -211,7 +213,11 @@ class KanbanView(Widget):
         self._focused_row: dict[int, int] = {0: 0, 1: 0, 2: 0}
 
     def _tasks_for(self, status: str, priority: str) -> list[tuple[int, Task]]:
-        return [(i, t) for i, t in enumerate(self._tasks) if t.status == status and t.priority == priority]
+        return [
+            (i, t)
+            for i, t in enumerate(self._tasks)
+            if t.status == status and t.priority == priority
+        ]
 
     def _count_for_status(self, status: str) -> int:
         return sum(1 for t in self._tasks if t.status == status)
@@ -229,7 +235,9 @@ class KanbanView(Widget):
             for col_idx, status in enumerate(_STATUS_ORDER):
                 with Vertical(classes='board-col', id=f'col-{col_idx}'):
                     for priority in PRIORITY_VALUES:
-                        yield LaneHeader(priority, id=f'lane-{col_idx}-{priority.lower()}')
+                        yield LaneHeader(
+                            priority, id=f'lane-{col_idx}-{priority.lower()}'
+                        )
                         if priority not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
                                 yield TaskCard(task, self.data_dir, id=f'card-{idx}')
@@ -312,7 +320,9 @@ class KanbanView(Widget):
         idx, task = ft
         from knbn.widgets.form import TaskForm
 
-        self.app.push_screen(TaskForm(data_dir=self.data_dir, task=task, task_index=idx))
+        self.app.push_screen(
+            TaskForm(data_dir=self.data_dir, task=task, task_index=idx)
+        )
 
     def action_open_notes(self) -> None:
         ft = self._focused_task()

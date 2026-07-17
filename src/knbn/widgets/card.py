@@ -77,7 +77,11 @@ class TaskCard(Static):
         tag = f'[on {color}] {self.knbn_task.category} [/on {color}]'
         title_line = f'{title}{notes}'
         if due_str:
-            due_markup = f'[bold red]{due_str}[/bold red]' if overdue else f'[dim]{due_str}[/dim]'
+            due_markup = (
+                f'[bold red]{due_str}[/bold red]'
+                if overdue
+                else f'[dim]{due_str}[/dim]'
+            )
             bottom_line = f'{tag}  {due_markup}'
         else:
             bottom_line = tag

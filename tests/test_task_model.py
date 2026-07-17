@@ -66,6 +66,14 @@ def test_priority_order() -> None:
 
 
 def test_default_categories_present() -> None:
-    expected = ['People', 'Hiring', 'Strategy', 'Product', 'Engineering', 'Work Life', 'Ideas']
+    expected = [
+        'People',
+        'Hiring',
+        'Strategy',
+        'Product',
+        'Engineering',
+        'Work Life',
+        'Ideas',
+    ]
     assert expected == DEFAULT_CATEGORIES
     assert len(DEFAULT_CATEGORIES) == 7

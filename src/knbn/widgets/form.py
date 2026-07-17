@@ -70,7 +70,10 @@ class TaskForm(ModalScreen[None]):
     def compose(self) -> ComposeResult:
         t = self.existing_task
         with Static():
-            yield Label('[bold]Add Task[/bold]' if t is None else '[bold]Edit Task[/bold]', markup=True)
+            yield Label(
+                '[bold]Add Task[/bold]' if t is None else '[bold]Edit Task[/bold]',
+                markup=True,
+            )
 
             yield Label('Title')
             yield Input(value=t.title if t else '', id='f-title')
@@ -81,7 +84,9 @@ class TaskForm(ModalScreen[None]):
 
             yield Label('Priority')
             priority_opts = [(p, p) for p in PRIORITY_VALUES]
-            yield Select(priority_opts, value=t.priority if t else 'Medium', id='f-priority')
+            yield Select(
+                priority_opts, value=t.priority if t else 'Medium', id='f-priority'
+            )
 
             yield Label('Category')
             cat_opts = [(c, c) for c in DEFAULT_CATEGORIES]
