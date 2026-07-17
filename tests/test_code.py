@@ -1,6 +1,6 @@
-"""Test suite for my_module."""
+"""Test suite for knbn."""
 
-from my_module import greet
+from knbn import greet
 
 
 class TestGreet:

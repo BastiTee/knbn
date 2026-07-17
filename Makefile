@@ -74,13 +74,13 @@ update: ## Update all dependencies
 	uv sync --upgrade
 
 run-venv: ## Run module directly in venv
-	uv run python -m my_module
+	uv run python -m knbn
 
 
 install-run: ## Install package and run CLI
 	uv pip install --upgrade .
 	@echo --- Note: The next command might fail before you reload your shell
-	my_module_cli
+	knbn_cli
 
 audit: ## Scan dependencies for known CVEs
 	uv run pip-audit --skip-editable

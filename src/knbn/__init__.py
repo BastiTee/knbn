@@ -1,4 +1,4 @@
-"""my_module - A Python module template.
+"""knbn - A Python module template.
 
 This module provides example functions demonstrating proper typing,
 documentation, and testing patterns.
