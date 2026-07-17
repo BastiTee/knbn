@@ -226,9 +226,6 @@ class KanbanView(Widget):
     def _count_for_status(self, status: str) -> int:
         return sum(1 for t in self._tasks if t.status == status)
 
-    def _count_terminal(self, status: str) -> int:
-        return sum(1 for t in self._tasks if t.status == status)
-
     def compose(self) -> ComposeResult:
         with Static(id='board-header'):
             for status in _STATUS_ORDER:
@@ -240,15 +237,17 @@ class KanbanView(Widget):
                 with Vertical(classes='board-col', id=f'col-{col_idx}'):
                     for priority in PRIORITY_VALUES:
                         yield LaneHeader(
-                            priority, id=f'lane-{col_idx}-{priority.lower()}'
+                            priority,
+                            collapsed=priority in self._collapsed,
+                            id=f'lane-{col_idx}-{priority.lower()}',
                         )
                         if priority not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
                                 yield TaskCard(task, self.data_dir, id=f'card-{idx}')
 
-        done = self._count_terminal('Done')
-        delegated = self._count_terminal('Delegated')
-        stopped = self._count_terminal('Stopped')
+        done = self._count_for_status('Done')
+        delegated = self._count_for_status('Delegated')
+        stopped = self._count_for_status('Stopped')
         yield Static(
             f'  Done {done:>6}   Delegated {delegated:>4}   Stopped {stopped:>4}',
             id='archive-bar',
@@ -300,6 +299,8 @@ class KanbanView(Widget):
 
     def action_focus_down(self) -> None:
         cards = self._get_cards_in_col(self._focused_col)
+        if not cards:
+            return
         r = self._focused_row.get(self._focused_col, 0)
         self._focused_row[self._focused_col] = min(len(cards) - 1, r + 1)
         self._focus_col_card()

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import datetime
 from pathlib import Path
 
 from textual.app import ComposeResult
@@ -13,11 +12,13 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
 
 from knbn.model.store import add_task, update_task
-from knbn.model.task import DEFAULT_CATEGORIES, PRIORITY_VALUES, STATUS_VALUES, Task
-
-
-def _now_str() -> str:
-    return datetime.now().strftime('%B %-d, %Y %-I:%M %p')
+from knbn.model.task import (
+    DEFAULT_CATEGORIES,
+    PRIORITY_VALUES,
+    STATUS_VALUES,
+    Task,
+    now_str,
+)
 
 
 class TaskForm(ModalScreen[None]):
@@ -135,7 +136,7 @@ class TaskForm(ModalScreen[None]):
         feedback_from = self.query_one('#f-feedback', Input).value.strip()
         delegated_to = self.query_one('#f-delegated', Input).value.strip()
 
-        now = _now_str()
+        now = now_str()
 
         if self.existing_task is not None and self.task_index is not None:
             updated = replace(

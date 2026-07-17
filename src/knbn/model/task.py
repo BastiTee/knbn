@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 STATUS_ACTIVE: list[str] = ['Todo', 'Now', 'Feedback']
 STATUS_TERMINAL: list[str] = ['Done', 'Delegated', 'Stopped']
@@ -19,6 +20,10 @@ DEFAULT_CATEGORIES: list[str] = [
     'Work Life',
     'Ideas',
 ]
+
+
+def now_str() -> str:
+    return datetime.now().strftime('%B %-d, %Y %-I:%M %p')
 
 
 @dataclass

@@ -13,7 +13,6 @@ from textual.widgets import Static
 from knbn.model.task import STATUS_TERMINAL, Task
 from knbn.views._row import TaskRow
 
-_DATE_FMT = '%B %d, %Y %I:%M %p'
 _MONTH_ABBR = [
     'Jan',
     'Feb',
@@ -61,6 +60,8 @@ class DoneByWeekView(Widget):
     BINDINGS = [
         Binding('up', 'cursor_up', 'Up', show=False),
         Binding('down', 'cursor_down', 'Down', show=False),
+        Binding('shift+up', 'cursor_up_fast', 'Up×10', show=False, priority=True),
+        Binding('shift+down', 'cursor_down_fast', 'Down×10', show=False, priority=True),
         Binding('enter', 'open_detail', 'Open', show=False),
     ]
 
@@ -86,6 +87,7 @@ class DoneByWeekView(Widget):
 
     def compose(self) -> ComposeResult:
         self._rows = []
+        task_index = {id(t): i for i, t in enumerate(self._tasks)}
         terminal = [t for t in self._tasks if t.status in STATUS_TERMINAL]
 
         # Group by ISO week key (year, week_number) — sort key for ordering
@@ -108,7 +110,7 @@ class DoneByWeekView(Widget):
                 label = 'Unknown week'
             yield Static(f'▼ {label}  {len(group)}', classes='week-header')
             for task in group:
-                idx = self._tasks.index(task)
+                idx = task_index[id(task)]
                 name = task.title if len(task.title) <= 36 else task.title[:35] + '…'
                 row_text = (
                     f'  {name:<38} {task.category:<14} {task.priority:<8}'
@@ -136,6 +138,29 @@ class DoneByWeekView(Widget):
             return
         i = self._focused_index()
         self._rows[min(i + 1, len(self._rows) - 1)].focus()
+
+    def action_cursor_up_fast(self) -> None:
+        if not self._rows:
+            return
+        i = self._focused_index()
+        self._rows[max(i - 10, 0)].focus()
+
+    def action_cursor_down_fast(self) -> None:
+        if not self._rows:
+            return
+        i = self._focused_index()
+        self._rows[min(i + 10, len(self._rows) - 1)].focus()
+
+    def on_mount(self) -> None:
+        if self._rows:
+            self._rows[0].focus()
+
+    def on_key(self, event: object) -> None:
+        from textual.events import Key
+
+        if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
+            event.prevent_default()
+            event.stop()
 
     def action_open_detail(self) -> None:
         from knbn.widgets.detail import TaskDetailPanel

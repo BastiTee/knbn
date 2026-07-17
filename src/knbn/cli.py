@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 
 import click
 
 from knbn.config import resolve_data_dir
 from knbn.model.store import add_task, ensure_data_dir
-from knbn.model.task import DEFAULT_CATEGORIES, PRIORITY_VALUES, Task
-
-_DATE_FMT = '%-B %-d, %Y %-I:%M %p'
-
-
-def _now_str() -> str:
-    now = datetime.now()
-    return now.strftime('%B %-d, %Y %-I:%M %p')
+from knbn.model.task import DEFAULT_CATEGORIES, PRIORITY_VALUES, Task, now_str
 
 
 def _prompt_select(label: str, options: list[str], default: str) -> str:
@@ -143,7 +135,7 @@ def add(
         )
         key_resource = '' if raw in ('', '-') else raw
 
-    now = _now_str()
+    now = now_str()
     task = Task(
         title=title,
         category=category,
