@@ -278,11 +278,15 @@ class KanbanView(Widget):
         return list(col.query(TaskCard))
 
     def action_focus_left(self) -> None:
+        current_row = self._focused_row.get(self._focused_col, 0)
         self._focused_col = max(0, self._focused_col - 1)
+        self._focused_row[self._focused_col] = current_row
         self._focus_col_card()
 
     def action_focus_right(self) -> None:
+        current_row = self._focused_row.get(self._focused_col, 0)
         self._focused_col = min(2, self._focused_col + 1)
+        self._focused_row[self._focused_col] = current_row
         self._focus_col_card()
 
     def action_focus_up(self) -> None:
