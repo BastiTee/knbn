@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.widget import Widget
 from textual.widgets import Static
 
 from knbn.model.task import STATUS_TERMINAL, Task
+from knbn.views._row import TaskRow
 
 _DATE_FMT = '%B %d, %Y %I:%M %p'
 _MONTH_ABBR = [
@@ -55,6 +58,12 @@ def _week_range_label(dt: datetime) -> str:
 class DoneByWeekView(Widget):
     """Archived tasks grouped by ISO week of last-modified date."""
 
+    BINDINGS = [
+        Binding('up', 'cursor_up', 'Up', show=False),
+        Binding('down', 'cursor_down', 'Down', show=False),
+        Binding('enter', 'open_detail', 'Open', show=False),
+    ]
+
     DEFAULT_CSS = """
     DoneByWeekView {
         height: 1fr;
@@ -67,16 +76,16 @@ class DoneByWeekView(Widget):
         padding: 0 1;
         margin-top: 1;
     }
-    .done-row {
-        padding: 0 2;
-    }
     """
 
-    def __init__(self, tasks: list[Task], **kwargs: object) -> None:
+    def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self._tasks = tasks
+        self.data_dir = data_dir
+        self._rows: list[TaskRow] = []
 
     def compose(self) -> ComposeResult:
+        self._rows = []
         terminal = [t for t in self._tasks if t.status in STATUS_TERMINAL]
 
         # Group by ISO week key (year, week_number) — sort key for ordering
@@ -99,9 +108,42 @@ class DoneByWeekView(Widget):
                 label = 'Unknown week'
             yield Static(f'▼ {label}  {len(group)}', classes='week-header')
             for task in group:
+                idx = self._tasks.index(task)
                 name = task.title if len(task.title) <= 36 else task.title[:35] + '…'
-                row = (
+                row_text = (
                     f'  {name:<38} {task.category:<14} {task.priority:<8}'
                     f' {task.date_modified:<22} {task.date_created}'
                 )
-                yield Static(row, classes='done-row')
+                row = TaskRow(idx, task, row_text)
+                self._rows.append(row)
+                yield row
+
+    def _focused_index(self) -> int:
+        focused = self.app.focused
+        for i, row in enumerate(self._rows):
+            if row is focused:
+                return i
+        return -1
+
+    def action_cursor_up(self) -> None:
+        if not self._rows:
+            return
+        i = self._focused_index()
+        self._rows[max(i - 1, 0)].focus()
+
+    def action_cursor_down(self) -> None:
+        if not self._rows:
+            return
+        i = self._focused_index()
+        self._rows[min(i + 1, len(self._rows) - 1)].focus()
+
+    def action_open_detail(self) -> None:
+        from knbn.widgets.detail import TaskDetailPanel
+
+        i = self._focused_index()
+        if i < 0:
+            return
+        row = self._rows[i]
+        self.app.push_screen(
+            TaskDetailPanel(row.task_index, row.knbn_task, self.data_dir)
+        )

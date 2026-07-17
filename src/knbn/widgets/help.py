@@ -38,6 +38,10 @@ _HELP_TEXT = """\
   [cyan]o[/cyan]           Open key resource URL
   [cyan]d[/cyan]           Delete task (confirm)
 
+[bold]Tabular / Done views[/bold]
+  [cyan]↑ ↓[/cyan]         Move between rows
+  [cyan]Enter[/cyan]       Open task detail
+
 [bold]Form[/bold]
   [cyan]Tab[/cyan]         Next field
   [cyan]Shift+Tab[/cyan]   Previous field

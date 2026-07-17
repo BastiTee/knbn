@@ -63,9 +63,9 @@ class KnbnApp(App[None]):
         if view == 'kanban':
             container.mount(KanbanView(self._tasks, self.data_dir))
         elif view == 'tabular':
-            container.mount(TabularView(self._tasks))
+            container.mount(TabularView(self._tasks, self.data_dir))
         elif view == 'done_week':
-            container.mount(DoneByWeekView(self._tasks))
+            container.mount(DoneByWeekView(self._tasks, self.data_dir))
 
     def compose(self) -> ComposeResult:
         yield Header()

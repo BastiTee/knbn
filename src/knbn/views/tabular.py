@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.widget import Widget
 from textual.widgets import Static
 
 from knbn.model.task import PRIORITY_VALUES, STATUS_ACTIVE, Task
+from knbn.views._row import TaskRow
 
 _PRIORITY_RANK = {p: i for i, p in enumerate(PRIORITY_VALUES)}
 
@@ -17,6 +21,12 @@ def _sort_key(task: Task) -> tuple[int, str]:
 
 class TabularView(Widget):
     """Flat table of active tasks grouped by status."""
+
+    BINDINGS = [
+        Binding('up', 'cursor_up', 'Up', show=False),
+        Binding('down', 'cursor_down', 'Down', show=False),
+        Binding('enter', 'open_detail', 'Open', show=False),
+    ]
 
     DEFAULT_CSS = """
     TabularView {
@@ -30,16 +40,16 @@ class TabularView(Widget):
         padding: 0 1;
         margin-top: 1;
     }
-    .task-row {
-        padding: 0 2;
-    }
     """
 
-    def __init__(self, tasks: list[Task], **kwargs: object) -> None:
+    def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self._tasks = tasks
+        self.data_dir = data_dir
+        self._rows: list[TaskRow] = []
 
     def compose(self) -> ComposeResult:
+        self._rows = []
         for status in STATUS_ACTIVE:
             group = sorted(
                 [t for t in self._tasks if t.status == status],
@@ -49,7 +59,40 @@ class TabularView(Widget):
                 continue
             yield Static(f'▼ {status}  {len(group)}', classes='group-header')
             for task in group:
+                idx = self._tasks.index(task)
                 due = task.due.split(' ')[0] if task.due else ''
                 name = task.title if len(task.title) <= 40 else task.title[:39] + '…'
-                row = f'  {name:<42} {task.priority:<8} {task.category:<14} {due}'
-                yield Static(row, classes='task-row')
+                row_text = f'  {name:<42} {task.priority:<8} {task.category:<14} {due}'
+                row = TaskRow(idx, task, row_text)
+                self._rows.append(row)
+                yield row
+
+    def _focused_index(self) -> int:
+        focused = self.app.focused
+        for i, row in enumerate(self._rows):
+            if row is focused:
+                return i
+        return -1
+
+    def action_cursor_up(self) -> None:
+        if not self._rows:
+            return
+        i = self._focused_index()
+        self._rows[max(i - 1, 0)].focus()
+
+    def action_cursor_down(self) -> None:
+        if not self._rows:
+            return
+        i = self._focused_index()
+        self._rows[min(i + 1, len(self._rows) - 1)].focus()
+
+    def action_open_detail(self) -> None:
+        from knbn.widgets.detail import TaskDetailPanel
+
+        i = self._focused_index()
+        if i < 0:
+            return
+        row = self._rows[i]
+        self.app.push_screen(
+            TaskDetailPanel(row.task_index, row.knbn_task, self.data_dir)
+        )
