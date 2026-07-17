@@ -90,3 +90,10 @@ class TaskCard(Static):
 
     def refresh_notes(self) -> None:
         self.refresh(layout=True)
+
+    def on_key(self, event: object) -> None:
+        from textual.events import Key
+
+        if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
+            event.prevent_default()
+            event.stop()
