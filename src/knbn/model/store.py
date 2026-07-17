@@ -35,6 +35,8 @@ def _notes_dir(data_dir: Path) -> Path:
 
 
 def ensure_data_dir(data_dir: Path) -> None:
+    from knbn.config import SETTINGS_DEFAULTS, save_settings
+
     data_dir.mkdir(parents=True, exist_ok=True)
     csv_file = _csv_path(data_dir)
     if not csv_file.exists():
@@ -42,6 +44,9 @@ def ensure_data_dir(data_dir: Path) -> None:
             writer = csv.DictWriter(f, fieldnames=_CSV_FIELDNAMES)
             writer.writeheader()
     _notes_dir(data_dir).mkdir(exist_ok=True)
+    settings_file = data_dir / 'settings.json'
+    if not settings_file.exists():
+        save_settings(data_dir, dict(SETTINGS_DEFAULTS))
 
 
 def _task_to_row(task: Task) -> dict[str, str]:

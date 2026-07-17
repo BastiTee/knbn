@@ -35,10 +35,11 @@ class KnbnApp(App[None]):
         Binding('question_mark', 'help', 'Help', show=True),
     ]
 
-    def __init__(self, data_dir: Path) -> None:
+    def __init__(self, data_dir: Path, theme: str = 'textual-dark') -> None:
         super().__init__()
         self.data_dir = data_dir
         self._tasks: list[Task] = []
+        self.theme = theme
 
     def on_mount(self) -> None:
         size = self.app.size
@@ -97,3 +98,12 @@ class KnbnApp(App[None]):
     def on_task_form_task_saved(self) -> None:
         self._reload_tasks()
         self._show_view('kanban')
+
+    def watch_theme(self, theme: str) -> None:
+        from knbn.config import load_settings, save_settings
+
+        if not hasattr(self, 'data_dir'):
+            return
+        settings = load_settings(self.data_dir)
+        settings['theme'] = theme
+        save_settings(self.data_dir, settings)

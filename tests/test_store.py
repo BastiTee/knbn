@@ -40,12 +40,21 @@ def test_ensure_data_dir_creates_structure(tmp_path: Path) -> None:
     assert data_dir.is_dir()
     assert (data_dir / 'tasks.csv').exists()
     assert (data_dir / 'notes').is_dir()
+    assert (data_dir / 'settings.json').exists()
 
 
 def test_ensure_data_dir_idempotent(tmp_path: Path) -> None:
     data_dir = tmp_path / 'knbn'
     ensure_data_dir(data_dir)
     ensure_data_dir(data_dir)  # second call must not raise
+
+
+def test_ensure_data_dir_preserves_existing_settings(tmp_path: Path) -> None:
+    data_dir = tmp_path / 'knbn'
+    ensure_data_dir(data_dir)
+    (data_dir / 'settings.json').write_text('{"theme": "light"}', encoding='utf-8')
+    ensure_data_dir(data_dir)
+    assert '"light"' in (data_dir / 'settings.json').read_text()
 
 
 def test_csv_has_header_after_init(tmp_path: Path) -> None:

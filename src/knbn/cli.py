@@ -57,7 +57,10 @@ def board() -> None:
 
     data_dir = resolve_data_dir()  # pragma: no cover
     ensure_data_dir(data_dir)  # pragma: no cover
-    KnbnApp(data_dir=data_dir).run()  # pragma: no cover
+    from knbn.config import get_setting  # pragma: no cover
+
+    theme = get_setting(data_dir, 'theme', 'textual-dark')  # pragma: no cover
+    KnbnApp(data_dir=data_dir, theme=theme).run()  # pragma: no cover
 
 
 @cli.command()
