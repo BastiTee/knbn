@@ -5,12 +5,12 @@ build-backend = "uv_build"
 [project]
 name = "knbn"
 version = "0.0.1"
-description = "A best-practices template project for Python modules"
+description = "A terminal-native personal Kanban board"
 license = "Apache-2.0"
 readme = "README.md"
-keywords = ["python", "template"]
-homepage = "https://github.com/BastiTee/python-boilerplate"
-repository = "https://github.com/BastiTee/python-boilerplate"
+keywords = ["python", "kanban", "terminal", "task-management"]
+homepage = "https://github.com/BastiTee/knbn"
+repository = "https://github.com/BastiTee/knbn"
 authors = [
   {name = "Basti Tee", email = "basti.tee@icloud.com"}
 ]
@@ -31,10 +31,13 @@ classifiers = [
 ]
 # Python version: https://www.python.org/downloads/
 requires-python = ">=3.10,<3.15"
-dependencies = []
+dependencies = [
+    "textual>=0.80.0",
+    "click>=8.1.0",
+]
 
 [project.scripts]
-knbn_cli = 'knbn.__main__:main'
+knbn = 'knbn.__main__:main'
 
 [tool.uv.build-backend]
 module-root = "src"
@@ -85,7 +88,12 @@ pythonpath = ["src"]
 xfail_strict = true
 
 [tool.coverage.run]
-omit = ["*/__main__.py"]
+omit = [
+    "*/__main__.py",
+    "*/app.py",
+    "*/views/*",
+    "*/widgets/*",
+]
 
 [tool.ruff]
 line-length = 88
@@ -120,14 +128,28 @@ select = [
 ]
 ignore = [
     "E203",    # whitespace before colon (Black-compatible)
+    "E501",    # line too long — formatter handles this
     "S101",    # allow assert in tests (also set per-file below)
     "TRY003",  # allow long exception messages
     "PLR2004", # allow magic values in comparisons (too noisy)
+    "PLR0913", # too many arguments — Textual widgets need many
+    "RUF012",  # mutable class attrs — normal pattern for Textual BINDINGS/CSS
+    "PLC0415", # imports not at top-level — deferred TUI imports avoid circular deps
+    "TC001",   # TYPE_CHECKING imports — not needed with from __future__ import annotations
+    "TC002",   # same for third-party
+    "TC003",   # same for stdlib
+    "RUF001",  # ambiguous unicode — intentional (×, –) in user-facing strings
+    "RUF002",  # ambiguous unicode in docstrings
+    "S607",    # partial executable path — intentional for $EDITOR / open
+    "ERA001",  # commented-out code — pragma: no cover lines
+    "PERF203", # try-except in loop — acceptable in parsing utilities
+    "B905",    # zip strict — not needed for simple paired iterations
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]       # allow assert in test files
 "**/__main__.py" = ["T201"]      # allow print() in CLI entry points
+"**/cli.py" = ["T201"]           # allow print() in CLI commands
 
 [tool.ruff.format]
 quote-style = "preserve"

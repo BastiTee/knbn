@@ -1,15 +1,10 @@
-"""Module main-file.
+"""knbn — terminal Kanban board."""
 
-A module's __name__ is set equal to '__main__' when read from standard input,
-a script, or from an interactive prompt.
-"""
-
-from knbn import greet
+from knbn.cli import cli
 
 
 def main() -> None:
-    """Entry point for the CLI."""
-    print(greet('World'))
+    cli()
 
 
 if __name__ == '__main__':

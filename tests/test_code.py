@@ -1,17 +1,7 @@
-"""Test suite for knbn."""
+"""Tests for knbn package (smoke tests)."""
 
-from knbn import greet
+from knbn import __doc__ as knbn_doc
 
 
-class TestGreet:
-    """Tests for the greet function."""
-
-    def test_greet_returns_greeting(self) -> None:
-        """Test that greet returns a properly formatted greeting."""
-        result = greet('Alice')
-        assert result == 'Hello, Alice!'
-
-    def test_greet_with_empty_string(self) -> None:
-        """Test that greet handles empty string input."""
-        result = greet('')
-        assert result == 'Hello, !'
+def test_package_importable() -> None:
+    assert knbn_doc is not None

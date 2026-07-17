@@ -1,0 +1,17 @@
+Name,Category,Date Created,Delegated To,Due,Feedback From,Key Resource,Last edited time,Priority,Status
+Review Q3 goals with team,Ideas,"July 1, 2026 2:27 PM",,,,,"July 2, 2026 4:59 PM",Medium,Done
+Organize quarterly offsite,Work Life,"July 2, 2026 2:31 PM",,,,,"July 6, 2026 1:13 PM",Medium,Done
+Incident postmortem review,Engineering,"July 6, 2026 4:00 PM",,,Alice,https://example.com/thread/001,"July 8, 2026 7:36 AM",High,Done
+Verify incident action items closed,Engineering,"July 6, 2026 4:55 PM",,17/07/2026 9:00 (GMT+2),Alice,https://example.com/wiki/incident-review,"July 8, 2026 7:38 AM",Low,Done
+Confirm all postmortems submitted,Engineering,"July 7, 2026 8:26 AM",,10/07/2026 9:00 (GMT+2),Engineers,https://example.com/thread/002,"July 13, 2026 3:36 PM",High,Done
+Audit frontend bundle size,Engineering,"July 7, 2026 9:05 AM",,,,https://example.com/thread/003,"July 8, 2026 7:39 AM",Low,Done
+Prepare mid-year performance reviews,People,"July 7, 2026 3:14 PM",,,,,"July 16, 2026 12:42 PM",High,Done
+Schedule engineering all-hands,Product,"July 7, 2026 3:21 PM",,,,,"July 14, 2026 5:18 PM",Medium,Todo
+Complete compliance training,Strategy,"July 9, 2026 8:48 AM",,,,,"July 13, 2026 3:36 PM",High,Done
+Draft team health summary,People,"July 9, 2026 2:47 PM",,10/07/2026 15:00 (GMT+2),,,"July 13, 2026 5:12 PM",High,Done
+Collect feedback on recent launch,Ideas,"July 13, 2026 2:28 PM",,,,,"July 13, 2026 5:21 PM",Medium,Stopped
+Root cause analysis for deploy issue,Engineering,"July 13, 2026 2:59 PM",,,Bob,https://example.com/thread/004,"July 16, 2026 12:46 PM",Medium,Done
+Write self assessment for review cycle,People,"July 13, 2026 3:59 PM",,,,,"July 13, 2026 5:21 PM",Medium,Todo
+Sync on headcount planning,People,"July 14, 2026 5:14 PM",,,Carol,https://example.com/thread/005,"July 14, 2026 5:14 PM",High,Feedback
+Research structured feedback models,Ideas,"July 15, 2026 9:27 AM",,,,,"July 17, 2026 8:05 AM",High,Now
+Follow up on roadmap review session,Work Life,"July 17, 2026 7:36 AM",,,,https://example.com/thread/006,"July 17, 2026 8:05 AM",Medium,Now

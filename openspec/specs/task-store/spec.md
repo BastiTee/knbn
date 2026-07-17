@@ -1,4 +1,10 @@
-## ADDED Requirements
+# task-store
+
+## Purpose
+
+Persistent storage layer: CSV I/O, data directory management, and slug generation.
+
+## Requirements
 
 ### Requirement: Data directory initialization
 The system SHALL resolve the data directory from the `KNBN_DATA_DIR` environment variable if set, otherwise default to `~/.knbn/`. On first use, if the directory does not exist, the system SHALL create it, create `tasks.csv` with the canonical header row, and create the `notes/` subdirectory.
@@ -56,7 +62,7 @@ The store SHALL provide functions to add a new task (appends to CSV), update a t
 The system SHALL derive a filename slug from a task title by lowercasing, replacing spaces with hyphens, stripping non-alphanumeric-hyphen characters, and truncating to 60 characters. If the derived slug collides with an existing notes file, a numeric suffix (`-2`, `-3`, …) SHALL be appended.
 
 #### Scenario: Basic slug
-- **WHEN** the title is `"Research SBI framework"`
+- **WHEN** the title is `"Research feedback models"`
 - **THEN** the slug is `"research-sbi-framework"`
 
 #### Scenario: Special character stripping
