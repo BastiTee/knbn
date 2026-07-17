@@ -131,3 +131,4 @@ ignore = [
 
 [tool.ruff.format]
 quote-style = "preserve"
+preview = true
