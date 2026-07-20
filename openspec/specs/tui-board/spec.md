@@ -104,7 +104,7 @@ The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessibl
 - **THEN** the task detail panel opens for that task
 
 ### Requirement: View switching
-The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` for Tabular, `3` for Closed. The footer toolbar SHALL display the `q Quit` button to the left of the three view-switching buttons (`1 Kanban`, `2 Tabular`, `3 Closed`).
+The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` for Tabular, `3` for Closed. The footer toolbar SHALL display the `q Quit` button to the left of the three view-switching buttons (`1 Kanban`, `2 Tabular`, `3 Closed`). The footer SHALL visually indicate which view is currently active by rendering the corresponding tab key in bold.
 
 #### Scenario: Switch to tabular view
 - **WHEN** the user presses `2`
@@ -117,6 +117,10 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 #### Scenario: Quit button appears left of view buttons
 - **WHEN** the footer toolbar is rendered
 - **THEN** the `q` button appears to the left of the `1`, `2`, and `3` view-switching buttons
+
+#### Scenario: Active tab key is highlighted in footer
+- **WHEN** a view is active
+- **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
 The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task detail panel, `e` to edit, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures.
