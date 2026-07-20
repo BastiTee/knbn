@@ -134,12 +134,15 @@ class TaskDetailPanel(ModalScreen[None]):
             subprocess.run(['open', self.knbn_task.key_resource], check=False)  # noqa: S603
 
     def action_delete_task(self) -> None:
+        from knbn.app import KnbnApp
         from knbn.model.store import delete_task
 
         def on_confirm(confirmed: bool | None) -> None:
             if confirmed:
                 delete_task(self.data_dir, self.task_index)
                 self.dismiss()
-                self.app.call_after_refresh(self.app.action_reload)  # type: ignore[attr-defined]
+                app = self.app
+                if isinstance(app, KnbnApp):
+                    app.call_after_refresh(app.action_reload)
 
         self.app.push_screen(DeleteConfirmScreen(), on_confirm)

@@ -24,7 +24,10 @@ from knbn.model.task import (
 class TaskForm(ModalScreen[None]):
     """Overlay form for creating or editing a task."""
 
-    BINDINGS = [Binding('escape', 'cancel', 'Cancel', show=True)]
+    BINDINGS = [
+        Binding('escape', 'cancel', 'Cancel', show=True),
+        Binding('ctrl+s', 'save', 'Save', show=True),
+    ]
 
     DEFAULT_CSS = """
     TaskForm {
@@ -108,6 +111,9 @@ class TaskForm(ModalScreen[None]):
             with Static(id='form-buttons'):
                 yield Button('Save', id='save-btn', variant='primary')
                 yield Button('Cancel', id='cancel-btn')
+
+    def action_save(self) -> None:
+        self._save()
 
     def action_cancel(self) -> None:
         self.dismiss()

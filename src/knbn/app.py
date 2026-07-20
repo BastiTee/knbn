@@ -71,6 +71,7 @@ class KnbnApp(App[None]):
         super().__init__()
         self.data_dir = data_dir
         self._tasks: list[Task] = []
+        self._current_view: str = 'kanban'
         self.theme = theme
 
     def on_mount(self) -> None:
@@ -99,11 +100,15 @@ class KnbnApp(App[None]):
             container.mount(TabularView(self._tasks, self.data_dir))
         elif view == 'closed':
             container.mount(ClosedView(self._tasks, self.data_dir))
+        self._current_view = view
         self.query_one(KnbnFooter).active_view = view
 
     def compose(self) -> ComposeResult:
         yield Static(id='view-container')
         yield KnbnFooter()
+
+    def action_reload(self) -> None:
+        self._show_view(self._current_view)
 
     def action_show_kanban(self) -> None:
         self._show_view('kanban')
