@@ -166,3 +166,22 @@ def test_notes_path_consistent_for_existing_file(tmp_path: Path) -> None:
     path1.write_text('# Notes')
     path2 = get_notes_path(tmp_path, task)
     assert path1 == path2
+
+
+def test_delete_task_removes_notes_file(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Task with notes')
+    add_task(tmp_path, task)
+    notes_path = get_notes_path(tmp_path, task)
+    notes_path.write_text('# My notes')
+    assert notes_path.exists()
+    delete_task(tmp_path, 0)
+    assert not notes_path.exists()
+
+
+def test_delete_task_without_notes_file(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Task without notes')
+    add_task(tmp_path, task)
+    delete_task(tmp_path, 0)  # must not raise
+    assert load_tasks(tmp_path) == []

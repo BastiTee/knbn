@@ -364,7 +364,16 @@ class KanbanView(Widget):
         self.call_after_refresh(self.recompose)
 
     def action_mark_done(self) -> None:
-        self._set_status('Done')
+        ft = self._focused_task()
+        if ft is None:
+            return
+        _, task = ft
+
+        def on_confirm(confirmed: bool | None) -> None:
+            if confirmed:
+                self._set_status('Done')
+
+        self.app.push_screen(_ConfirmModal(f'Mark "{task.title}" as Done?'), on_confirm)
 
     def action_mark_stopped(self) -> None:
         self._set_status('Stopped')

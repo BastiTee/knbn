@@ -23,7 +23,7 @@ _HELP_TEXT = """\
   [cyan]Enter[/cyan]       Open task detail
   [cyan]e[/cyan]           Edit task
   [cyan]n[/cyan]           Open / create notes
-  [cyan]d[/cyan]           Mark Done
+  [cyan]d[/cyan]           Mark Done (confirm)
   [cyan]x[/cyan]           Mark Stopped
   [cyan]g[/cyan]           Delegate task
   [cyan]m[/cyan]           Move to status

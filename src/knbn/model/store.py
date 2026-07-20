@@ -112,8 +112,10 @@ def update_task(data_dir: Path, index: int, task: Task) -> None:
 
 def delete_task(data_dir: Path, index: int) -> None:
     tasks = load_tasks(data_dir)
+    task = tasks[index]
     del tasks[index]
     save_tasks(data_dir, tasks)
+    get_notes_path(data_dir, task).unlink(missing_ok=True)
 
 
 def _existing_slugs(data_dir: Path) -> set[str]:
