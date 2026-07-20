@@ -30,8 +30,8 @@ _HELP_TEXT = """\
   [cyan]p[/cyan]           Change priority
   [cyan]Del[/cyan]         Delete task (confirm)
   [cyan]Space[/cyan]       Collapse / expand lane
-  [cyan]Shift+↑↓[/cyan]   Promote / demote priority
-  [cyan]Shift+←→[/cyan]   Move to adjacent lane
+  [cyan]PgUp / PgDn[/cyan]   Promote / demote priority
+  [cyan]Shift+←→[/cyan]      Move to adjacent lane
 
 [bold]Detail panel[/bold]
   [cyan]Esc[/cyan] / [cyan]q[/cyan]    Close panel
@@ -41,8 +41,9 @@ _HELP_TEXT = """\
   [cyan]d[/cyan]           Delete task (confirm)
 
 [bold]Tabular / Done views[/bold]
-  [cyan]↑ ↓[/cyan]         Move between rows
-  [cyan]Enter[/cyan]       Open task detail
+  [cyan]↑ ↓[/cyan]            Move between rows
+  [cyan]PgUp / PgDn[/cyan]   Jump 10 rows
+  [cyan]Enter[/cyan]          Open task detail
 
 [bold]Form[/bold]
   [cyan]Tab[/cyan]         Next field

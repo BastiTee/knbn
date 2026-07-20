@@ -25,8 +25,8 @@ class TabularView(Widget):
     BINDINGS = [
         Binding('up', 'cursor_up', 'Up', show=False),
         Binding('down', 'cursor_down', 'Down', show=False),
-        Binding('ctrl+up', 'cursor_up_fast', 'Up×10', show=False, priority=True),
-        Binding('ctrl+down', 'cursor_down_fast', 'Down×10', show=False, priority=True),
+        Binding('pageup', 'cursor_up_fast', 'Up×10', show=False, priority=True),
+        Binding('pagedown', 'cursor_down_fast', 'Down×10', show=False, priority=True),
         Binding('enter', 'open_detail', 'Open', show=False),
     ]
 
