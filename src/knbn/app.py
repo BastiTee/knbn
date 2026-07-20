@@ -26,10 +26,10 @@ class KnbnApp(App[None]):
     """
 
     BINDINGS = [
-        Binding('q', 'quit', 'Quit', show=True),
         Binding('1', 'show_kanban', 'Kanban', show=True),
         Binding('2', 'show_tabular', 'Tabular', show=True),
-        Binding('3', 'show_done_week', 'Done/Week', show=True),
+        Binding('3', 'show_done_week', 'Done', show=True),
+        Binding('q', 'quit', 'Quit', show=True),
         Binding('a', 'add_task', 'Add', show=True),
         Binding('r', 'reload', 'Reload', show=True),
         Binding('question_mark', 'help', 'Help', show=True),
