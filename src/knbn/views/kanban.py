@@ -102,11 +102,15 @@ class _SelectModal(ModalScreen[str | None]):
 class _ConfirmModal(ModalScreen[bool]):
     """Yes/no confirmation modal."""
 
-    BINDINGS = [Binding('escape', 'cancel', 'Cancel')]
+    BINDINGS = [
+        Binding('y', 'confirm', 'Yes'),
+        Binding('n', 'cancel', 'No'),
+        Binding('escape', 'cancel', 'No'),
+    ]
 
     DEFAULT_CSS = """
     _ConfirmModal { align: center middle; }
-    _ConfirmModal > Vertical {
+    _ConfirmModal > Static {
         background: $surface; border: round $error;
         padding: 1 3; width: 44; height: auto;
     }
@@ -117,13 +121,13 @@ class _ConfirmModal(ModalScreen[bool]):
         self._confirm_message = message
 
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Label(self._confirm_message)
-            yield Button('Yes, delete', id='yes-btn', variant='error')
-            yield Button('Cancel', id='no-btn')
+        yield Static(
+            f'{self._confirm_message}\n\n[cyan]y[/cyan] Yes   [cyan]n[/cyan] / [cyan]Esc[/cyan] No',
+            markup=True,
+        )
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        self.dismiss(event.button.id == 'yes-btn')
+    def action_confirm(self) -> None:
+        self.dismiss(True)
 
     def action_cancel(self) -> None:
         self.dismiss(False)
@@ -376,7 +380,16 @@ class KanbanView(Widget):
         self.app.push_screen(_ConfirmModal(f'Mark "{task.title}" as Done?'), on_confirm)
 
     def action_mark_stopped(self) -> None:
-        self._set_status('Stopped')
+        ft = self._focused_task()
+        if ft is None:
+            return
+        _, task = ft
+
+        def on_confirm(confirmed: bool | None) -> None:
+            if confirmed:
+                self._set_status('Stopped')
+
+        self.app.push_screen(_ConfirmModal(f'Mark "{task.title}" as Stopped?'), on_confirm)
 
     def _set_status(self, new_status: str) -> None:
         ft = self._focused_task()
@@ -395,11 +408,19 @@ class KanbanView(Widget):
         idx, task = ft
 
         def on_name(name: str | None) -> None:
-            if name:
-                updated = replace(task, status='Delegated', delegated_to=name)
-                update_task(self.data_dir, idx, updated)
-                self._tasks = load_tasks(self.data_dir)
-                self.call_after_refresh(self.recompose)
+            if not name:
+                return
+
+            def on_confirm(confirmed: bool | None) -> None:
+                if confirmed:
+                    updated = replace(task, status='Delegated', delegated_to=name)
+                    update_task(self.data_dir, idx, updated)
+                    self._tasks = load_tasks(self.data_dir)
+                    self.call_after_refresh(self.recompose)
+
+            self.app.push_screen(
+                _ConfirmModal(f'Delegate "{task.title}" to {name}?'), on_confirm
+            )
 
         self.app.push_screen(_PromptModal('Delegated To:'), on_name)
 

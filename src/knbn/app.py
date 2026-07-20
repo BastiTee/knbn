@@ -59,6 +59,7 @@ class KnbnApp(App[None]):
         from knbn.views.kanban import KanbanView
         from knbn.views.tabular import TabularView
 
+        self._reload_tasks()
         container = self.query_one('#view-container')
         container.remove_children()
         if view == 'kanban':
