@@ -417,7 +417,6 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-randomly" },
     { name = "ruff" },
-    { name = "typing-extensions" },
 ]
 
 [package.metadata]
@@ -435,7 +434,6 @@ dev = [
     { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "pytest-randomly", specifier = ">=4.1.0" },
     { name = "ruff", specifier = ">=0.15.22" },
-    { name = "typing-extensions", specifier = ">=4.16.0" },
 ]
 
 [[package]]

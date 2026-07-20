@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import subprocess
 from dataclasses import replace
 from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Vertical
+from textual.events import Key
 from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widget import Widget
@@ -16,8 +16,8 @@ from textual.widgets import Button, Input, Label, Static
 
 from knbn.model.store import (
     delete_task,
-    get_notes_path,
     load_tasks,
+    open_notes_in_editor,
     save_tasks,
     update_task,
 )
@@ -26,6 +26,7 @@ from knbn.model.task import (
     STATUS_VALUES,
     Task,
 )
+from knbn.widgets._confirm import ConfirmDialog
 from knbn.widgets.card import TaskCard
 
 _STATUS_ORDER = ['Todo', 'Now', 'Feedback']
@@ -99,40 +100,6 @@ class _SelectModal(ModalScreen[str | None]):
         self.dismiss(None)
 
 
-class _ConfirmModal(ModalScreen[bool]):
-    """Yes/no confirmation modal."""
-
-    BINDINGS = [
-        Binding('y', 'confirm', 'Yes'),
-        Binding('n', 'cancel', 'No'),
-        Binding('escape', 'cancel', 'No'),
-    ]
-
-    DEFAULT_CSS = """
-    _ConfirmModal { align: center middle; }
-    _ConfirmModal > Static {
-        background: $surface; border: round $error;
-        padding: 1 3; width: 44; height: auto;
-    }
-    """
-
-    def __init__(self, message: str, **kwargs: object) -> None:
-        super().__init__(**kwargs)  # type: ignore[arg-type]
-        self._confirm_message = message
-
-    def compose(self) -> ComposeResult:
-        yield Static(
-            f'{self._confirm_message}\n\n[cyan]y[/cyan] Yes   [cyan]n[/cyan] / [cyan]Esc[/cyan] No',
-            markup=True,
-        )
-
-    def action_confirm(self) -> None:
-        self.dismiss(True)
-
-    def action_cancel(self) -> None:
-        self.dismiss(False)
-
-
 class LaneHeader(Static):
     """Collapsible swim-lane header."""
 
@@ -166,8 +133,6 @@ class LaneHeader(Static):
         return f'{arrow} {self._priority}'
 
     def on_key(self, event: object) -> None:
-        from textual.events import Key
-
         if isinstance(event, Key) and event.key in ('space', 'enter'):
             self._collapsed = not self._collapsed
             self.refresh()
@@ -322,8 +287,6 @@ class KanbanView(Widget):
         self._focus_col_card()
 
     def on_key(self, event: object) -> None:
-        from textual.events import Key
-
         if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
             event.prevent_default()
             event.stop()
@@ -356,15 +319,8 @@ class KanbanView(Widget):
         self._open_notes_for(task)
 
     def _open_notes_for(self, task: Task) -> None:
-        import os
-
-        notes_path = get_notes_path(self.data_dir, task)
-        notes_path.parent.mkdir(parents=True, exist_ok=True)
-        if not notes_path.exists():
-            notes_path.write_text('')
-        editor = os.environ.get('EDITOR', 'nano')
         with self.app.suspend():
-            subprocess.run([editor, str(notes_path)], check=False)  # noqa: S603
+            open_notes_in_editor(self.data_dir, task)
         self.call_after_refresh(self.recompose)
 
     def action_mark_done(self) -> None:
@@ -377,7 +333,7 @@ class KanbanView(Widget):
             if confirmed:
                 self._set_status('Done')
 
-        self.app.push_screen(_ConfirmModal(f'Mark "{task.title}" as Done?'), on_confirm)
+        self.app.push_screen(ConfirmDialog(f'Mark "{task.title}" as Done?'), on_confirm)
 
     def action_mark_stopped(self) -> None:
         ft = self._focused_task()
@@ -389,7 +345,9 @@ class KanbanView(Widget):
             if confirmed:
                 self._set_status('Stopped')
 
-        self.app.push_screen(_ConfirmModal(f'Mark "{task.title}" as Stopped?'), on_confirm)
+        self.app.push_screen(
+            ConfirmDialog(f'Mark "{task.title}" as Stopped?'), on_confirm
+        )
 
     def _set_status(self, new_status: str) -> None:
         ft = self._focused_task()
@@ -419,7 +377,7 @@ class KanbanView(Widget):
                     self.call_after_refresh(self.recompose)
 
             self.app.push_screen(
-                _ConfirmModal(f'Delegate "{task.title}" to {name}?'), on_confirm
+                ConfirmDialog(f'Delegate "{task.title}" to {name}?'), on_confirm
             )
 
         self.app.push_screen(_PromptModal('Delegated To:'), on_name)
@@ -463,11 +421,7 @@ class KanbanView(Widget):
             return
         idx, _ = ft
         title = updated.title
-        target_col = (
-            _STATUS_ORDER.index(updated.status)
-            if updated.status in _STATUS_ORDER
-            else self._focused_col
-        )
+        target_col = _STATUS_ORDER.index(updated.status)
         update_task(self.data_dir, idx, updated)
         self._tasks = load_tasks(self.data_dir)
 
@@ -614,4 +568,4 @@ class KanbanView(Widget):
                 self._tasks = load_tasks(self.data_dir)
                 self.call_after_refresh(self.recompose)
 
-        self.app.push_screen(_ConfirmModal(f'Delete "{task.title}"?'), on_confirm)
+        self.app.push_screen(ConfirmDialog(f'Delete "{task.title}"?'), on_confirm)

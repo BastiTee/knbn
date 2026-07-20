@@ -51,7 +51,6 @@ dev = [
     "pytest-cov>=7.1.0",
     "pytest-randomly>=4.1.0",
     "ruff>=0.15.22",
-    "typing-extensions>=4.16.0",
 ]
 
 [tool.mypy]
@@ -82,6 +81,7 @@ addopts = [
   "--cov=knbn",
   "--cov-report=term-missing",
   "--cov-fail-under=95",
+  "--randomly-seed=last",
 ]
 testpaths = ["tests"]
 pythonpath = ["src"]

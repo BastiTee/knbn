@@ -57,12 +57,10 @@ def test_status_terminal_values() -> None:
 
 def test_status_values_combined() -> None:
     assert STATUS_VALUES == ['Todo', 'Now', 'Feedback', 'Done', 'Delegated', 'Stopped']
-    assert len(STATUS_VALUES) == 6
 
 
 def test_priority_order() -> None:
     assert PRIORITY_VALUES == ['High', 'Medium', 'Low']
-    assert len(PRIORITY_VALUES) == 3
 
 
 def test_default_categories_present() -> None:
@@ -76,4 +74,3 @@ def test_default_categories_present() -> None:
         'Ideas',
     ]
     assert expected == DEFAULT_CATEGORIES
-    assert len(DEFAULT_CATEGORIES) == 7

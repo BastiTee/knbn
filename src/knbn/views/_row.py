@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from textual.events import Key
 from textual.widgets import Static
 
 from knbn.model.task import Task
@@ -28,8 +29,6 @@ class TaskRow(Static):
         self.can_focus = True
 
     def on_key(self, event: object) -> None:
-        from textual.events import Key
-
         if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
             event.prevent_default()
             event.stop()

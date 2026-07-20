@@ -2,31 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import calendar
+from datetime import date, datetime
 from pathlib import Path
 
 from textual.app import ComposeResult
-from textual.binding import Binding
-from textual.widget import Widget
 from textual.widgets import Static
 
 from knbn.model.task import STATUS_TERMINAL, Task
 from knbn.views._row import TaskRow
-
-_MONTH_ABBR = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-]
+from knbn.views._row_list import RowListView
 
 
 def _parse_modified(s: str) -> datetime | None:
@@ -38,32 +23,21 @@ def _parse_modified(s: str) -> datetime | None:
     return None
 
 
-def _week_range_label(dt: datetime) -> str:
-    iso = dt.isocalendar()
+def _week_range_label(when: datetime) -> str:
+    iso = when.isocalendar()
     year = iso[0]
     week = iso[1]
-    # Monday of that ISO week
-    import datetime as dt_module
-
-    monday = dt_module.date.fromisocalendar(year, week, 1)
-    sunday = dt_module.date.fromisocalendar(year, week, 7)
-    start_month = _MONTH_ABBR[monday.month - 1]
-    end_month = _MONTH_ABBR[sunday.month - 1]
+    monday = date.fromisocalendar(year, week, 1)
+    sunday = date.fromisocalendar(year, week, 7)
+    start_month = calendar.month_abbr[monday.month]
+    end_month = calendar.month_abbr[sunday.month]
     if monday.month == sunday.month:
         return f'{start_month} {monday.day}–{sunday.day} {year}'
     return f'{start_month} {monday.day} – {end_month} {sunday.day} {year}'
 
 
-class ClosedView(Widget):
+class ClosedView(RowListView):
     """Terminal-status tasks grouped by ISO week of last-modified date."""
-
-    BINDINGS = [
-        Binding('up', 'cursor_up', 'Up', show=False),
-        Binding('down', 'cursor_down', 'Down', show=False),
-        Binding('pageup', 'cursor_up_fast', 'Up×10', show=False, priority=True),
-        Binding('pagedown', 'cursor_down_fast', 'Down×10', show=False, priority=True),
-        Binding('enter', 'open_detail', 'Open', show=False),
-    ]
 
     DEFAULT_CSS = """
     ClosedView {
@@ -80,17 +54,13 @@ class ClosedView(Widget):
     """
 
     def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
-        super().__init__(**kwargs)  # type: ignore[arg-type]
-        self._tasks = tasks
-        self.data_dir = data_dir
-        self._rows: list[TaskRow] = []
+        super().__init__(tasks, data_dir, **kwargs)
 
     def compose(self) -> ComposeResult:
         self._rows = []
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
         terminal = [t for t in self._tasks if t.status in STATUS_TERMINAL]
 
-        # Group by ISO week key (year, week_number) — sort key for ordering
         weeks: dict[tuple[int, int], list[Task]] = {}
         for task in terminal:
             dt = _parse_modified(task.date_modified)
@@ -119,56 +89,3 @@ class ClosedView(Widget):
                 row = TaskRow(idx, task, row_text)
                 self._rows.append(row)
                 yield row
-
-    def _focused_index(self) -> int:
-        focused = self.app.focused
-        for i, row in enumerate(self._rows):
-            if row is focused:
-                return i
-        return -1
-
-    def action_cursor_up(self) -> None:
-        if not self._rows:
-            return
-        i = self._focused_index()
-        self._rows[max(i - 1, 0)].focus()
-
-    def action_cursor_down(self) -> None:
-        if not self._rows:
-            return
-        i = self._focused_index()
-        self._rows[min(i + 1, len(self._rows) - 1)].focus()
-
-    def action_cursor_up_fast(self) -> None:
-        if not self._rows:
-            return
-        i = self._focused_index()
-        self._rows[max(i - 10, 0)].focus()
-
-    def action_cursor_down_fast(self) -> None:
-        if not self._rows:
-            return
-        i = self._focused_index()
-        self._rows[min(i + 10, len(self._rows) - 1)].focus()
-
-    def on_mount(self) -> None:
-        if self._rows:
-            self._rows[0].focus()
-
-    def on_key(self, event: object) -> None:
-        from textual.events import Key
-
-        if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
-            event.prevent_default()
-            event.stop()
-
-    def action_open_detail(self) -> None:
-        from knbn.widgets.detail import TaskDetailPanel
-
-        i = self._focused_index()
-        if i < 0:
-            return
-        row = self._rows[i]
-        self.app.push_screen(
-            TaskDetailPanel(row.task_index, row.knbn_task, self.data_dir)
-        )

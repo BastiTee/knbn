@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from textual.app import ComposeResult
+from textual.events import Key
 from textual.widgets import Static
 
 from knbn.model.task import Task
@@ -101,8 +102,6 @@ class TaskCard(Static):
         self.call_after_refresh(self.recompose)
 
     def on_key(self, event: object) -> None:
-        from textual.events import Key
-
         if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
             event.prevent_default()
             event.stop()

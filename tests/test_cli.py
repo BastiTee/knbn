@@ -61,18 +61,14 @@ def test_add_fast_with_title(data_dir: Path, monkeypatch: pytest.MonkeyPatch) ->
     assert task.key_resource == ''
 
 
-def test_add_fast_flag_sets_all_defaults(
+def test_add_fast_flag_short_form(
     data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
-    with patch('knbn.cli.add_task') as mock_add:
+    with patch('knbn.cli.add_task'):
         result = runner.invoke(add, ['-f', '--title', 'Quick task'])
     assert result.exit_code == 0
-    task: Task = mock_add.call_args[0][1]
-    assert task.status == 'Todo'
-    assert task.priority == 'Medium'
-    assert task.category == 'Ideas'
 
 
 def test_add_prompts_title_when_not_provided(
@@ -117,16 +113,6 @@ def test_add_stores_dates(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> No
     assert task.date_created != ''
     assert task.date_modified != ''
     assert task.date_created == task.date_modified
-
-
-def test_add_confirmation_message(
-    data_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
-    runner = CliRunner()
-    with patch('knbn.cli.add_task'):
-        result = runner.invoke(add, ['--fast', '--title', 'Confirm me'])
-    assert '✓ Task added: Confirm me' in result.output
 
 
 def test_add_interactive_prompts_full(

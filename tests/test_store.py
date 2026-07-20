@@ -13,6 +13,7 @@ from knbn.model.store import (
     get_notes_path,
     load_tasks,
     notes_exist,
+    open_notes_in_editor,
     save_tasks,
     update_task,
 )
@@ -89,6 +90,12 @@ def test_round_trip(tmp_path: Path) -> None:
         assert orig.status == reloaded_task.status
         assert orig.priority == reloaded_task.priority
         assert orig.category == reloaded_task.category
+        assert orig.date_created == reloaded_task.date_created
+        assert orig.date_modified == reloaded_task.date_modified
+        assert orig.due == reloaded_task.due
+        assert orig.key_resource == reloaded_task.key_resource
+        assert orig.feedback_from == reloaded_task.feedback_from
+        assert orig.delegated_to == reloaded_task.delegated_to
 
 
 def test_atomic_save_uses_tmp_file(
@@ -185,3 +192,13 @@ def test_delete_task_without_notes_file(tmp_path: Path) -> None:
     add_task(tmp_path, task)
     delete_task(tmp_path, 0)  # must not raise
     assert load_tasks(tmp_path) == []
+
+
+def test_open_notes_in_editor_creates_file_and_calls_editor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Editor task')
+    monkeypatch.setenv('EDITOR', 'cat')
+    open_notes_in_editor(tmp_path, task)
+    assert get_notes_path(tmp_path, task).exists()

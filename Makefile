@@ -80,7 +80,7 @@ run-venv: ## Run module directly in venv
 install-run: ## Install package and run CLI
 	uv pip install --upgrade .
 	@echo --- Note: The next command might fail before you reload your shell
-	knbn_cli
+	knbn
 
 audit: ## Scan dependencies for known CVEs
 	uv run pip-audit --skip-editable

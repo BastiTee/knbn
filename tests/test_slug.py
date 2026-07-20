@@ -29,11 +29,6 @@ def test_truncation_at_60_chars() -> None:
     assert len(make_slug(long_title)) == 60
 
 
-def test_truncation_preserves_content() -> None:
-    title = 'word ' * 20
-    assert len(make_slug(title)) <= 60
-
-
 def test_no_collision() -> None:
     assert unique_slug('Research feedback models', set()) == 'research-feedback-models'
 
@@ -52,8 +47,3 @@ def test_collision_suffix_3() -> None:
         unique_slug('Research feedback models', existing)
         == 'research-feedback-models-3'
     )
-
-
-def test_unique_slug_no_existing() -> None:
-    result = unique_slug('My Task', set())
-    assert result == 'my-task'

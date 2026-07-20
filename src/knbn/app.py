@@ -12,10 +12,15 @@ from textual.screen import Screen
 from textual.widgets import Footer, Static
 from textual.widgets._footer import FooterKey
 
+from knbn.config import load_settings, save_settings
 from knbn.model.store import ensure_data_dir, load_tasks
 from knbn.model.task import Task
 
-_VIEW_ACTION = {'kanban': 'show_kanban', 'tabular': 'show_tabular', 'closed': 'show_closed'}
+_VIEW_ACTION = {
+    'kanban': 'show_kanban',
+    'tabular': 'show_tabular',
+    'closed': 'show_closed',
+}
 
 
 class KnbnFooter(Footer):
@@ -68,8 +73,8 @@ class KnbnApp(App[None]):
     ]
 
     def __init__(self, data_dir: Path, theme: str = 'textual-dark') -> None:
-        super().__init__()
         self.data_dir = data_dir
+        super().__init__()
         self._tasks: list[Task] = []
         self._current_view: str = 'kanban'
         self.theme = theme
@@ -120,12 +125,18 @@ class KnbnApp(App[None]):
         self._show_view('closed')
 
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
-        yield SystemCommand('Theme', 'Change the current theme', self.action_change_theme)
+        yield SystemCommand(
+            'Theme', 'Change the current theme', self.action_change_theme
+        )
         yield SystemCommand('Quit', 'Quit the application', self.action_quit)
         if screen.query('HelpPanel'):
-            yield SystemCommand('Keys', 'Hide the keys panel', self.action_hide_help_panel)
+            yield SystemCommand(
+                'Keys', 'Hide the keys panel', self.action_hide_help_panel
+            )
         else:
-            yield SystemCommand('Keys', 'Show help for the focused widget', self.action_show_help_panel)
+            yield SystemCommand(
+                'Keys', 'Show help for the focused widget', self.action_show_help_panel
+            )
 
     def action_add_task(self) -> None:
         from knbn.widgets.form import TaskForm
@@ -139,13 +150,9 @@ class KnbnApp(App[None]):
 
     def on_task_form_task_saved(self) -> None:
         self._reload_tasks()
-        self._show_view('kanban')
+        self._show_view(self._current_view)
 
     def watch_theme(self, theme: str) -> None:
-        from knbn.config import load_settings, save_settings
-
-        if not hasattr(self, 'data_dir'):
-            return
         settings = load_settings(self.data_dir)
         settings['theme'] = theme
         save_settings(self.data_dir, settings)

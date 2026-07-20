@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import csv
+import os
+import subprocess
 from pathlib import Path
 
-from knbn.model.slug import unique_slug
+from knbn.model.slug import make_slug, unique_slug
 from knbn.model.task import Task
 
 _CSV_FILENAME = 'tasks.csv'
@@ -126,8 +128,6 @@ def _existing_slugs(data_dir: Path) -> set[str]:
 
 
 def get_notes_path(data_dir: Path, task: Task) -> Path:
-    from knbn.model.slug import make_slug
-
     notes = _notes_dir(data_dir)
     base_slug = make_slug(task.title)
     candidate = notes / f'{base_slug}.md'
@@ -139,3 +139,12 @@ def get_notes_path(data_dir: Path, task: Task) -> Path:
 
 def notes_exist(data_dir: Path, task: Task) -> bool:
     return get_notes_path(data_dir, task).exists()
+
+
+def open_notes_in_editor(data_dir: Path, task: Task) -> None:
+    notes_path = get_notes_path(data_dir, task)
+    notes_path.parent.mkdir(parents=True, exist_ok=True)
+    if not notes_path.exists():
+        notes_path.write_text('')
+    editor = os.environ.get('EDITOR', 'nano')
+    subprocess.run([editor, str(notes_path)], check=False)  # noqa: S603

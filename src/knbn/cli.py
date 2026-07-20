@@ -14,12 +14,15 @@ from knbn.model.task import DEFAULT_CATEGORIES, PRIORITY_VALUES, Task, now_str
 def _prompt_select(label: str, options: list[str], default: str) -> str:
     opts_str = '  '.join(f'({i + 1}) {opt}' for i, opt in enumerate(options))
     default_idx = options.index(default) + 1
-    idx: int = click.prompt(
-        f'{label}\n  {opts_str}',
-        type=int,
-        default=default_idx,
-    )
-    return options[idx - 1]
+    while True:
+        idx: int = click.prompt(
+            f'{label}\n  {opts_str}',
+            type=int,
+            default=default_idx,
+        )
+        if 1 <= idx <= len(options):
+            return options[idx - 1]
+        click.echo(f'Please enter a number between 1 and {len(options)}.')
 
 
 @click.group(invoke_without_command=True)
