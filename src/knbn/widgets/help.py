@@ -14,7 +14,6 @@ _HELP_TEXT = """\
   [cyan]2[/cyan]           Tabular view
   [cyan]3[/cyan]           Done-by-week view
   [cyan]a[/cyan]           Add task
-  [cyan]r[/cyan]           Reload from disk
   [cyan]?[/cyan]           This help
 
 [bold]Kanban board[/bold]

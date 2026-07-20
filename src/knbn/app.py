@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
+from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
 from knbn.model.store import ensure_data_dir, load_tasks
@@ -31,7 +33,6 @@ class KnbnApp(App[None]):
         Binding('3', 'show_done_week', 'Done', show=True),
         Binding('q', 'quit', 'Quit', show=True),
         Binding('a', 'add_task', 'Add', show=True),
-        Binding('r', 'reload', 'Reload', show=True),
         Binding('question_mark', 'help', 'Help', show=True),
     ]
 
@@ -81,9 +82,13 @@ class KnbnApp(App[None]):
     def action_show_done_week(self) -> None:
         self._show_view('done_week')
 
-    def action_reload(self) -> None:
-        self._reload_tasks()
-        self._show_view('kanban')
+    def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
+        yield SystemCommand('Theme', 'Change the current theme', self.action_change_theme)
+        yield SystemCommand('Quit', 'Quit the application', self.action_quit)
+        if screen.query('HelpPanel'):
+            yield SystemCommand('Keys', 'Hide the keys panel', self.action_hide_help_panel)
+        else:
+            yield SystemCommand('Keys', 'Show help for the focused widget', self.action_show_help_panel)
 
     def action_add_task(self) -> None:
         from knbn.widgets.form import TaskForm
