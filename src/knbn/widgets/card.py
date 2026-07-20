@@ -39,7 +39,7 @@ class TaskCard(Static):
     TaskCard {
         border: round $surface-darken-2;
         padding: 0 1;
-        margin: 0 0 1 0;
+        margin: 0;
         height: auto;
     }
     TaskCard:focus {
@@ -66,12 +66,18 @@ class TaskCard(Static):
         overdue = due < today
         return (due.strftime('%d/%m/%Y'), overdue)
 
+    def _title_for_width(self) -> str:
+        # inner width = widget width - 2 (border) - 2 (padding: 0 1)
+        available = max(self.size.width - 4, 8)
+        title = self.knbn_task.title
+        if len(title) > available:
+            return title[: available - 1] + '…'
+        return title
+
     def compose(self) -> ComposeResult:
         color = CATEGORY_COLORS.get(self.knbn_task.category, _DEFAULT_COLOR)
         notes = self._notes_indicator()
-        title = self.knbn_task.title
-        if len(title) > 30:
-            title = title[:29] + '…'
+        title = self._title_for_width()
         due_str, overdue = self._due_display()
 
         tag = f'[on {color}] {self.knbn_task.category} [/on {color}]'
@@ -90,6 +96,9 @@ class TaskCard(Static):
 
     def refresh_notes(self) -> None:
         self.refresh(layout=True)
+
+    def on_resize(self, event: object) -> None:
+        self.call_after_refresh(self.recompose)
 
     def on_key(self, event: object) -> None:
         from textual.events import Key

@@ -9,6 +9,8 @@ Terminal UI board: Kanban layout, view switching, navigation, and interaction.
 ### Requirement: Kanban view layout
 The TUI SHALL display a Kanban board with three columns (`Todo`, `Now`, `Feedback`) and three swim lane rows (`High`, `Medium`, `Low`), forming a 3×3 matrix. Columns SHALL have equal width. Column headers SHALL show the status name and the count of tasks in that column. Swim lane headers SHALL show the priority label. Archive counts (Done/Delegated/Stopped) SHALL be displayed in a footer or sidebar.
 
+Task card titles SHALL be truncated to fit the available inner width of the card (column width minus border and padding), ensuring equal left and right margins. Cards SHALL be separated by a single border row with no additional blank lines between them.
+
 #### Scenario: Board renders all active tasks
 - **WHEN** the board is launched with tasks in multiple statuses and priorities
 - **THEN** each task card appears in its correct (column, row) cell
