@@ -60,8 +60,8 @@ class DoneByWeekView(Widget):
     BINDINGS = [
         Binding('up', 'cursor_up', 'Up', show=False),
         Binding('down', 'cursor_down', 'Down', show=False),
-        Binding('shift+up', 'cursor_up_fast', 'Up×10', show=False, priority=True),
-        Binding('shift+down', 'cursor_down_fast', 'Down×10', show=False, priority=True),
+        Binding('ctrl+up', 'cursor_up_fast', 'Up×10', show=False, priority=True),
+        Binding('ctrl+down', 'cursor_down_fast', 'Down×10', show=False, priority=True),
         Binding('enter', 'open_detail', 'Open', show=False),
     ]
 
