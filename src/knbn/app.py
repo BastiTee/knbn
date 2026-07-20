@@ -9,7 +9,7 @@ from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Footer, Static
 from textual.widgets._footer import FooterKey
 
 from knbn.model.store import ensure_data_dir, load_tasks
@@ -102,7 +102,6 @@ class KnbnApp(App[None]):
         self.query_one(KnbnFooter).active_view = view
 
     def compose(self) -> ComposeResult:
-        yield Header()
         yield Static(id='view-container')
         yield KnbnFooter()
 
