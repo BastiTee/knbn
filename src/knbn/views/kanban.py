@@ -18,6 +18,7 @@ from knbn.model.store import (
     delete_task,
     get_notes_path,
     load_tasks,
+    save_tasks,
     update_task,
 )
 from knbn.model.task import (
@@ -464,21 +465,76 @@ class KanbanView(Widget):
         ft = self._focused_task()
         if ft is None:
             return
-        _, task = ft
-        pri_idx = PRIORITY_VALUES.index(task.priority)
-        if pri_idx == 0:
-            return
-        self._move_task(replace(task, priority=PRIORITY_VALUES[pri_idx - 1]))
+        idx, task = ft
+        # Tasks in the same lane (same status+priority), ordered as they appear in the CSV
+        lane = [i for i, t in enumerate(self._tasks)
+                if t.status == task.status and t.priority == task.priority]
+        pos = lane.index(idx)
+        if pos > 0:
+            # Swap with the task above within the same lane
+            tasks = list(self._tasks)
+            tasks[lane[pos]], tasks[lane[pos - 1]] = tasks[lane[pos - 1]], tasks[lane[pos]]
+            save_tasks(self.data_dir, tasks)
+            self._tasks = load_tasks(self.data_dir)
+            title = task.title
+            col = self._focused_col
+
+            def _refocus_up() -> None:
+                col_cards = self._get_cards_in_col(col)
+                for i, card in enumerate(col_cards):
+                    cid = card.id or ''
+                    if cid.startswith('card-'):
+                        cidx = int(cid[5:])
+                        if cidx < len(self._tasks) and self._tasks[cidx].title == title:
+                            self._focused_row[col] = i
+                            self._focus_col_card()
+                            return
+
+            self.call_after_refresh(self.recompose)
+            self.call_after_refresh(_refocus_up)
+        else:
+            # Already at the top of the lane — promote to next higher priority
+            pri_idx = PRIORITY_VALUES.index(task.priority)
+            if pri_idx == 0:
+                return
+            self._move_task(replace(task, priority=PRIORITY_VALUES[pri_idx - 1]))
 
     def action_move_down(self) -> None:
         ft = self._focused_task()
         if ft is None:
             return
-        _, task = ft
-        pri_idx = PRIORITY_VALUES.index(task.priority)
-        if pri_idx == len(PRIORITY_VALUES) - 1:
-            return
-        self._move_task(replace(task, priority=PRIORITY_VALUES[pri_idx + 1]))
+        idx, task = ft
+        lane = [i for i, t in enumerate(self._tasks)
+                if t.status == task.status and t.priority == task.priority]
+        pos = lane.index(idx)
+        if pos < len(lane) - 1:
+            # Swap with the task below within the same lane
+            tasks = list(self._tasks)
+            tasks[lane[pos]], tasks[lane[pos + 1]] = tasks[lane[pos + 1]], tasks[lane[pos]]
+            save_tasks(self.data_dir, tasks)
+            self._tasks = load_tasks(self.data_dir)
+            title = task.title
+            col = self._focused_col
+
+            def _refocus_down() -> None:
+                col_cards = self._get_cards_in_col(col)
+                for i, card in enumerate(col_cards):
+                    cid = card.id or ''
+                    if cid.startswith('card-'):
+                        cidx = int(cid[5:])
+                        if cidx < len(self._tasks) and self._tasks[cidx].title == title:
+                            self._focused_row[col] = i
+                            self._focus_col_card()
+                            return
+
+            self.call_after_refresh(self.recompose)
+            self.call_after_refresh(_refocus_down)
+        else:
+            # Already at the bottom of the lane — demote to next lower priority
+            pri_idx = PRIORITY_VALUES.index(task.priority)
+            if pri_idx == len(PRIORITY_VALUES) - 1:
+                return
+            self._move_task(replace(task, priority=PRIORITY_VALUES[pri_idx + 1]))
 
     def action_move_left(self) -> None:
         ft = self._focused_task()
