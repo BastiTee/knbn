@@ -467,13 +467,19 @@ class KanbanView(Widget):
             return
         idx, task = ft
         # Tasks in the same lane (same status+priority), ordered as they appear in the CSV
-        lane = [i for i, t in enumerate(self._tasks)
-                if t.status == task.status and t.priority == task.priority]
+        lane = [
+            i
+            for i, t in enumerate(self._tasks)
+            if t.status == task.status and t.priority == task.priority
+        ]
         pos = lane.index(idx)
         if pos > 0:
             # Swap with the task above within the same lane
             tasks = list(self._tasks)
-            tasks[lane[pos]], tasks[lane[pos - 1]] = tasks[lane[pos - 1]], tasks[lane[pos]]
+            tasks[lane[pos]], tasks[lane[pos - 1]] = (
+                tasks[lane[pos - 1]],
+                tasks[lane[pos]],
+            )
             save_tasks(self.data_dir, tasks)
             self._tasks = load_tasks(self.data_dir)
             title = task.title
@@ -504,13 +510,19 @@ class KanbanView(Widget):
         if ft is None:
             return
         idx, task = ft
-        lane = [i for i, t in enumerate(self._tasks)
-                if t.status == task.status and t.priority == task.priority]
+        lane = [
+            i
+            for i, t in enumerate(self._tasks)
+            if t.status == task.status and t.priority == task.priority
+        ]
         pos = lane.index(idx)
         if pos < len(lane) - 1:
             # Swap with the task below within the same lane
             tasks = list(self._tasks)
-            tasks[lane[pos]], tasks[lane[pos + 1]] = tasks[lane[pos + 1]], tasks[lane[pos]]
+            tasks[lane[pos]], tasks[lane[pos + 1]] = (
+                tasks[lane[pos + 1]],
+                tasks[lane[pos]],
+            )
             save_tasks(self.data_dir, tasks)
             self._tasks = load_tasks(self.data_dir)
             title = task.title
