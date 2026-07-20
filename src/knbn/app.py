@@ -7,11 +7,33 @@ from pathlib import Path
 
 from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
+from textual.reactive import reactive
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
+from textual.widgets._footer import FooterKey
 
 from knbn.model.store import ensure_data_dir, load_tasks
 from knbn.model.task import Task
+
+_VIEW_ACTION = {'kanban': 'show_kanban', 'tabular': 'show_tabular', 'closed': 'show_closed'}
+
+
+class KnbnFooter(Footer):
+    """Footer that highlights the active view tab key."""
+
+    active_view: reactive[str] = reactive('kanban')
+
+    def bindings_changed(self, screen: Screen) -> None:
+        super().bindings_changed(screen)
+        self.call_after_refresh(self._apply_active_class)
+
+    def watch_active_view(self) -> None:
+        self.call_after_refresh(self._apply_active_class)
+
+    def _apply_active_class(self) -> None:
+        active_action = _VIEW_ACTION.get(self.active_view, '')
+        for key_widget in self.query(FooterKey):
+            key_widget.set_class(key_widget.action == active_action, '-active-tab')
 
 
 class KnbnApp(App[None]):
@@ -24,6 +46,15 @@ class KnbnApp(App[None]):
     }
     #view-container {
         height: 1fr;
+    }
+    FooterKey.-active-tab .footer-key--key {
+        color: $footer-key-background;
+        background: $footer-key-foreground;
+    }
+    FooterKey.-active-tab .footer-key--description {
+        color: $footer-key-foreground;
+        background: $footer-description-background;
+        text-style: bold;
     }
     """
 
@@ -68,11 +99,12 @@ class KnbnApp(App[None]):
             container.mount(TabularView(self._tasks, self.data_dir))
         elif view == 'closed':
             container.mount(ClosedView(self._tasks, self.data_dir))
+        self.query_one(KnbnFooter).active_view = view
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static(id='view-container')
-        yield Footer()
+        yield KnbnFooter()
 
     def action_show_kanban(self) -> None:
         self._show_view('kanban')
