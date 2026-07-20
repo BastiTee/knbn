@@ -42,6 +42,9 @@ class TabularView(Widget):
         padding: 0 1;
         margin-top: 1;
     }
+    .group-header:first-child {
+        margin-top: 0;
+    }
     """
 
     def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:

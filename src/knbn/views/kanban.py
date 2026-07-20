@@ -206,7 +206,7 @@ class KanbanView(Widget):
         width: 1fr; height: 1fr;
         border-right: solid $surface-darken-2; overflow-y: auto;
     }
-    #archive-bar { height: 3; background: $surface-darken-1; padding: 0 2; }
+    #archive-bar { height: 1; background: $surface-darken-1; padding: 0 2; }
     """
 
     def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
