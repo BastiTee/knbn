@@ -38,7 +38,7 @@ src/knbn/
   views/
     kanban.py        # 3×3 board (Todo/Now/Feedback × High/Medium/Low)
     tabular.py       # active tasks grouped by status
-    done_week.py     # archived tasks grouped by ISO calendar week
+    done_week.py     # "Done" view (key 3) — archived tasks grouped by ISO calendar week
   widgets/
     card.py          # TaskCard — uses knbn_task (not task) to avoid asyncio.Task clash
     detail.py        # TaskDetailPanel modal — uses knbn_task
@@ -56,6 +56,7 @@ Tasks live in `~/.knbn/tasks.csv` (override with `KNBN_DATA_DIR`). The CSV schem
 - **`recompose()` is async** in Textual 8 — call it with `await` or `self.call_after_refresh(self.recompose)` from sync contexts.
 - **`action_dismiss`** on `ModalScreen` subclasses must match the superclass signature: `def action_dismiss(self, result: None = None) -> None`.
 - `LaneHeader.Toggled` is a nested `Message` class; the handler is `on_lane_header_toggled`.
+- **`get_system_commands`** is overridden in `KnbnApp` to restrict the `Ctrl+P` command palette to `Theme → Quit → Keys` only. Screenshot and Maximize/Minimize are intentionally suppressed.
 - The form posts `TaskForm.TaskSaved`; the app handles it via `on_task_form_task_saved`.
 
 ### Testing
