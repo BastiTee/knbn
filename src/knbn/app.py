@@ -30,7 +30,7 @@ class KnbnApp(App[None]):
     BINDINGS = [
         Binding('1', 'show_kanban', 'Kanban', show=True),
         Binding('2', 'show_tabular', 'Tabular', show=True),
-        Binding('3', 'show_done_week', 'Done', show=True),
+        Binding('3', 'show_closed', 'Closed', show=True),
         Binding('q', 'quit', 'Quit', show=True),
         Binding('a', 'add_task', 'Add', show=True),
         Binding('question_mark', 'help', 'Help', show=True),
@@ -55,7 +55,7 @@ class KnbnApp(App[None]):
         self._tasks = load_tasks(self.data_dir)
 
     def _show_view(self, view: str) -> None:
-        from knbn.views.done_week import DoneByWeekView
+        from knbn.views.done_week import ClosedView
         from knbn.views.kanban import KanbanView
         from knbn.views.tabular import TabularView
 
@@ -65,8 +65,8 @@ class KnbnApp(App[None]):
             container.mount(KanbanView(self._tasks, self.data_dir))
         elif view == 'tabular':
             container.mount(TabularView(self._tasks, self.data_dir))
-        elif view == 'done_week':
-            container.mount(DoneByWeekView(self._tasks, self.data_dir))
+        elif view == 'closed':
+            container.mount(ClosedView(self._tasks, self.data_dir))
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -79,8 +79,8 @@ class KnbnApp(App[None]):
     def action_show_tabular(self) -> None:
         self._show_view('tabular')
 
-    def action_show_done_week(self) -> None:
-        self._show_view('done_week')
+    def action_show_closed(self) -> None:
+        self._show_view('closed')
 
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
         yield SystemCommand('Theme', 'Change the current theme', self.action_change_theme)

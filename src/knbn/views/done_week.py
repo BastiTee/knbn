@@ -1,4 +1,4 @@
-"""Done-by-week view — archived tasks grouped by ISO calendar week."""
+"""Closed view — terminal-status tasks grouped by ISO calendar week."""
 
 from __future__ import annotations
 
@@ -54,8 +54,8 @@ def _week_range_label(dt: datetime) -> str:
     return f'{start_month} {monday.day} – {end_month} {sunday.day} {year}'
 
 
-class DoneByWeekView(Widget):
-    """Archived tasks grouped by ISO week of last-modified date."""
+class ClosedView(Widget):
+    """Terminal-status tasks grouped by ISO week of last-modified date."""
 
     BINDINGS = [
         Binding('up', 'cursor_up', 'Up', show=False),
@@ -66,7 +66,7 @@ class DoneByWeekView(Widget):
     ]
 
     DEFAULT_CSS = """
-    DoneByWeekView {
+    ClosedView {
         height: 1fr;
         overflow-y: auto;
         padding: 0 1;
@@ -111,9 +111,9 @@ class DoneByWeekView(Widget):
             yield Static(f'▼ {label}  {len(group)}', classes='week-header')
             for task in group:
                 idx = task_index[id(task)]
-                name = task.title if len(task.title) <= 36 else task.title[:35] + '…'
+                name = task.title if len(task.title) <= 30 else task.title[:29] + '…'
                 row_text = (
-                    f'  {name:<38} {task.category:<14} {task.priority:<8}'
+                    f'  {name:<32} {task.status:<10} {task.category:<14} {task.priority:<8}'
                     f' {task.date_modified:<22} {task.date_created}'
                 )
                 row = TaskRow(idx, task, row_text)

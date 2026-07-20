@@ -12,7 +12,7 @@ _HELP_TEXT = """\
   [cyan]q[/cyan] / [cyan]Ctrl+C[/cyan]  Quit
   [cyan]1[/cyan]           Kanban view
   [cyan]2[/cyan]           Tabular view
-  [cyan]3[/cyan]           Done-by-week view
+  [cyan]3[/cyan]           Closed view
   [cyan]a[/cyan]           Add task
   [cyan]?[/cyan]           This help
 
