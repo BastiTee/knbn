@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from knbn.model.task import display_date as _display_date
+
 # Column widths: Name 28, Status 11, Priority 9, Category 14, Created 16, Edited 16, Due rest
 HEADER_TEXT = (
     f'  {"Name":<28} {"Status":<11} {"Priority":<9} {"Category":<14}'
@@ -25,16 +27,5 @@ def format_row(
     )
 
 
-def _date_only(s: str) -> str:
-    """Return just the date portion of a stored datetime string.
-
-    "July 21, 2026 03:45 PM" → "July 21, 2026"
-    """
-    if not s:
-        return ''
-    # The stored format is "Month DD, YYYY HH:MM AM/PM" — split on space and
-    # rejoin the first three tokens (month, day+comma, year).
-    parts = s.strip().split()
-    if len(parts) >= 3:
-        return ' '.join(parts[:3])
-    return s
+def display_date(s: str) -> str:
+    return _display_date(s)

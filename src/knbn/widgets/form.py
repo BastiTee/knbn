@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import replace
 from pathlib import Path
 
@@ -19,6 +20,8 @@ from knbn.model.task import (
     Task,
     now_str,
 )
+
+_DUE_RE = re.compile(r'^(\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?)?$')
 
 
 class TaskForm(ModalScreen[None]):
@@ -52,6 +55,10 @@ class TaskForm(ModalScreen[None]):
     TaskForm #form-buttons {
         margin-top: 1;
         layout: horizontal;
+        height: auto;
+    }
+    TaskForm .due-error {
+        color: $error;
         height: auto;
     }
     """
@@ -96,8 +103,9 @@ class TaskForm(ModalScreen[None]):
             cat_opts = [(c, c) for c in DEFAULT_CATEGORIES]
             yield Select(cat_opts, value=t.category if t else 'Ideas', id='f-category')
 
-            yield Label('Due (DD/MM/YYYY, optional)')
+            yield Label('Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)')
             yield Input(value=t.due if t else '', id='f-due')
+            yield Static('', id='due-error', classes='due-error')
 
             yield Label('Key Resource (URL, optional)')
             yield Input(value=t.key_resource if t else '', id='f-resource')
@@ -141,6 +149,12 @@ class TaskForm(ModalScreen[None]):
         key_resource = self.query_one('#f-resource', Input).value.strip()
         feedback_from = self.query_one('#f-feedback', Input).value.strip()
         delegated_to = self.query_one('#f-delegated', Input).value.strip()
+
+        due_error = self.query_one('#due-error', Static)
+        if due and not _DUE_RE.match(due):
+            due_error.update('Invalid format — use YYYY-MM-DD or YYYY-MM-DD HH:MM')
+            return
+        due_error.update('')
 
         now = now_str()
 

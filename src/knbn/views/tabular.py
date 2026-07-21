@@ -8,7 +8,7 @@ from textual.app import ComposeResult
 from textual.widgets import Static
 
 from knbn.model.task import PRIORITY_VALUES, STATUS_ACTIVE, Task
-from knbn.views._columns import HEADER_TEXT, _date_only, format_row
+from knbn.views._columns import HEADER_TEXT, display_date, format_row
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
 
@@ -60,14 +60,14 @@ class TabularView(RowListView):
             yield Static(f'▼ {status}  {len(group)}', classes='group-header')
             for task in group:
                 idx = task_index[id(task)]
-                due = _date_only(task.due) if task.due else ''
+                due = display_date(task.due) if task.due else ''
                 row_text = format_row(
                     task.title,
                     task.status,
                     task.priority,
                     task.category,
-                    _date_only(task.date_created),
-                    _date_only(task.date_modified),
+                    display_date(task.date_created),
+                    display_date(task.date_modified),
                     due,
                 )
                 row = TaskRow(idx, task, row_text)
