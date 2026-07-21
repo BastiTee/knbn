@@ -1,17 +1,17 @@
-Name,Category,Date Created,Delegated To,Due,Feedback From,Key Resource,Last edited time,Priority,Status
-Review Q3 goals with team,Ideas,2026-07-01 14:27,,,,,"2026-07-02 16:59",Medium,Done
-Organize quarterly offsite,Work Life,2026-07-02 14:31,,,,,"2026-07-06 13:13",Medium,Done
-Incident postmortem review,Engineering,2026-07-06 16:00,,,Alice,https://example.com/thread/001,"2026-07-08 07:36",High,Done
-Verify incident action items closed,Engineering,2026-07-06 16:55,,2026-07-17 09:00,Alice,https://example.com/wiki/incident-review,"2026-07-08 07:38",Low,Done
-Confirm all postmortems submitted,Engineering,2026-07-07 08:26,,2026-07-10 09:00,Engineers,https://example.com/thread/002,"2026-07-13 15:36",High,Done
-Audit frontend bundle size,Engineering,2026-07-07 09:05,,,,https://example.com/thread/003,"2026-07-08 07:39",Low,Done
-Prepare mid-year performance reviews,People,2026-07-07 15:14,,,,,"2026-07-16 12:42",High,Done
-Schedule engineering all-hands,Product,2026-07-07 15:21,,,,,"2026-07-14 17:18",Medium,Todo
-Complete compliance training,Strategy,2026-07-09 08:48,,,,,"2026-07-13 15:36",High,Done
-Draft team health summary,People,2026-07-09 14:47,,2026-07-10 15:00,,,"2026-07-13 17:12",High,Done
-Collect feedback on recent launch,Ideas,2026-07-13 14:28,,,,,"2026-07-13 17:21",Medium,Stopped
-Root cause analysis for deploy issue,Engineering,2026-07-13 14:59,,,Bob,https://example.com/thread/004,"2026-07-16 12:46",Medium,Done
-Write self assessment for review cycle,People,2026-07-13 15:59,,,,,"2026-07-13 17:21",Medium,Todo
-Sync on headcount planning,People,2026-07-14 17:14,,,Carol,https://example.com/thread/005,"2026-07-14 17:14",High,Feedback
-Research structured feedback models,Ideas,2026-07-15 09:27,,,,,"2026-07-17 08:05",High,Now
-Follow up on roadmap review session,Work Life,2026-07-17 07:36,,,,https://example.com/thread/006,"2026-07-17 08:05",Medium,Now
+DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,Delegate,Feedback,KeyResource
+2026-07-01 14:27,2026-07-02 16:59,,Done,Medium,Ideas,Review Q3 goals with team,,,
+2026-07-02 14:31,2026-07-06 13:13,,Done,Medium,Work Life,Organize quarterly offsite,,,
+2026-07-06 16:00,2026-07-08 07:36,,Done,High,Engineering,Incident postmortem review,,Alice,https://example.com/thread/001
+2026-07-06 16:55,2026-07-08 07:38,2026-07-17 09:00,Done,Low,Engineering,Verify incident action items closed,Alice,,https://example.com/wiki/incident-review
+2026-07-07 08:26,2026-07-13 15:36,2026-07-10 09:00,Done,High,Engineering,Confirm all postmortems submitted,,Engineers,https://example.com/thread/002
+2026-07-07 09:05,2026-07-08 07:39,,Done,Low,Engineering,Audit frontend bundle size,,,https://example.com/thread/003
+2026-07-07 15:14,2026-07-16 12:42,,Done,High,People,Prepare mid-year performance reviews,,,
+2026-07-07 15:21,2026-07-14 17:18,,Todo,Medium,Product,Schedule engineering all-hands,,,
+2026-07-09 08:48,2026-07-13 15:36,,Done,High,Strategy,Complete compliance training,,,
+2026-07-09 14:47,2026-07-13 17:12,2026-07-10 15:00,Done,High,People,Draft team health summary,,,
+2026-07-13 14:28,2026-07-13 17:21,,Stopped,Medium,Ideas,Collect feedback on recent launch,,,
+2026-07-13 14:59,2026-07-16 12:46,,Done,Medium,Engineering,Root cause analysis for deploy issue,,Bob,https://example.com/thread/004
+2026-07-13 15:59,2026-07-13 17:21,,Todo,Medium,People,Write self assessment for review cycle,,,
+2026-07-14 17:14,2026-07-14 17:14,,Feedback,High,People,Sync on headcount planning,,Carol,https://example.com/thread/005
+2026-07-15 09:27,2026-07-17 08:05,,Now,High,Ideas,Research structured feedback models,,,
+2026-07-17 07:36,2026-07-17 08:05,,Now,Medium,Work Life,Follow up on roadmap review session,,,https://example.com/thread/006

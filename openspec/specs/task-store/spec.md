@@ -21,16 +21,24 @@ The system SHALL resolve the data directory from the `KNBN_DATA_DIR` environment
 - **WHEN** the resolved data directory does not exist
 - **THEN** the directory, `tasks.csv` (with header), and `notes/` subdirectory are created
 
-### Requirement: CSV format compatibility
-The system SHALL read and write `tasks.csv` in a format compatible with the Notion CSV export. The header row SHALL be exactly: `Name,Category,Date Created,Delegated To,Due,Feedback From,Key Resource,Last edited time,Priority,Status`. The file SHALL use UTF-8 encoding and Unix line endings.
+### Requirement: CSV schema
+The store SHALL use a CSV file (`tasks.csv`) with exactly ten columns in this order: `DateTimeCreated`, `DateTimeEdited`, `DateTimeDue`, `Status`, `Priority`, `Category`, `Name`, `Delegate`, `Feedback`, `KeyResource`. The column order is canonical and must not change. On reading an existing CSV, the store SHALL validate that the header row matches the expected columns exactly (name and order); if it does not match, the store SHALL raise a `ValueError` with a message showing both the expected and the found header, before any task rows are read.
 
-#### Scenario: Round-trip CSV fidelity
-- **WHEN** tasks are loaded from a CSV, then saved back to a new CSV
-- **THEN** the resulting CSV content is byte-for-byte identical to the original
+#### Scenario: Fresh init writes correct header
+- **WHEN** `ensure_data_dir` is called on an empty directory
+- **THEN** the created `tasks.csv` has the header `DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,Delegate,Feedback,KeyResource`
 
-#### Scenario: Notion CSV import
-- **WHEN** a CSV exported from Notion with the canonical column order is placed at `tasks.csv`
-- **THEN** the system loads all tasks without transformation or error
+#### Scenario: Load tasks succeeds with correct schema
+- **WHEN** `load_tasks` is called on a CSV with the correct header
+- **THEN** tasks are returned without error
+
+#### Scenario: Load tasks fails with wrong schema
+- **WHEN** `load_tasks` is called on a CSV whose header does not match the expected columns
+- **THEN** a `ValueError` is raised containing both the expected and the found header in the message
+
+#### Scenario: Round-trip preserves all fields
+- **WHEN** tasks are saved with `save_tasks` and reloaded with `load_tasks`
+- **THEN** all ten task fields are identical to the originals
 
 ### Requirement: Atomic CSV writes
 The system SHALL write the CSV atomically by writing to a temporary file then renaming it, preventing data corruption if the process is interrupted during a write.

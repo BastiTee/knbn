@@ -15,16 +15,16 @@ _CSV_TMP_FILENAME = '.tasks.csv.tmp'
 _NOTES_DIR = 'notes'
 
 _CSV_FIELDNAMES = [
-    'Name',
-    'Category',
-    'Date Created',
-    'Delegated To',
-    'Due',
-    'Feedback From',
-    'Key Resource',
-    'Last edited time',
-    'Priority',
+    'DateTimeCreated',
+    'DateTimeEdited',
+    'DateTimeDue',
     'Status',
+    'Priority',
+    'Category',
+    'Name',
+    'Delegate',
+    'Feedback',
+    'KeyResource',
 ]
 
 
@@ -34,6 +34,20 @@ def _csv_path(data_dir: Path) -> Path:
 
 def _notes_dir(data_dir: Path) -> Path:
     return data_dir / _NOTES_DIR
+
+
+def _validate_csv_schema(path: Path) -> None:
+    with path.open(newline='', encoding='utf-8-sig') as f:
+        reader = csv.reader(f)
+        found = next(reader, [])
+    if found != _CSV_FIELDNAMES:
+        expected_str = ','.join(_CSV_FIELDNAMES)
+        found_str = ','.join(found)
+        raise ValueError(
+            f'tasks.csv has wrong schema.\n'
+            f'Expected: {expected_str}\n'
+            f'Found:    {found_str}'
+        )
 
 
 def ensure_data_dir(data_dir: Path) -> None:
@@ -53,16 +67,16 @@ def ensure_data_dir(data_dir: Path) -> None:
 
 def _task_to_row(task: Task) -> dict[str, str]:
     return {
-        'Name': task.title,
-        'Category': task.category,
-        'Date Created': task.date_created,
-        'Delegated To': task.delegated_to,
-        'Due': task.due,
-        'Feedback From': task.feedback_from,
-        'Key Resource': task.key_resource,
-        'Last edited time': task.date_modified,
-        'Priority': task.priority,
+        'DateTimeCreated': task.date_created,
+        'DateTimeEdited': task.date_modified,
+        'DateTimeDue': task.due,
         'Status': task.status,
+        'Priority': task.priority,
+        'Category': task.category,
+        'Name': task.title,
+        'Delegate': task.delegated_to,
+        'Feedback': task.feedback_from,
+        'KeyResource': task.key_resource,
     }
 
 
@@ -72,12 +86,12 @@ def _row_to_task(row: dict[str, str]) -> Task:
         category=row['Category'],
         status=row['Status'],
         priority=row['Priority'],
-        date_created=row['Date Created'],
-        date_modified=row['Last edited time'],
-        due=row.get('Due', ''),
-        key_resource=row.get('Key Resource', ''),
-        feedback_from=row.get('Feedback From', ''),
-        delegated_to=row.get('Delegated To', ''),
+        date_created=row['DateTimeCreated'],
+        date_modified=row['DateTimeEdited'],
+        due=row.get('DateTimeDue', ''),
+        key_resource=row.get('KeyResource', ''),
+        feedback_from=row.get('Feedback', ''),
+        delegated_to=row.get('Delegate', ''),
     )
 
 
@@ -85,6 +99,7 @@ def load_tasks(data_dir: Path) -> list[Task]:
     csv_file = _csv_path(data_dir)
     if not csv_file.exists():
         return []
+    _validate_csv_schema(csv_file)
     with csv_file.open(newline='', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f)
         return [_row_to_task(row) for row in reader]

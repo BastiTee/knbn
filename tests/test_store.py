@@ -61,10 +61,16 @@ def test_ensure_data_dir_preserves_existing_settings(tmp_path: Path) -> None:
 def test_csv_has_header_after_init(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
     content = (tmp_path / 'tasks.csv').read_text()
-    assert content.startswith('Name,Category,Date Created')
+    assert content.startswith('DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name')
 
 
-def test_load_tasks_from_fixture() -> None:
+def test_load_tasks_wrong_schema(tmp_path: Path) -> None:
+    csv_file = tmp_path / 'tasks.csv'
+    csv_file.write_text('Name,Category,Date Created,Delegated To,Due,Feedback From,Key Resource,Last edited time,Priority,Status\n')
+    with pytest.raises(ValueError, match='wrong schema'):
+        load_tasks(tmp_path)
+
+
     tasks = load_tasks(FIXTURE_CSV.parent)
     assert len(tasks) == 16
     titles = [t.title for t in tasks]
