@@ -22,12 +22,12 @@ _HELP_TEXT = """\
   [cyan]Enter[/cyan]       Open task detail
   [cyan]e[/cyan]           Edit task
   [cyan]n[/cyan]           Open / create notes
-  [cyan]d[/cyan]           Mark Done (confirm)
+  [cyan]d[/cyan]           Mark Done
   [cyan]x[/cyan]           Mark Stopped
-  [cyan]g[/cyan]           Delegate task
+  [cyan]g[/cyan]           Mark Delegated
   [cyan]m[/cyan]           Move to status
   [cyan]p[/cyan]           Change priority
-  [cyan]Del[/cyan]         Delete task (confirm)
+  [cyan]Del[/cyan]         Delete task
   [cyan]Space[/cyan]       Collapse / expand lane
   [cyan]PgUp / PgDn[/cyan]   Promote / demote priority
   [cyan]Shift+←→[/cyan]      Move to adjacent lane
@@ -37,7 +37,7 @@ _HELP_TEXT = """\
   [cyan]e[/cyan]           Edit task
   [cyan]n[/cyan]           Open notes
   [cyan]o[/cyan]           Open key resource URL
-  [cyan]d[/cyan]           Delete task (confirm)
+  [cyan]d[/cyan]           Delete task
 
 [bold]Tabular / Done views[/bold]
   [cyan]↑ ↓[/cyan]            Move between rows
