@@ -25,6 +25,7 @@ from knbn.model.task import (
     PRIORITY_VALUES,
     STATUS_VALUES,
     Task,
+    now_str,
 )
 from knbn.widgets._confirm import ConfirmDialog
 from knbn.widgets.card import TaskCard
@@ -354,7 +355,7 @@ class KanbanView(Widget):
         if ft is None:
             return
         idx, task = ft
-        updated = replace(task, status=new_status)
+        updated = replace(task, status=new_status, date_modified=now_str())
         update_task(self.data_dir, idx, updated)
         self._tasks = load_tasks(self.data_dir)
         self.call_after_refresh(self.recompose)
@@ -371,7 +372,7 @@ class KanbanView(Widget):
 
             def on_confirm(confirmed: bool | None) -> None:
                 if confirmed:
-                    updated = replace(task, status='Delegated', delegated_to=name)
+                    updated = replace(task, status='Delegated', delegated_to=name, date_modified=now_str())
                     update_task(self.data_dir, idx, updated)
                     self._tasks = load_tasks(self.data_dir)
                     self.call_after_refresh(self.recompose)

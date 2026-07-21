@@ -123,7 +123,7 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 - **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
-The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task detail panel, `e` to edit, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures.
+The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task detail panel, `e` to edit, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
 
 #### Scenario: Arrow navigation between cards
 - **WHEN** the user presses `←`/`→` on the board
@@ -141,9 +141,9 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 - **WHEN** the user presses `d` on a focused card
 - **THEN** a confirmation dialog appears asking whether to mark the task Done
 
-#### Scenario: Confirm done marks task
+#### Scenario: Confirm done marks task and stamps Last edited time
 - **WHEN** the user confirms in the Done confirmation dialog
-- **THEN** the task status changes to `Done` and the card disappears from the board
+- **THEN** the task status changes to `Done`, `Last edited time` is updated to now, and the card disappears from the board
 
 #### Scenario: Cancel done leaves task intact
 - **WHEN** the user cancels the Done confirmation dialog
@@ -151,7 +151,15 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 
 #### Scenario: Mark task done
 - **WHEN** the user confirms `d` on a focused card
-- **THEN** the task status changes to `Done` and the card disappears from the board
+- **THEN** the task status changes to `Done`, `Last edited time` is updated to now, and the card disappears from the board
+
+#### Scenario: Mark task stopped stamps Last edited time
+- **WHEN** the user confirms `x` on a focused card
+- **THEN** the task status changes to `Stopped` and `Last edited time` is updated to now
+
+#### Scenario: Delegate task stamps Last edited time
+- **WHEN** the user confirms delegation via `g` on a focused card
+- **THEN** the task status changes to `Delegated` and `Last edited time` is updated to now
 
 #### Scenario: Tab does nothing in Kanban view
 - **WHEN** the user presses Tab or Shift+Tab in the Kanban view
