@@ -8,6 +8,7 @@ from textual.app import ComposeResult
 from textual.widgets import Static
 
 from knbn.model.task import PRIORITY_VALUES, STATUS_ACTIVE, Task
+from knbn.views._columns import HEADER_TEXT, _date_only, format_row
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
 
@@ -27,6 +28,10 @@ class TabularView(RowListView):
         overflow-y: auto;
         padding: 0 1;
     }
+    .col-header-row {
+        text-style: bold;
+        padding: 0 1;
+    }
     .group-header {
         text-style: bold;
         background: $primary-darken-2;
@@ -43,6 +48,7 @@ class TabularView(RowListView):
 
     def compose(self) -> ComposeResult:
         self._rows = []
+        yield Static(HEADER_TEXT, classes='col-header-row')
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
         for status in STATUS_ACTIVE:
             group = sorted(
@@ -54,9 +60,16 @@ class TabularView(RowListView):
             yield Static(f'▼ {status}  {len(group)}', classes='group-header')
             for task in group:
                 idx = task_index[id(task)]
-                due = task.due.split(' ')[0] if task.due else ''
-                name = task.title if len(task.title) <= 40 else task.title[:39] + '…'
-                row_text = f'  {name:<42} {task.priority:<8} {task.category:<14} {due}'
+                due = _date_only(task.due) if task.due else ''
+                row_text = format_row(
+                    task.title,
+                    task.status,
+                    task.priority,
+                    task.category,
+                    _date_only(task.date_created),
+                    _date_only(task.date_modified),
+                    due,
+                )
                 row = TaskRow(idx, task, row_text)
                 self._rows.append(row)
                 yield row

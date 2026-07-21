@@ -10,6 +10,7 @@ from textual.app import ComposeResult
 from textual.widgets import Static
 
 from knbn.model.task import STATUS_TERMINAL, Task
+from knbn.views._columns import HEADER_TEXT, _date_only, format_row
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
 
@@ -45,9 +46,13 @@ class ClosedView(RowListView):
         overflow-y: auto;
         padding: 0 1;
     }
+    .col-header-row {
+        text-style: bold;
+        padding: 0 1;
+    }
     .week-header {
         text-style: bold;
-        background: $surface-darken-1;
+        background: $primary-darken-2;
         padding: 0 1;
         margin-top: 1;
     }
@@ -58,6 +63,7 @@ class ClosedView(RowListView):
 
     def compose(self) -> ComposeResult:
         self._rows = []
+        yield Static(HEADER_TEXT, classes='col-header-row')
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
         terminal = [t for t in self._tasks if t.status in STATUS_TERMINAL]
 
@@ -81,10 +87,15 @@ class ClosedView(RowListView):
             yield Static(f'▼ {label}  {len(group)}', classes='week-header')
             for task in group:
                 idx = task_index[id(task)]
-                name = task.title if len(task.title) <= 30 else task.title[:29] + '…'
-                row_text = (
-                    f'  {name:<32} {task.status:<10} {task.category:<14} {task.priority:<8}'
-                    f' {task.date_modified:<22} {task.date_created}'
+                due = _date_only(task.due) if task.due else ''
+                row_text = format_row(
+                    task.title,
+                    task.status,
+                    task.priority,
+                    task.category,
+                    _date_only(task.date_created),
+                    _date_only(task.date_modified),
+                    due,
                 )
                 row = TaskRow(idx, task, row_text)
                 self._rows.append(row)
