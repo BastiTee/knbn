@@ -7,10 +7,11 @@ from datetime import date
 from pathlib import Path
 
 from textual.app import ComposeResult
+from textual.events import Resize
 from textual.widgets import Static
 
 from knbn.model.task import STATUS_TERMINAL, Task, parse_datetime
-from knbn.views._columns import HEADER_TEXT, display_date, format_row
+from knbn.views._columns import display_date, format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
 
@@ -49,9 +50,13 @@ class ClosedView(RowListView):
     def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
         super().__init__(tasks, data_dir, **kwargs)
 
+    def on_resize(self, event: Resize) -> None:
+        self.call_after_refresh(self.recompose)
+
     def compose(self) -> ComposeResult:
         self._rows = []
-        yield Static(HEADER_TEXT, classes='col-header-row')
+        tw = title_col_width(self.size.width)
+        yield Static(header_text(tw), classes='col-header-row')
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
         terminal = [t for t in self._tasks if t.status in STATUS_TERMINAL]
 
@@ -84,6 +89,7 @@ class ClosedView(RowListView):
                     display_date(task.date_created),
                     display_date(task.date_modified),
                     due,
+                    tw,
                 )
                 row = TaskRow(idx, task, row_text)
                 self._rows.append(row)

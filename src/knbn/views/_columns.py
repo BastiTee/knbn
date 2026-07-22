@@ -4,11 +4,30 @@ from __future__ import annotations
 
 from knbn.model.task import display_date as _display_date
 
-# Column widths: Name 28, Status 11, Priority 9, Category 14, Created 16, Edited 16, Due rest
-HEADER_TEXT = (
-    f'  {"Name":<28} {"Status":<11} {"Priority":<9} {"Category":<14}'
-    f' {"Created":<16} {"Edited":<16} Due Date'
-)
+# Chars in format_row / header_text that are not part of the title field.
+# status(11) + priority(9) + category(14) + created(16) + edited(16) + due(10)
+# plus 2 leading spaces and 6 separating spaces = 84 total.
+_NON_TITLE_WIDTH = 84
+
+# CSS padding consumed per row: view padding:0 1 (2) + TaskRow padding:0 2 (4).
+_PADDING_OVERHEAD = 6
+
+# Combined overhead used to derive a responsive title column width.
+FIXED_OVERHEAD = _NON_TITLE_WIDTH + _PADDING_OVERHEAD  # 90
+
+MIN_TITLE_WIDTH = 20
+
+
+def title_col_width(widget_width: int) -> int:
+    """Return the title column width that fills available space."""
+    return max(MIN_TITLE_WIDTH, widget_width - FIXED_OVERHEAD)
+
+
+def header_text(title_width: int) -> str:
+    return (
+        f'  {"Name":<{title_width}} {"Status":<11} {"Priority":<9} {"Category":<14}'
+        f' {"Created":<16} {"Edited":<16} Due Date'
+    )
 
 
 def format_row(
@@ -19,10 +38,11 @@ def format_row(
     created: str,
     edited: str,
     due: str,
+    title_width: int,
 ) -> str:
-    name_col = name if len(name) <= 28 else name[:27] + '…'
+    name_col = name if len(name) <= title_width else name[: title_width - 1] + '…'
     return (
-        f'  {name_col:<28} {status:<11} {priority:<9} {category:<14}'
+        f'  {name_col:<{title_width}} {status:<11} {priority:<9} {category:<14}'
         f' {created:<16} {edited:<16} {due}'
     )
 

@@ -372,7 +372,12 @@ class KanbanView(Widget):
 
             def on_confirm(confirmed: bool | None) -> None:
                 if confirmed:
-                    updated = replace(task, status='Delegated', delegated_to=name, date_modified=now_str())
+                    updated = replace(
+                        task,
+                        status='Delegated',
+                        delegated_to=name,
+                        date_modified=now_str(),
+                    )
                     update_task(self.data_dir, idx, updated)
                     self._tasks = load_tasks(self.data_dir)
                     self.call_after_refresh(self.recompose)
