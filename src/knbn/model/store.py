@@ -164,5 +164,9 @@ def open_notes_in_editor(data_dir: Path, task: Task) -> None:
         notes_path.write_text('')
     editor = os.environ.get('EDITOR', 'nano')
     subprocess.run([editor, str(notes_path)], check=False)  # noqa: S603
-    if not already_existed and notes_path.exists() and not notes_path.read_text().strip():
+    if (
+        not already_existed
+        and notes_path.exists()
+        and not notes_path.read_text().strip()
+    ):
         notes_path.unlink()
