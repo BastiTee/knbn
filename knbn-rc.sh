@@ -21,4 +21,4 @@ alias k="cd ${here} && uv run knbn"
 # Alias to create a new task by calling 't'
 alias t="k add"
 # Developer shortcut to start knbn with demo data
-alias knbn-demo="cd ${here} && KNBN_DATA_DIR=demo uv run knbn board"
+alias knbn-demo="cd ${here} && KNBN_DATA_DIR=demo uv run knbn"
