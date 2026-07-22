@@ -208,6 +208,71 @@ def test_open_notes_in_editor_creates_file_and_calls_editor(
 ) -> None:
     ensure_data_dir(tmp_path)
     task = _make_task(title='Editor task')
-    monkeypatch.setenv('EDITOR', 'cat')
+    notes_path = get_notes_path(tmp_path, task)
+
+    def fake_run(cmd: list[str], **_: object) -> None:
+        notes_path.write_text('some content')
+
+    monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
     open_notes_in_editor(tmp_path, task)
-    assert get_notes_path(tmp_path, task).exists()
+    assert notes_path.exists()
+
+
+def test_open_notes_in_editor_deletes_new_file_if_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Blank task')
+    notes_path = get_notes_path(tmp_path, task)
+
+    monkeypatch.setattr('knbn.model.store.subprocess.run', lambda *a, **kw: None)
+    open_notes_in_editor(tmp_path, task)
+    assert not notes_path.exists()
+
+
+def test_open_notes_in_editor_deletes_new_file_if_whitespace_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Whitespace task')
+    notes_path = get_notes_path(tmp_path, task)
+
+    def fake_run(cmd: list[str], **_: object) -> None:
+        notes_path.write_text('  \n\t  ')
+
+    monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
+    open_notes_in_editor(tmp_path, task)
+    assert not notes_path.exists()
+
+
+def test_open_notes_in_editor_keeps_new_file_with_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Content task')
+    notes_path = get_notes_path(tmp_path, task)
+
+    def fake_run(cmd: list[str], **_: object) -> None:
+        notes_path.write_text('hello\n')
+
+    monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
+    open_notes_in_editor(tmp_path, task)
+    assert notes_path.exists()
+    assert notes_path.read_text().strip() == 'hello'
+
+
+def test_open_notes_in_editor_preserves_existing_file_cleared_to_blank(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data_dir(tmp_path)
+    task = _make_task(title='Pre-existing task')
+    notes_path = get_notes_path(tmp_path, task)
+    notes_path.parent.mkdir(parents=True, exist_ok=True)
+    notes_path.write_text('original content')
+
+    def fake_run(cmd: list[str], **_: object) -> None:
+        notes_path.write_text('')
+
+    monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
+    open_notes_in_editor(tmp_path, task)
+    assert notes_path.exists()

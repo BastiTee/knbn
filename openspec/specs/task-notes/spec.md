@@ -21,6 +21,14 @@ The system SHALL allow creating and editing a per-task Markdown notes file via t
 - **WHEN** the notes file already exists and the user opens notes for a task
 - **THEN** the existing file is opened in the editor with its current content
 
+#### Scenario: Discard newly created blank notes file
+- **WHEN** the notes file did not exist before the editor was opened AND the user saves and exits the editor without entering any non-whitespace content
+- **THEN** the file is deleted so no empty notes file persists and no notes indicator appears on the card
+
+#### Scenario: Preserve existing file cleared to blank
+- **WHEN** the notes file existed before the editor was opened AND the user clears all content and exits
+- **THEN** the file is left as-is (not deleted)
+
 ### Requirement: Notes presence indicator on card
 Each task card SHALL display a visual indicator (text `[N]` or Unicode `📝`) when a Markdown notes file exists for that task.
 
