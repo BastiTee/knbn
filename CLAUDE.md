@@ -36,10 +36,14 @@ src/knbn/
     store.py         # CSV read/write (atomic via .tmp rename), notes path resolution
     slug.py          # title → filename slug, collision suffixes
   views/
+    _columns.py      # shared column layout constants (FIXED_OVERHEAD, format helpers)
+    _row.py          # TaskRow — focusable Static widget used in list views
+    _row_list.py     # RowListView — base class for tabular/done_week with cursor + keybindings
     kanban.py        # 3×3 board (Todo/Now/Feedback × High/Medium/Low)
     tabular.py       # active tasks grouped by status
     done_week.py     # "Done" view (key 3) — archived tasks grouped by ISO calendar week
   widgets/
+    _confirm.py      # ConfirmDialog — ModalScreen[bool], y/n/escape keybindings
     card.py          # TaskCard — uses knbn_task (not task) to avoid asyncio.Task clash
     detail.py        # TaskDetailPanel modal — uses knbn_task
     form.py          # TaskForm modal — posts TaskForm.TaskSaved message on save

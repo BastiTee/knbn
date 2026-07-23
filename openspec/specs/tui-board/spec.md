@@ -143,7 +143,7 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 - **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
-The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task detail panel, `e` to edit, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
+The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task detail panel, `e` to edit, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
 
 #### Scenario: Arrow navigation between cards
 - **WHEN** the user presses `←`/`→` on the board
@@ -212,6 +212,14 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 #### Scenario: Shift+Right at Feedback is a no-op
 - **WHEN** the user presses `Shift+→` on a focused card in `Feedback`
 - **THEN** the card is unchanged and does not move to a terminal status
+
+#### Scenario: Open key resource URL from board
+- **WHEN** the user presses `o` on a focused card that has a `key_resource` URL
+- **THEN** the URL opens in the default system browser
+
+#### Scenario: o key is no-op when no URL set
+- **WHEN** the user presses `o` on a focused card with no `key_resource`
+- **THEN** nothing happens
 
 ### Requirement: Task detail panel
 The TUI SHALL display all task fields in a right-side detail panel when the user presses `Enter` on a card. The panel SHALL support `Esc`/`q` to close, `e` to edit, `n` to open notes, `o` to open the Key Resource URL in the default browser, and `d` to delete the task after confirmation.

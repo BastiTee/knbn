@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from dataclasses import replace
 from pathlib import Path
 
@@ -155,6 +156,7 @@ class KanbanView(Widget):
         Binding('enter', 'open_detail', 'Detail', show=False),
         Binding('e', 'edit_task', 'Edit', show=False),
         Binding('n', 'open_notes', 'Notes', show=False),
+        Binding('o', 'open_url', 'Open URL', show=False),
         Binding('d', 'mark_done', 'Done', show=False),
         Binding('x', 'mark_stopped', 'Stopped', show=False),
         Binding('g', 'delegate', 'Delegate', show=False),
@@ -318,6 +320,14 @@ class KanbanView(Widget):
             return
         _, task = ft
         self._open_notes_for(task)
+
+    def action_open_url(self) -> None:
+        ft = self._focused_task()
+        if ft is None:
+            return
+        _, task = ft
+        if task.key_resource:
+            subprocess.run(['open', task.key_resource], check=False)  # noqa: S603
 
     def _open_notes_for(self, task: Task) -> None:
         with self.app.suspend():

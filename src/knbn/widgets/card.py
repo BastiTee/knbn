@@ -54,10 +54,18 @@ class TaskCard(Static):
         self.data_dir = data_dir
         self.can_focus = True
 
-    def _notes_indicator(self) -> str:
+    def _card_indicators(self) -> str:
         from knbn.model.store import notes_exist
 
-        return ' [N]' if notes_exist(self.data_dir, self.knbn_task) else ''
+        has_notes = notes_exist(self.data_dir, self.knbn_task)
+        has_link = bool(self.knbn_task.key_resource)
+        if has_notes and has_link:
+            return ' ☰ ※'
+        if has_notes:
+            return ' ☰'
+        if has_link:
+            return ' ※'
+        return ''
 
     def _due_display(self) -> tuple[str, bool]:
         due = _parse_due(self.knbn_task.due)
@@ -77,7 +85,7 @@ class TaskCard(Static):
 
     def compose(self) -> ComposeResult:
         color = CATEGORY_COLORS.get(self.knbn_task.category, _DEFAULT_COLOR)
-        notes = self._notes_indicator()
+        notes = self._card_indicators()
         title = self._title_for_width()
         due_str, overdue = self._due_display()
 
