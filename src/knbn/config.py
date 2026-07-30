@@ -13,6 +13,7 @@ _SETTINGS_TMP_FILENAME = '.settings.json.tmp'
 
 SETTINGS_DEFAULTS: dict[str, str] = {
     'theme': 'textual-dark',
+    'deadline_warning_hours': '24',
 }
 
 
