@@ -133,6 +133,7 @@ ignore = [
     "TRY003",  # allow long exception messages
     "PLR2004", # allow magic values in comparisons (too noisy)
     "PLR0913", # too many arguments — Textual widgets need many
+    "PLR0917", # too many positional arguments — Click commands and format helpers need them
     "RUF012",  # mutable class attrs — normal pattern for Textual BINDINGS/CSS
     "PLC0415", # imports not at top-level — deferred TUI imports avoid circular deps
     "TC001",   # TYPE_CHECKING imports — not needed with from __future__ import annotations
