@@ -24,7 +24,7 @@ class TaskDetailPanel(ModalScreen[None]):
         Binding('e', 'edit', 'Edit', show=True),
         Binding('n', 'notes', 'Notes', show=True),
         Binding('o', 'open_resource', 'Open URL', show=True),
-        Binding('d', 'delete_task', 'Delete', show=True),
+        Binding('delete,backspace', 'delete_task', 'Delete', show=True),
     ]
 
     DEFAULT_CSS = """
@@ -63,7 +63,7 @@ class TaskDetailPanel(ModalScreen[None]):
             f'[dim]Created:[/dim]    {t.date_created}',
             f'[dim]Modified:[/dim]   {t.date_modified}',
             '',
-            '[dim]e=edit  n=notes  o=open URL  d=delete  Esc=close[/dim]',
+            '[dim]e=edit  n=notes  o=open URL  Del=delete  Esc=close[/dim]',
         ]
         return '\n'.join(lines)
 

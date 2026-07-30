@@ -222,7 +222,7 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 - **THEN** nothing happens
 
 ### Requirement: Task detail panel
-The TUI SHALL display all task fields in a right-side detail panel when the user presses `Enter` on a card. The panel SHALL support `Esc`/`q` to close, `e` to edit, `n` to open notes, `o` to open the Key Resource URL in the default browser, and `d` to delete the task after confirmation.
+The TUI SHALL display all task fields in a right-side detail panel when the user presses `Enter` on a card. The panel SHALL support `Esc`/`q` to close, `e` to edit, `n` to open notes, `o` to open the Key Resource URL in the default browser, and `Del`/`Backspace` to delete the task after confirmation.
 
 #### Scenario: Detail panel shows all fields
 - **WHEN** the user presses `Enter` on a task card
@@ -232,8 +232,8 @@ The TUI SHALL display all task fields in a right-side detail panel when the user
 - **WHEN** the user presses `o` in the detail panel and a Key Resource URL is set
 - **THEN** the URL opens in the default system browser
 
-#### Scenario: Delete task with confirmation
-- **WHEN** the user presses `d` in the detail panel
+#### Scenario: Delete task with Del key
+- **WHEN** the user presses `Del` or `Backspace` in the detail panel
 - **THEN** a confirmation prompt appears asking whether to delete the task
 
 #### Scenario: Confirm delete removes task
@@ -243,6 +243,10 @@ The TUI SHALL display all task fields in a right-side detail panel when the user
 #### Scenario: Cancel delete leaves task intact
 - **WHEN** the user cancels deletion in the prompt
 - **THEN** the task is not deleted and the detail panel remains open
+
+#### Scenario: d key does not trigger delete in detail panel
+- **WHEN** the user presses `d` while the detail panel is open
+- **THEN** no delete prompt appears
 
 ### Requirement: Inline add/edit form
 The TUI SHALL provide an overlay form for creating and editing tasks, accessible via `a` (add) from any view and `e` from a focused card or detail panel. The form SHALL be dismissible with `Esc`. The form SHALL be saveable with `Ctrl+S` provided the title field contains at least one non-whitespace character. The Due field label SHALL read `Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)`. When saving, if the Due field is non-empty and does not match `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`, the form SHALL display an inline validation error below the Due field and SHALL NOT save the task.

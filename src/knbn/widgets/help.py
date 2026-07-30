@@ -37,7 +37,7 @@ _HELP_TEXT = """\
   [cyan]e[/cyan]           Edit task
   [cyan]n[/cyan]           Open notes
   [cyan]o[/cyan]           Open key resource URL
-  [cyan]d[/cyan]           Delete task
+  [cyan]Del[/cyan] / [cyan]Bksp[/cyan]  Delete task
 
 [bold]Tabular / Done views[/bold]
   [cyan]↑ ↓[/cyan]            Move between rows
