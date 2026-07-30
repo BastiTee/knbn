@@ -9,7 +9,7 @@ from textual.app import ComposeResult
 from textual.events import Key
 from textual.widgets import Static
 
-from knbn.config import get_setting
+from knbn.config import get_int_setting
 from knbn.model.task import Task, parse_datetime
 
 CATEGORY_COLORS: dict[str, str] = {
@@ -80,10 +80,7 @@ class TaskCard(Static):
         due = _parse_due(self.knbn_task.due)
         if due is None:
             return False
-        try:
-            hours = int(get_setting(self.data_dir, 'deadline_warning_hours', '24'))
-        except (ValueError, TypeError):
-            hours = 24
+        hours = get_int_setting(self.data_dir, 'deadline_warning_hours', 24)
         return due <= datetime.now() + timedelta(hours=hours)
 
     def _title_for_width(self, reserved: int = 0) -> str:
@@ -110,12 +107,10 @@ class TaskCard(Static):
                 if overdue
                 else f'[dim]{due_str}[/dim]'
             )
-            title_line = f'{title}{indicators}{" " * max(pad, 1)}{due_str}'
             title_markup_line = f'{title}{indicators}{" " * max(pad, 1)}{due_markup}'
         else:
             title = self._title_for_width()
-            title_line = f'{title}{indicators}'
-            title_markup_line = title_line
+            title_markup_line = f'{title}{indicators}'
 
         tag = f'[on {color}] {self.knbn_task.category} [/on {color}]'
         yield Static(title_markup_line, markup=True)

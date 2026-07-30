@@ -6,7 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from knbn.config import SETTINGS_DEFAULTS, get_setting, load_settings, save_settings
+from knbn.config import (
+    SETTINGS_DEFAULTS,
+    get_int_setting,
+    get_setting,
+    load_settings,
+    save_settings,
+)
 
 
 def test_load_returns_defaults_for_missing_file(tmp_path: Path) -> None:
@@ -67,3 +73,22 @@ def test_get_setting_absent_key_returns_default(tmp_path: Path) -> None:
 
 def test_get_setting_absent_key_empty_default(tmp_path: Path) -> None:
     assert get_setting(tmp_path, 'nonexistent') == ''
+
+
+def test_get_int_setting_valid_value(tmp_path: Path) -> None:
+    save_settings(tmp_path, {'deadline_warning_hours': '48'})
+    assert get_int_setting(tmp_path, 'deadline_warning_hours', 24) == 48
+
+
+def test_get_int_setting_absent_key_returns_default(tmp_path: Path) -> None:
+    assert get_int_setting(tmp_path, 'nonexistent', 24) == 24
+
+
+def test_get_int_setting_invalid_value_returns_default(tmp_path: Path) -> None:
+    save_settings(tmp_path, {'deadline_warning_hours': 'bad'})
+    assert get_int_setting(tmp_path, 'deadline_warning_hours', 24) == 24
+
+
+def test_get_int_setting_zero_is_valid(tmp_path: Path) -> None:
+    save_settings(tmp_path, {'deadline_warning_hours': '0'})
+    assert get_int_setting(tmp_path, 'deadline_warning_hours', 24) == 0

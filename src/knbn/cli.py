@@ -8,7 +8,13 @@ import click
 
 from knbn.config import resolve_data_dir
 from knbn.model.store import add_task, ensure_data_dir
-from knbn.model.task import DEFAULT_CATEGORIES, PRIORITY_VALUES, Task, now_str
+from knbn.model.task import (
+    DEFAULT_CATEGORIES,
+    PRIORITY_VALUES,
+    STATUS_ACTIVE,
+    Task,
+    now_str,
+)
 
 
 def _prompt_select(label: str, options: list[str], default: str) -> str:
@@ -100,8 +106,8 @@ def add(
     if title is None:
         title = click.prompt(click.style('Title', bold=True), type=str)
 
-    # Status
-    active_statuses = ['Todo', 'Now', 'Feedback', 'Delegated']
+    # Status — active statuses plus Delegated (tasks can be added pre-delegated)
+    active_statuses = [*STATUS_ACTIVE, 'Delegated']
     if status_default:
         status = 'Todo'
     else:

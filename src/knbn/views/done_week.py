@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import calendar
 from datetime import date
-from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.events import Resize
 from textual.widgets import Static
 
-from knbn.model.task import STATUS_TERMINAL, Task, parse_datetime
-from knbn.views._columns import display_date, format_row, header_text, title_col_width
+from knbn.model.task import STATUS_TERMINAL, Task, display_date, parse_datetime
+from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
 
@@ -46,9 +45,6 @@ class ClosedView(RowListView):
         margin-top: 1;
     }
     """
-
-    def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
-        super().__init__(tasks, data_dir, **kwargs)
 
     def on_resize(self, event: Resize) -> None:
         self.call_after_refresh(self.recompose)

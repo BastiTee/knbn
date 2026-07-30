@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from knbn.model.task import display_date as _display_date
-
-# Chars in format_row / header_text that are not part of the title field.
-# status(11) + priority(9) + category(14) + created(16) + edited(16) + due(10)
-# plus 2 leading spaces and 6 separating spaces = 84 total.
+# Non-title column widths in format_row / header_text:
+# 2 (indent) + 11 (status) + 1 + 9 (priority) + 1 + 14 (category)
+# + 1 + 16 (created) + 1 + 16 (edited) + 1 + 8 ("Due Date" header min) = 81
+# An extra 3 chars of margin brings this to 84, reserving a comfortable minimum
+# for the due-date column without pushing the title to MIN_TITLE_WIDTH too aggressively.
 _NON_TITLE_WIDTH = 84
 
 # CSS padding consumed per row: view padding:0 1 (2) + TaskRow padding:0 2 (4).
@@ -45,7 +45,3 @@ def format_row(
         f'  {name_col:<{title_width}} {status:<11} {priority:<9} {category:<14}'
         f' {created:<16} {edited:<16} {due}'
     )
-
-
-def display_date(s: str) -> str:
-    return _display_date(s)

@@ -47,3 +47,12 @@ def save_settings(data_dir: Path, settings: dict[str, str]) -> None:
 def get_setting(data_dir: Path, key: str, default: str = '') -> str:
     settings = load_settings(data_dir)
     return settings.get(key, default)
+
+
+def get_int_setting(data_dir: Path, key: str, default: int) -> int:
+    """Return a settings value as int, falling back to default on missing or invalid."""
+    raw = get_setting(data_dir, key, str(default))
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        return default
