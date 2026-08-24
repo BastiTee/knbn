@@ -18,7 +18,9 @@ here="$( cd "$( dirname "$0" )"; pwd )"
 
 # Alias to invoke knbn by calling 'k'
 alias k="cd ${here} && uv run knbn"
-# Alias to create a new task by calling 't'
+# Alias to create a new task by prompting properties
 alias t="k add"
+# Alias to create a new task by title only (using all defaults)
+alias tt="k add --fast"
 # Developer shortcut to start knbn with demo data
 alias knbn-demo="cd ${here} && KNBN_DATA_DIR=demo uv run knbn"
