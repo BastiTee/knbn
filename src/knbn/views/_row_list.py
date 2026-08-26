@@ -21,7 +21,7 @@ class RowListView(Widget):
         Binding('down', 'cursor_down', 'Down', show=False),
         Binding('pageup', 'cursor_up_fast', 'Up×10', show=False, priority=True),
         Binding('pagedown', 'cursor_down_fast', 'Down×10', show=False, priority=True),
-        Binding('enter', 'open_detail', 'Open', show=False),
+        Binding('enter', 'edit_task', 'Edit', show=False),
     ]
 
     def __init__(self, tasks: list[Task], data_dir: Path, **kwargs: object) -> None:
@@ -73,13 +73,15 @@ class RowListView(Widget):
             event.prevent_default()
             event.stop()
 
-    def action_open_detail(self) -> None:
-        from knbn.widgets.detail import TaskDetailPanel
+    def action_edit_task(self) -> None:
+        from knbn.widgets.form import TaskForm
 
         i = self._focused_index()
         if i < 0:
             return
         row = self._rows[i]
         self.app.push_screen(
-            TaskDetailPanel(row.task_index, row.knbn_task, self.data_dir)
+            TaskForm(
+                data_dir=self.data_dir, task=row.knbn_task, task_index=row.task_index
+            )
         )

@@ -19,30 +19,19 @@ _HELP_TEXT = """\
 [bold]Kanban board[/bold]
   [cyan]← →[/cyan]         Move between columns
   [cyan]↑ ↓[/cyan]         Move between cards
-  [cyan]Enter[/cyan]       Open task detail
-  [cyan]e[/cyan]           Edit task
+  [cyan]Enter[/cyan]       Edit task
   [cyan]n[/cyan]           Open / create notes
   [cyan]d[/cyan]           Mark Done
   [cyan]x[/cyan]           Mark Stopped
   [cyan]g[/cyan]           Mark Delegated
-  [cyan]m[/cyan]           Move to status
-  [cyan]p[/cyan]           Change priority
   [cyan]Del[/cyan]         Delete task
-  [cyan]Space[/cyan]       Collapse / expand lane
   [cyan]PgUp / PgDn[/cyan]   Promote / demote priority
   [cyan]Shift+←→[/cyan]      Move to adjacent lane
 
-[bold]Detail panel[/bold]
-  [cyan]Esc[/cyan] / [cyan]q[/cyan]    Close panel
-  [cyan]e[/cyan]           Edit task
-  [cyan]n[/cyan]           Open notes
-  [cyan]o[/cyan]           Open key resource URL
-  [cyan]Del[/cyan] / [cyan]Bksp[/cyan]  Delete task
-
-[bold]Tabular / Done views[/bold]
+[bold]Tabular / Closed views[/bold]
   [cyan]↑ ↓[/cyan]            Move between rows
   [cyan]PgUp / PgDn[/cyan]   Jump 10 rows
-  [cyan]Enter[/cyan]          Open task detail
+  [cyan]Enter[/cyan]          Edit task
 
 [bold]Form[/bold]
   [cyan]Tab[/cyan]         Next field

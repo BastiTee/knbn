@@ -23,12 +23,11 @@ from knbn.model.store import (
 )
 from knbn.model.task import (
     PRIORITY_VALUES,
-    STATUS_VALUES,
     Task,
     now_str,
 )
 from knbn.widgets._confirm import ConfirmDialog
-from knbn.widgets._modals import PromptModal, SelectModal
+from knbn.widgets._modals import PromptModal
 from knbn.widgets.card import TaskCard
 
 _STATUS_ORDER = ['Todo', 'Now', 'Feedback']
@@ -67,7 +66,7 @@ class LaneHeader(Static):
         return f'{arrow} {self._priority}'
 
     def on_key(self, event: object) -> None:
-        if isinstance(event, Key) and event.key in ('space', 'enter'):
+        if isinstance(event, Key) and event.key == 'enter':
             self._collapsed = not self._collapsed
             self.refresh()
             self.post_message(LaneHeader.Toggled(self._priority, self._collapsed))
@@ -85,15 +84,12 @@ class KanbanView(Widget):
         Binding('pagedown', 'move_down', 'Demote', show=False, priority=True),
         Binding('shift+left', 'move_left', 'Move Left', show=False, priority=True),
         Binding('shift+right', 'move_right', 'Move Right', show=False, priority=True),
-        Binding('enter', 'open_detail', 'Detail', show=False),
-        Binding('e', 'edit_task', 'Edit', show=False),
+        Binding('enter', 'edit_task', 'Edit', show=False),
         Binding('n', 'open_notes', 'Notes', show=False),
         Binding('o', 'open_url', 'Open URL', show=False),
         Binding('d', 'mark_done', 'Done', show=False),
         Binding('x', 'mark_stopped', 'Stopped', show=False),
         Binding('g', 'delegate', 'Delegate', show=False),
-        Binding('m', 'move_status', 'Move', show=False),
-        Binding('p', 'change_priority', 'Priority', show=False),
         Binding('delete', 'delete_task', 'Delete', show=False),
         Binding('backspace', 'delete_task', 'Delete', show=False),
     ]
@@ -226,15 +222,6 @@ class KanbanView(Widget):
             event.prevent_default()
             event.stop()
 
-    def action_open_detail(self) -> None:
-        ft = self._focused_task()
-        if ft is None:
-            return
-        idx, task = ft
-        from knbn.widgets.detail import TaskDetailPanel
-
-        self.app.push_screen(TaskDetailPanel(idx, task, self.data_dir))
-
     def action_edit_task(self) -> None:
         ft = self._focused_task()
         if ft is None:
@@ -329,38 +316,6 @@ class KanbanView(Widget):
             )
 
         self.app.push_screen(PromptModal('Delegated To:'), on_name)
-
-    def action_move_status(self) -> None:
-        ft = self._focused_task()
-        if ft is None:
-            return
-        idx, task = ft
-        options = [s for s in STATUS_VALUES if s != task.status]
-
-        def on_status(new_status: str | None) -> None:
-            if new_status:
-                updated = replace(task, status=new_status)
-                update_task(self.data_dir, idx, updated)
-                self._tasks = load_tasks(self.data_dir)
-                self.call_after_refresh(self.recompose)
-
-        self.app.push_screen(SelectModal('Move to status:', options), on_status)
-
-    def action_change_priority(self) -> None:
-        ft = self._focused_task()
-        if ft is None:
-            return
-        idx, task = ft
-        options = [p for p in PRIORITY_VALUES if p != task.priority]
-
-        def on_priority(new_priority: str | None) -> None:
-            if new_priority:
-                updated = replace(task, priority=new_priority)
-                update_task(self.data_dir, idx, updated)
-                self._tasks = load_tasks(self.data_dir)
-                self.call_after_refresh(self.recompose)
-
-        self.app.push_screen(SelectModal('Change priority:', options), on_priority)
 
     def _move_task(self, updated: Task) -> None:
         """Save updated task, reload, then recompose and refocus by title."""

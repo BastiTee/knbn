@@ -64,7 +64,7 @@ Each swim lane (priority row) SHALL be collapsible. Toggling a collapsed lane SH
 - **THEN** the lane expands and all cards are visible again
 
 ### Requirement: Tabular view
-The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present in the stored value, or `YYYY-MM-DD` when only a date is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task detail panel.
+The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present in the stored value, or `YYYY-MM-DD` when only a date is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
 
 #### Scenario: Tabular view shows column headers
 - **WHEN** the user switches to the Tabular view
@@ -102,12 +102,12 @@ The TUI SHALL provide a tabular view listing all active tasks grouped by status 
 - **WHEN** the Tabular view is displayed
 - **THEN** the first task row is immediately focused without any keypress
 
-#### Scenario: Open detail panel from tabular view
+#### Scenario: Enter opens edit form from tabular view
 - **WHEN** the user presses `Enter` on a focused task row in the Tabular view
-- **THEN** the task detail panel opens for that task
+- **THEN** the task edit form opens pre-populated with that task's fields
 
 ### Requirement: Closed view
-The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing terminal-status tasks (`Done`, `Delegated`, `Stopped`) grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present, or `YYYY-MM-DD` when only a date is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task detail panel.
+The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing terminal-status tasks (`Done`, `Delegated`, `Stopped`) grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present, or `YYYY-MM-DD` when only a date is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
 
 #### Scenario: Closed view shows column headers
 - **WHEN** the user switches to the Closed view
@@ -145,9 +145,9 @@ The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessibl
 - **WHEN** the Closed view is displayed
 - **THEN** the first task row is immediately focused without any keypress
 
-#### Scenario: Open detail panel from closed view
+#### Scenario: Enter opens edit form from closed view
 - **WHEN** the user presses `Enter` on a focused task row in the Closed view
-- **THEN** the task detail panel opens for that task
+- **THEN** the task edit form opens pre-populated with that task's fields
 
 ### Requirement: View switching
 The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` for Tabular, `3` for Closed. The footer toolbar SHALL display the `q Quit` button to the left of the three view-switching buttons (`1 Kanban`, `2 Tabular`, `3 Closed`). The footer SHALL visually indicate which view is currently active by rendering the corresponding tab key in bold.
@@ -169,7 +169,7 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 - **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
-The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task detail panel, `e` to edit, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
+The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
 
 #### Scenario: Arrow navigation between cards
 - **WHEN** the user presses `←`/`→` on the board
@@ -182,6 +182,10 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 #### Scenario: Clamped column switch
 - **WHEN** the user is focused on the 5th card in `Todo` and presses `←` to `Now` which only has 2 cards
 - **THEN** focus moves to the last card (2nd) in `Now`
+
+#### Scenario: Enter opens edit form from board
+- **WHEN** the user presses `Enter` on a focused card on the Kanban board
+- **THEN** the task edit form opens pre-populated with that task's fields
 
 #### Scenario: Mark task done with confirmation
 - **WHEN** the user presses `d` on a focused card
@@ -247,39 +251,16 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 - **WHEN** the user presses `o` on a focused card with no `key_resource`
 - **THEN** nothing happens
 
-### Requirement: Task detail panel
-The TUI SHALL display all task fields in a right-side detail panel when the user presses `Enter` on a card. The panel SHALL support `Esc`/`q` to close, `e` to edit, `n` to open notes, `o` to open the Key Resource URL in the default browser, and `Del`/`Backspace` to delete the task after confirmation.
-
-#### Scenario: Detail panel shows all fields
-- **WHEN** the user presses `Enter` on a task card
-- **THEN** a panel appears showing all ten task fields
-
-#### Scenario: Open key resource URL
-- **WHEN** the user presses `o` in the detail panel and a Key Resource URL is set
-- **THEN** the URL opens in the default system browser
-
-#### Scenario: Delete task with Del key
-- **WHEN** the user presses `Del` or `Backspace` in the detail panel
-- **THEN** a confirmation prompt appears asking whether to delete the task
-
-#### Scenario: Confirm delete removes task
-- **WHEN** the user confirms deletion in the prompt
-- **THEN** the task is permanently removed from the store, the detail panel is dismissed, and the board refreshes
-
-#### Scenario: Cancel delete leaves task intact
-- **WHEN** the user cancels deletion in the prompt
-- **THEN** the task is not deleted and the detail panel remains open
-
-#### Scenario: d key does not trigger delete in detail panel
-- **WHEN** the user presses `d` while the detail panel is open
-- **THEN** no delete prompt appears
-
 ### Requirement: Inline add/edit form
-The TUI SHALL provide an overlay form for creating and editing tasks, accessible via `a` (add) from any view and `e` from a focused card or detail panel. The form SHALL be dismissible with `Esc`. The form SHALL be saveable with `Ctrl+S` provided the title field contains at least one non-whitespace character. The Due field label SHALL read `Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)`. When saving, if the Due field is non-empty and does not match `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`, the form SHALL display an inline validation error below the Due field and SHALL NOT save the task.
+The TUI SHALL provide an overlay form for creating and editing tasks, accessible via `a` (add) from any view and `Enter` on a focused task from any view (edit). The form SHALL be dismissible with `Esc`. The form SHALL be saveable with `Ctrl+S` provided the title field contains at least one non-whitespace character. The Due field label SHALL read `Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)`. When saving, if the Due field is non-empty and does not match `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`, the form SHALL display an inline validation error below the Due field and SHALL NOT save the task.
 
 #### Scenario: Open add form
 - **WHEN** the user presses `a`
 - **THEN** an overlay form appears with empty fields ready for input
+
+#### Scenario: Open edit form from any view
+- **WHEN** the user presses `Enter` on a focused task in any view
+- **THEN** an overlay form appears pre-populated with that task's current field values
 
 #### Scenario: Cancel form with Escape
 - **WHEN** the user presses `Esc` while the form is open
