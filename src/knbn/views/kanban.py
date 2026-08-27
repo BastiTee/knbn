@@ -191,34 +191,81 @@ class KanbanView(Widget):
         col = self.query_one(f'#col-{col_idx}')
         return list(col.query(TaskCard))
 
+    def _get_focusable_in_col(self, col_idx: int) -> list[LaneHeader | TaskCard]:
+        col = self.query_one(f'#col-{col_idx}')
+        return [w for w in col.children if isinstance(w, (LaneHeader, TaskCard))]
+
     def action_focus_left(self) -> None:
-        current_row = self._focused_row.get(self._focused_col, 0)
-        self._focused_col = max(0, self._focused_col - 1)
-        self._focused_row[self._focused_col] = current_row
-        self._focus_col_card()
+        if self._focused_col <= 0:
+            return
+        focused = self.app.focused
+        self._focused_col -= 1
+        if isinstance(focused, LaneHeader):
+            self._focus_same_priority_header(focused._priority)
+        else:
+            current_row = self._focused_row.get(self._focused_col + 1, 0)
+            self._focused_row[self._focused_col] = current_row
+            self._focus_col_card()
 
     def action_focus_right(self) -> None:
-        current_row = self._focused_row.get(self._focused_col, 0)
-        self._focused_col = min(2, self._focused_col + 1)
-        self._focused_row[self._focused_col] = current_row
-        self._focus_col_card()
+        if self._focused_col >= 2:
+            return
+        focused = self.app.focused
+        self._focused_col += 1
+        if isinstance(focused, LaneHeader):
+            self._focus_same_priority_header(focused._priority)
+        else:
+            current_row = self._focused_row.get(self._focused_col - 1, 0)
+            self._focused_row[self._focused_col] = current_row
+            self._focus_col_card()
 
     def action_focus_up(self) -> None:
-        r = self._focused_row.get(self._focused_col, 0)
-        self._focused_row[self._focused_col] = max(0, r - 1)
-        self._focus_col_card()
+        focusable = self._get_focusable_in_col(self._focused_col)
+        if not focusable:
+            return
+        focused = self.app.focused
+        try:
+            idx = focusable.index(focused)  # type: ignore[arg-type]
+        except ValueError:
+            idx = 0
+        target = focusable[max(0, idx - 1)]
+        target.focus()
+        if isinstance(target, TaskCard):
+            cards = self._get_cards_in_col(self._focused_col)
+            if target in cards:
+                self._focused_row[self._focused_col] = cards.index(target)
 
     def action_focus_down(self) -> None:
-        cards = self._get_cards_in_col(self._focused_col)
-        if not cards:
+        focusable = self._get_focusable_in_col(self._focused_col)
+        if not focusable:
             return
-        r = self._focused_row.get(self._focused_col, 0)
-        self._focused_row[self._focused_col] = min(len(cards) - 1, r + 1)
+        focused = self.app.focused
+        try:
+            idx = focusable.index(focused)  # type: ignore[arg-type]
+        except ValueError:
+            idx = len(focusable) - 1
+        target = focusable[min(len(focusable) - 1, idx + 1)]
+        target.focus()
+        if isinstance(target, TaskCard):
+            cards = self._get_cards_in_col(self._focused_col)
+            if target in cards:
+                self._focused_row[self._focused_col] = cards.index(target)
+
+    def _focus_same_priority_header(self, priority: str) -> None:
+        col = self.query_one(f'#col-{self._focused_col}')
+        for header in col.query(LaneHeader):
+            if header._priority == priority:
+                header.focus()
+                return
         self._focus_col_card()
 
     def _focus_col_card(self) -> None:
         cards = self._get_cards_in_col(self._focused_col)
         if not cards:
+            col = self.query_one(f'#col-{self._focused_col}')
+            headers = list(col.query(LaneHeader))
+            if headers:
+                headers[0].focus()
             return
         row = min(self._focused_row.get(self._focused_col, 0), len(cards) - 1)
         self._focused_row[self._focused_col] = row

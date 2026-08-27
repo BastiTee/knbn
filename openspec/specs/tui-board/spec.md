@@ -169,7 +169,7 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 - **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
-The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first card in the top-left occupied cell SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
+The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first focusable element (card or, if the column is empty, its first lane header) in the first column SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. If the target column has no cards at all, focus SHALL land on the topmost visible `LaneHeader` in that column. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
 
 #### Scenario: Arrow navigation between cards
 - **WHEN** the user presses `←`/`→` on the board
@@ -182,6 +182,10 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 #### Scenario: Clamped column switch
 - **WHEN** the user is focused on the 5th card in `Todo` and presses `←` to `Now` which only has 2 cards
 - **THEN** focus moves to the last card (2nd) in `Now`
+
+#### Scenario: Navigate into empty column focuses lane header
+- **WHEN** the user presses `←` or `→` and the target column has no task cards
+- **THEN** focus moves to the topmost visible `LaneHeader` in that column
 
 #### Scenario: Enter opens edit form from board
 - **WHEN** the user presses `Enter` on a focused card on the Kanban board
@@ -217,7 +221,7 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 
 #### Scenario: Auto-focus first card on mount
 - **WHEN** the Kanban view is displayed
-- **THEN** the first card in the first non-empty column is immediately focused without any keypress
+- **THEN** the first focusable element (card or lane header) in the first column is immediately focused without any keypress
 
 #### Scenario: Shift+Up promotes priority
 - **WHEN** the user presses `Shift+↑` on a focused card with priority `Medium`
