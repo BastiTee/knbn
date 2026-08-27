@@ -21,6 +21,10 @@ uv run knbn board                          # launch TUI
 make build                                 # full build chain (test + mypy + lint + format + uv build)
 ```
 
+## Before committing
+
+Always run `make format` before staging and committing. The build chain enforces formatting via `ruff format`; skipping it leaves violations that fail CI.
+
 ## Architecture
 
 ### Module layout

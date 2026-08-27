@@ -8,6 +8,7 @@ from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.events import Key
 from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
@@ -22,6 +23,21 @@ from knbn.model.task import (
 )
 
 _DUE_RE = re.compile(r'^(\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?)?$')
+
+
+class DueInput(Input):
+    """Due-date input that opens the date picker on Enter instead of submitting."""
+
+    class OpenPicker(Message):
+        """Posted when the user presses Enter in the due field."""
+
+    async def _on_key(self, event: Key) -> None:
+        if event.key == 'enter':
+            event.stop()
+            event.prevent_default()
+            self.post_message(DueInput.OpenPicker())
+        else:
+            await super()._on_key(event)
 
 
 class TaskForm(ModalScreen[None]):
@@ -60,6 +76,9 @@ class TaskForm(ModalScreen[None]):
     TaskForm .due-error {
         color: $error;
         height: auto;
+    }
+    DueInput.has-error {
+        border: tall $error;
     }
     """
 
@@ -101,16 +120,14 @@ class TaskForm(ModalScreen[None]):
             yield Label('Priority')
             priority_opts = [(p, p) for p in PRIORITY_VALUES]
             default_priority = t.priority if t else (self.initial_priority or 'Medium')
-            yield Select(
-                priority_opts, value=default_priority, id='f-priority'
-            )
+            yield Select(priority_opts, value=default_priority, id='f-priority')
 
             yield Label('Category')
             cat_opts = [(c, c) for c in DEFAULT_CATEGORIES]
             yield Select(cat_opts, value=t.category if t else 'Ideas', id='f-category')
 
             yield Label('Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)')
-            yield Input(value=t.due if t else '', id='f-due')
+            yield DueInput(value=t.due if t else '', id='f-due')
             yield Static('', id='due-error', classes='due-error')
 
             yield Label('Key Resource (URL, optional)')
@@ -138,6 +155,28 @@ class TaskForm(ModalScreen[None]):
         elif event.button.id == 'save-btn':
             self._save()
 
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == 'f-due':
+            event.input.remove_class('has-error')
+            self.query_one('#due-error', Static).update('')
+
+    def on_due_input_open_picker(self) -> None:
+        from knbn.widgets.date_picker import DateTimePicker
+
+        due_field = self.query_one('#f-due', DueInput)
+        val = due_field.value.strip()
+        due_error = self.query_one('#due-error', Static)
+        if val and not _DUE_RE.match(val):
+            due_error.update('Invalid format — use YYYY-MM-DD or YYYY-MM-DD HH:MM')
+            due_field.add_class('has-error')
+            return
+
+        def _on_result(result: str | None) -> None:
+            if result is not None:
+                self.query_one('#f-due', DueInput).value = result
+
+        self.app.push_screen(DateTimePicker(prefill=val or None), _on_result)
+
     def _save(self) -> None:
         title = self.query_one('#f-title', Input).value.strip()
         if not title:
@@ -151,15 +190,18 @@ class TaskForm(ModalScreen[None]):
         status = _sel_val('#f-status') or 'Todo'
         priority = _sel_val('#f-priority') or 'Medium'
         category = _sel_val('#f-category') or 'Ideas'
-        due = self.query_one('#f-due', Input).value.strip()
+        due = self.query_one('#f-due', DueInput).value.strip()
         key_resource = self.query_one('#f-resource', Input).value.strip()
         feedback_from = self.query_one('#f-feedback', Input).value.strip()
         delegated_to = self.query_one('#f-delegated', Input).value.strip()
 
+        due_field = self.query_one('#f-due', DueInput)
         due_error = self.query_one('#due-error', Static)
         if due and not _DUE_RE.match(due):
             due_error.update('Invalid format — use YYYY-MM-DD or YYYY-MM-DD HH:MM')
+            due_field.add_class('has-error')
             return
+        due_field.remove_class('has-error')
         due_error.update('')
 
         now = now_str()
