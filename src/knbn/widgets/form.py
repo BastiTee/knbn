@@ -71,12 +71,16 @@ class TaskForm(ModalScreen[None]):
         data_dir: Path,
         task: Task | None,
         task_index: int | None = None,
+        initial_status: str | None = None,
+        initial_priority: str | None = None,
         **kwargs: object,
     ) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self.data_dir = data_dir
         self.existing_task = task
         self.task_index = task_index
+        self.initial_status = initial_status
+        self.initial_priority = initial_priority
 
     def compose(self) -> ComposeResult:
         t = self.existing_task
@@ -91,12 +95,14 @@ class TaskForm(ModalScreen[None]):
 
             yield Label('Status')
             status_opts = [(s, s) for s in STATUS_VALUES]
-            yield Select(status_opts, value=t.status if t else 'Todo', id='f-status')
+            default_status = t.status if t else (self.initial_status or 'Todo')
+            yield Select(status_opts, value=default_status, id='f-status')
 
             yield Label('Priority')
             priority_opts = [(p, p) for p in PRIORITY_VALUES]
+            default_priority = t.priority if t else (self.initial_priority or 'Medium')
             yield Select(
-                priority_opts, value=t.priority if t else 'Medium', id='f-priority'
+                priority_opts, value=default_priority, id='f-priority'
             )
 
             yield Label('Category')

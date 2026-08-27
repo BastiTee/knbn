@@ -177,6 +177,16 @@ class KanbanView(Widget):
             return idx, self._tasks[idx]
         return None
 
+    def get_lane_context(self) -> tuple[str, str] | None:
+        focused = self.app.focused
+        if isinstance(focused, TaskCard):
+            t = focused.knbn_task
+            return t.status, t.priority
+        if isinstance(focused, LaneHeader):
+            status = _STATUS_ORDER[self._focused_col]
+            return status, focused._priority
+        return None
+
     def _get_cards_in_col(self, col_idx: int) -> list[TaskCard]:
         col = self.query_one(f'#col-{col_idx}')
         return list(col.query(TaskCard))

@@ -254,6 +254,8 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 ### Requirement: Inline add/edit form
 The TUI SHALL provide an overlay form for creating and editing tasks, accessible via `a` (add) from any view and `Enter` on a focused task from any view (edit). The form SHALL be dismissible with `Esc`. The form SHALL be saveable with `Ctrl+S` provided the title field contains at least one non-whitespace character. The Due field label SHALL read `Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)`. When saving, if the Due field is non-empty and does not match `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`, the form SHALL display an inline validation error below the Due field and SHALL NOT save the task.
 
+When `a` is pressed from the Kanban view, the add form SHALL pre-populate the Status and Priority fields based on the currently focused cell: Status from the focused column (`Todo`, `Now`, or `Feedback`) and Priority from the focused swim lane row (`High`, `Medium`, or `Low`). If lane context cannot be determined, the form SHALL fall back to the default values (`Todo` / `Medium`). Pre-populated values SHALL remain editable by the user.
+
 #### Scenario: Open add form
 - **WHEN** the user presses `a`
 - **THEN** an overlay form appears with empty fields ready for input
@@ -285,6 +287,22 @@ The TUI SHALL provide an overlay form for creating and editing tasks, accessible
 #### Scenario: Invalid due format blocked
 - **WHEN** the user enters `01/08/2026` in the Due field and attempts to save
 - **THEN** an inline error message appears below the Due field and the task is not saved
+
+#### Scenario: Add form pre-populates status from focused column
+- **WHEN** the user is focused on a card or lane header in the `Feedback` column of the Kanban board and presses `a`
+- **THEN** the add form opens with Status pre-set to `Feedback`
+
+#### Scenario: Add form pre-populates priority from focused swim lane
+- **WHEN** the user is focused on a card or lane header in the `High` swim lane of the Kanban board and presses `a`
+- **THEN** the add form opens with Priority pre-set to `High`
+
+#### Scenario: Add form pre-population from focused card
+- **WHEN** the user is focused on a card in the `Now` column / `Low` swim lane and presses `a`
+- **THEN** the add form opens with Status pre-set to `Now` and Priority pre-set to `Low`
+
+#### Scenario: Add form falls back to defaults when no lane context
+- **WHEN** the user presses `a` from the Tabular or Closed view
+- **THEN** the add form opens with the default Status (`Todo`) and Priority (`Medium`)
 
 ### Requirement: Help overlay
 The TUI SHALL display a key bindings help overlay when the user presses `?`, and dismiss it with `Esc` or `?`.

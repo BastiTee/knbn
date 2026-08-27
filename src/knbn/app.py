@@ -139,9 +139,26 @@ class KnbnApp(App[None]):
             )
 
     def action_add_task(self) -> None:
+        from knbn.views.kanban import KanbanView
         from knbn.widgets.form import TaskForm
 
-        self.push_screen(TaskForm(data_dir=self.data_dir, task=None))
+        initial_status: str | None = None
+        initial_priority: str | None = None
+        if self._current_view == 'kanban':
+            kanban_views = self.query(KanbanView)
+            if kanban_views:
+                ctx = kanban_views.first(KanbanView).get_lane_context()
+                if ctx is not None:
+                    initial_status, initial_priority = ctx
+
+        self.push_screen(
+            TaskForm(
+                data_dir=self.data_dir,
+                task=None,
+                initial_status=initial_status,
+                initial_priority=initial_priority,
+            )
+        )
 
     def action_help(self) -> None:
         from knbn.widgets.help import HelpOverlay
