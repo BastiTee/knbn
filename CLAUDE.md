@@ -23,7 +23,7 @@ make build                                 # full build chain (test + mypy + lin
 
 ## Before committing
 
-Always run `make format` before staging and committing. The build chain enforces formatting via `ruff format`; skipping it leaves violations that fail CI.
+Always run `make format` and `make lint` before staging and committing. The build chain enforces both; skipping them leaves violations that fail CI.
 
 ## Architecture
 
