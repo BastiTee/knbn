@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import calendar
+import contextlib
 import re
 from datetime import date, timedelta
 
@@ -159,10 +160,8 @@ class DateTimePicker(ModalScreen['str | None']):
         self._initial_time = ''
         if prefill:
             parts = prefill.split(' ', 1)
-            try:
+            with contextlib.suppress(ValueError):
                 self._initial_date = date.fromisoformat(parts[0])
-            except ValueError:
-                pass
             if len(parts) == 2:
                 self._initial_time = parts[1]
 
