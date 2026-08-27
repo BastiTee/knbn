@@ -41,20 +41,5 @@ jobs:
             - name: Setup Python ${{ matrix.python-version }}
               run: uv python install ${{ matrix.python-version }}
 
-            - name: Sync dependencies
-              run: uv sync
-
-            - name: Test
-              run: make test
-
-            - name: Type check
-              run: make mypy
-
-            - name: Lint & format check
-              run: make lint format-check
-
-            - name: Build
-              run: uv build
-
-            - name: Dependency vulnerability scan
-              run: make audit
+            - name: Run standard build process
+              run: make

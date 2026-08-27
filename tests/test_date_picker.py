@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-import pytest
-
 from knbn.widgets.date_picker import _adjust_time
 
 

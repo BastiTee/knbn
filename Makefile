@@ -21,7 +21,7 @@ help: ## Show this help message
 
 # Bundle tasks
 
-all: clean venv build ## Clean, create venv, and run full build (default)
+all: clean venv build audit ## Clean, create venv, and run full build (default)
 	@echo Executed default build pipeline
 
 clean: ## Remove .venv, caches, and build artifacts
@@ -46,7 +46,7 @@ clear-cache: ## Clear uv dependency cache
 venv: clean ## Clean and recreate virtual environment
 	uv sync
 
-build: test mypy lint format ## Run the entire build chain
+build: test mypy lint-check format-check ## Run the entire build chain
 	uv build
 
 test: ## Run pytest test suite
@@ -55,11 +55,11 @@ test: ## Run pytest test suite
 mypy: ## Run mypy type checking
 	uv run mypy $(PY_FILES)
 
-lint: ## Run ruff linting
-	uv run ruff check $(PY_FILES)
-
-lint-fix: ## Auto-fix linting issues with ruff
+lint: ## Auto-fix linting issues with ruff
 	uv run ruff check --fix $(PY_FILES)
+
+lint-check: ## Run linter check (no changes)
+	uv run ruff check $(PY_FILES)
 
 format: ## Format code with ruff
 	uv run ruff format $(PY_FILES)
