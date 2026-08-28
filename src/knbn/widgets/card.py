@@ -9,19 +9,8 @@ from textual.app import ComposeResult
 from textual.events import Key
 from textual.widgets import Static
 
-from knbn.config import get_int_setting
+from knbn.config import BoardConfig, get_app_setting
 from knbn.model.task import Task, parse_datetime
-
-CATEGORY_COLORS: dict[str, str] = {
-    'People': '#e879a0',
-    'Hiring': '#f4a7b9',
-    'Strategy': '#7ec8e3',
-    'Product': '#5b9bd5',
-    'Engineering': '#4dbfbf',
-    'Work Life': '#f5a623',
-    'Ideas': '#cccccc',
-}
-_DEFAULT_COLOR = '#888888'
 
 
 def _parse_due(s: str) -> datetime | None:
@@ -53,6 +42,10 @@ class TaskCard(Static):
         self.data_dir = data_dir
         self.can_focus = True
 
+    @property
+    def _board_config(self) -> BoardConfig:
+        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
+
     def _card_indicators(self) -> str:
         from knbn.model.store import notes_exist
 
@@ -80,7 +73,11 @@ class TaskCard(Static):
         due = _parse_due(self.knbn_task.due)
         if due is None:
             return False
-        hours = get_int_setting(self.data_dir, 'deadline_warning_hours', 24)
+        raw = get_app_setting(self.data_dir, 'deadline_warning_hours', '24')
+        try:
+            hours = int(raw)
+        except (ValueError, TypeError):
+            hours = 24
         return due <= datetime.now() + timedelta(hours=hours)
 
     def _title_for_width(self, reserved: int = 0) -> str:
@@ -92,12 +89,11 @@ class TaskCard(Static):
         return title
 
     def compose(self) -> ComposeResult:
-        color = CATEGORY_COLORS.get(self.knbn_task.category, _DEFAULT_COLOR)
+        color = self._board_config.category_color(self.knbn_task.category)
         indicators = self._card_indicators()
         due_str, overdue = self._due_display()
 
         if due_str:
-            # Reserve space for ' ' + due_str on the title row
             reserved = 1 + len(due_str)
             title = self._title_for_width(reserved)
             inner_width = max(self.size.width - 4, 8)

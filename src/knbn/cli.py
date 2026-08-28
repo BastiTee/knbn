@@ -6,20 +6,14 @@ from pathlib import Path
 
 import click
 
-from knbn.config import resolve_data_dir
+from knbn.config import load_board_config, resolve_data_dir
 from knbn.model.store import add_task, ensure_data_dir
-from knbn.model.task import (
-    DEFAULT_CATEGORIES,
-    PRIORITY_VALUES,
-    STATUS_ACTIVE,
-    Task,
-    now_str,
-)
+from knbn.model.task import Task, now_str
 
 
 def _prompt_select(label: str, options: list[str], default: str) -> str:
     opts_str = '  '.join(f'({i + 1}) {opt}' for i, opt in enumerate(options))
-    default_idx = options.index(default) + 1
+    default_idx = options.index(default) + 1 if default in options else 1
     while True:
         idx: int = click.prompt(
             f'{label}\n  {opts_str}',
@@ -43,6 +37,10 @@ def cli(ctx: click.Context) -> None:
 def init(path: str | None) -> None:
     """Initialize the knbn data directory."""
     data_dir = Path(path) if path else resolve_data_dir()
+    from knbn.setup import run_setup_wizard, should_run_wizard
+
+    if should_run_wizard(data_dir):
+        run_setup_wizard(data_dir)
     already_existed = data_dir.exists()
     ensure_data_dir(data_dir)
     if already_existed:
@@ -55,31 +53,33 @@ def init(path: str | None) -> None:
 def board() -> None:
     """Launch the interactive Kanban board."""
     from knbn.app import KnbnApp  # pragma: no cover
+    from knbn.config import get_app_setting  # pragma: no cover
+    from knbn.setup import run_setup_wizard, should_run_wizard  # pragma: no cover
 
     data_dir = resolve_data_dir()  # pragma: no cover
+    if should_run_wizard(data_dir):  # pragma: no cover
+        run_setup_wizard(data_dir)  # pragma: no cover
     ensure_data_dir(data_dir)  # pragma: no cover
-    from knbn.config import get_setting  # pragma: no cover
-
-    theme = get_setting(data_dir, 'theme', 'textual-dark')  # pragma: no cover
+    theme = get_app_setting(data_dir, 'theme', 'textual-dark')  # pragma: no cover
     KnbnApp(data_dir=data_dir, theme=theme).run()  # pragma: no cover
 
 
 @cli.command()
 @click.option('--title', '-t', default=None, help='Task title (skips prompt)')
 @click.option(
-    '--status-default', 'status_default', is_flag=True, help='Use default status (Todo)'
+    '--status-default', 'status_default', is_flag=True, help='Use default status'
 )
 @click.option(
     '--priority-default',
     'priority_default',
     is_flag=True,
-    help='Use default priority (Medium)',
+    help='Use default priority',
 )
 @click.option(
     '--category-default',
     'category_default',
     is_flag=True,
-    help='Use default category (Ideas)',
+    help='Use default category',
 )
 @click.option(
     '--no-resource', 'no_resource', is_flag=True, help='Skip key resource prompt'
@@ -101,39 +101,36 @@ def add(
 
     data_dir = resolve_data_dir()
     ensure_data_dir(data_dir)
+    board_config = load_board_config(data_dir)
+
+    active_statuses = board_config.active_statuses
+    category_names = [c.name for c in board_config.categories]
+    priorities = board_config.priorities
+    default_status = active_statuses[0]
+    default_priority = priorities[len(priorities) // 2]
+    default_category = category_names[-1] if category_names else ''
 
     # Title
     if title is None:
         title = click.prompt(click.style('Title', bold=True), type=str)
 
-    # Status — active statuses plus Delegated (tasks can be added pre-delegated)
-    active_statuses = [*STATUS_ACTIVE, 'Delegated']
+    # Status
     if status_default:
-        status = 'Todo'
+        status = default_status
     else:
-        status = _prompt_select('Status', active_statuses, 'Todo')
-
-    # Conditional: Feedback From
-    feedback_from = ''
-    if status == 'Feedback':
-        feedback_from = click.prompt(click.style('Feedback From', bold=True), type=str)
-
-    # Conditional: Delegated To
-    delegated_to = ''
-    if status == 'Delegated':
-        delegated_to = click.prompt(click.style('Delegated To', bold=True), type=str)
+        status = _prompt_select('Status', active_statuses, default_status)
 
     # Priority
     if priority_default:
-        priority = 'Medium'
+        priority = default_priority
     else:
-        priority = _prompt_select('Priority', PRIORITY_VALUES, 'Medium')
+        priority = _prompt_select('Priority', priorities, default_priority)
 
     # Category
     if category_default:
-        category = 'Ideas'
+        category = default_category
     else:
-        category = _prompt_select('Category', DEFAULT_CATEGORIES, 'Ideas')
+        category = _prompt_select('Category', category_names, default_category)
 
     # Key Resource
     key_resource = ''
@@ -154,8 +151,6 @@ def add(
         date_modified=now,
         due='',
         key_resource=key_resource,
-        feedback_from=feedback_from,
-        delegated_to=delegated_to,
     )
     add_task(data_dir, task)
     print(f'✓ Task added: {title}')

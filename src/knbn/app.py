@@ -12,7 +12,14 @@ from textual.screen import Screen
 from textual.widgets import Footer, Static
 from textual.widgets._footer import FooterKey
 
-from knbn.config import load_settings, save_settings
+from knbn.config import (
+    BoardConfig,
+    BoardConfigError,
+    build_default_board_config,
+    load_board_config,
+    load_settings,
+    save_settings,
+)
 from knbn.model.store import ensure_data_dir, load_tasks
 from knbn.model.task import Task
 
@@ -78,11 +85,17 @@ class KnbnApp(App[None]):
         self._tasks: list[Task] = []
         self._current_view: str = 'kanban'
         self.theme = theme
+        self.board_config: BoardConfig = build_default_board_config()
 
     def on_mount(self) -> None:
         size = self.app.size
         if size.width < 100 or size.height < 30:
             self.exit(message='Terminal too small. Minimum size: 100×30.')
+            return
+        try:
+            self.board_config = load_board_config(self.data_dir)
+        except BoardConfigError as e:
+            self.exit(message=f'Board config error: {e}')
             return
         self._reload_tasks()
         self._show_view('kanban')
@@ -171,5 +184,5 @@ class KnbnApp(App[None]):
 
     def watch_theme(self, theme: str) -> None:
         settings = load_settings(self.data_dir)
-        settings['theme'] = theme
+        settings['app']['theme'] = theme
         save_settings(self.data_dir, settings)

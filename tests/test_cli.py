@@ -20,7 +20,8 @@ def data_dir(tmp_path: Path) -> Path:
 def test_init_creates_data_dir(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
-    result = runner.invoke(init)
+    with patch('knbn.setup.should_run_wizard', return_value=False):
+        result = runner.invoke(init)
     assert result.exit_code == 0
     assert data_dir.is_dir()
     assert (data_dir / 'tasks.csv').exists()
@@ -31,8 +32,9 @@ def test_init_creates_data_dir(data_dir: Path, monkeypatch: pytest.MonkeyPatch) 
 def test_init_idempotent(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
-    runner.invoke(init)
-    result = runner.invoke(init)
+    with patch('knbn.setup.should_run_wizard', return_value=False):
+        runner.invoke(init)
+        result = runner.invoke(init)
     assert result.exit_code == 0
     assert 'Already initialized' in result.output
 
@@ -40,9 +42,39 @@ def test_init_idempotent(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> Non
 def test_init_with_explicit_path(tmp_path: Path) -> None:
     target = tmp_path / 'custom'
     runner = CliRunner()
-    result = runner.invoke(init, [str(target)])
+    with patch('knbn.setup.should_run_wizard', return_value=False):
+        result = runner.invoke(init, [str(target)])
     assert result.exit_code == 0
     assert target.is_dir()
+
+
+def test_init_runs_wizard_on_blank_slate(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    runner = CliRunner()
+    wizard_called = []
+
+    def fake_wizard(d: Path) -> None:
+        wizard_called.append(d)
+
+    with (
+        patch('knbn.setup.should_run_wizard', return_value=True),
+        patch('knbn.setup.run_setup_wizard', side_effect=fake_wizard),
+    ):
+        result = runner.invoke(init)
+    assert result.exit_code == 0
+    assert len(wizard_called) == 1
+
+
+def test_init_skips_wizard_when_tasks_exist(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    runner = CliRunner()
+    with patch('knbn.setup.should_run_wizard', return_value=False) as mock_check:
+        runner.invoke(init)
+    mock_check.assert_called()
 
 
 def test_add_fast_with_title(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -134,54 +166,19 @@ def test_add_interactive_prompts_full(
     assert task.key_resource == ''
 
 
-def test_add_interactive_feedback_status(
+def test_add_no_free_text_fields_in_cli(
     data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Selecting Feedback status prompts for Feedback From."""
+    """CLI add no longer prompts for free-text fields."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
-    # status list: 1=Todo,2=Now,3=Feedback — pick 3; then feedback_from; priority default; category default; no resource
     with patch('knbn.cli.add_task') as mock_add:
-        result = runner.invoke(
-            add,
-            [
-                '--title',
-                'Blocked task',
-                '--priority-default',
-                '--category-default',
-                '--no-resource',
-            ],
-            input='3\nCarol\n',
-        )
+        result = runner.invoke(add, ['--fast', '--title', 'Plain task'])
     assert result.exit_code == 0
     task: Task = mock_add.call_args[0][1]
-    assert task.status == 'Feedback'
-    assert task.feedback_from == 'Carol'
-
-
-def test_add_interactive_delegated_status(
-    data_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Selecting Delegated status prompts for Delegated To."""
-    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
-    runner = CliRunner()
-    # status: 4=Delegated
-    with patch('knbn.cli.add_task') as mock_add:
-        result = runner.invoke(
-            add,
-            [
-                '--title',
-                'Hand off',
-                '--priority-default',
-                '--category-default',
-                '--no-resource',
-            ],
-            input='4\nAlex\n',
-        )
-    assert result.exit_code == 0
-    task: Task = mock_add.call_args[0][1]
-    assert task.status == 'Delegated'
-    assert task.delegated_to == 'Alex'
+    assert task.free_text_1 == ''
+    assert task.free_text_2 == ''
+    assert task.free_text_3 == ''
 
 
 def test_add_with_key_resource(data_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:

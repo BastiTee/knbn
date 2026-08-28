@@ -9,7 +9,8 @@ from textual.app import ComposeResult
 from textual.events import Resize
 from textual.widgets import Static
 
-from knbn.model.task import STATUS_TERMINAL, Task, display_date, parse_datetime
+from knbn.config import BoardConfig
+from knbn.model.task import Task, display_date, parse_datetime
 from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
@@ -27,6 +28,10 @@ def _week_range_label(iso_year: int, iso_week: int) -> str:
 
 class ClosedView(RowListView):
     """Terminal-status tasks grouped by ISO week of last-modified date."""
+
+    @property
+    def _board_config(self) -> BoardConfig:
+        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
     DEFAULT_CSS = """
     ClosedView {
@@ -54,7 +59,8 @@ class ClosedView(RowListView):
         tw = title_col_width(self.size.width)
         yield Static(header_text(tw), classes='col-header-row')
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
-        terminal = [t for t in self._tasks if t.status in STATUS_TERMINAL]
+        terminal_statuses = self._board_config.terminal_statuses
+        terminal = [t for t in self._tasks if t.status in terminal_statuses]
 
         weeks: dict[tuple[int, int], list[Task]] = {}
         for task in terminal:
