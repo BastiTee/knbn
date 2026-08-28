@@ -313,3 +313,49 @@ def test_build_default_board_config_returns_legacy_defaults() -> None:
     assert len(cfg.categories) == 7
     assert isinstance(cfg.categories[0], CategoryConfig)
     assert cfg.free_text_fields == ['Feedback From', 'Delegated To', '']
+
+
+# --- multi-word names ---
+
+
+def test_multi_word_status_names_accepted(tmp_path: Path) -> None:
+    b = _valid_board()
+    b['active_statuses'] = ['In Progress', 'Not Started', 'On Hold']
+    b['default_active_status'] = 'In Progress'
+    _write_board(tmp_path, b)
+    cfg = load_board_config(tmp_path)
+    assert cfg.active_statuses == ['In Progress', 'Not Started', 'On Hold']
+    assert cfg.default_active_status == 'In Progress'
+
+
+def test_multi_word_terminal_status_accepted(tmp_path: Path) -> None:
+    b = _valid_board()
+    b['terminal_statuses'] = ['Not Done', 'Handed Off']
+    b['default_terminal_status'] = 'Not Done'
+    _write_board(tmp_path, b)
+    cfg = load_board_config(tmp_path)
+    assert cfg.terminal_statuses == ['Not Done', 'Handed Off']
+
+
+def test_multi_word_priority_names_accepted(tmp_path: Path) -> None:
+    b = _valid_board()
+    b['priorities'] = ['Very High', 'Medium', 'Very Low']
+    _write_board(tmp_path, b)
+    cfg = load_board_config(tmp_path)
+    assert cfg.priorities == ['Very High', 'Medium', 'Very Low']
+
+
+def test_multi_word_category_name_accepted(tmp_path: Path) -> None:
+    b = _valid_board()
+    b['categories'] = [{'name': 'Senior Task', 'color': '#e879a0'}]
+    _write_board(tmp_path, b)
+    cfg = load_board_config(tmp_path)
+    assert cfg.categories[0].name == 'Senior Task'
+
+
+def test_multi_word_free_text_label_accepted(tmp_path: Path) -> None:
+    b = _valid_board()
+    b['free_text_fields'] = ['Blocked By', 'Review From']
+    _write_board(tmp_path, b)
+    cfg = load_board_config(tmp_path)
+    assert cfg.free_text_fields[:2] == ['Blocked By', 'Review From']

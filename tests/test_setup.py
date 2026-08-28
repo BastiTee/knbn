@@ -178,3 +178,23 @@ def test_wizard_free_text_blank_slots(tmp_path: Path, idx: int) -> None:
     assert result.exit_code == 0
     cfg = load_board_config(tmp_path)
     assert cfg.free_text_fields[idx] == ''
+
+
+def test_wizard_accepts_multi_word_names(tmp_path: Path) -> None:
+    # Multi-word status, priority, category, and free-text label
+    wizard_input = (
+        'In Progress\nNot Started\n\n'  # active statuses
+        'Not Done\n\n'  # terminal status
+        'Very High\nMedium\n\n'  # priorities
+        'Senior Task\n\n'  # category
+        'Blocked By\n\n\n'  # FTF: "Blocked By", blank, blank
+    )
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.active_statuses == ['In Progress', 'Not Started']
+    assert cfg.terminal_statuses == ['Not Done']
+    assert cfg.priorities == ['Very High', 'Medium']
+    assert cfg.categories[0].name == 'Senior Task'
+    assert cfg.free_text_fields[0] == 'Blocked By'

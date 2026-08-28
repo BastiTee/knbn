@@ -139,7 +139,7 @@ class KanbanView(Widget):
                         yield LaneHeader(
                             priority,
                             collapsed=priority in self._collapsed,
-                            id=f'lane-{col_idx}-{priority.lower()}',
+                            id=f'lane-{col_idx}-{priority.lower().replace(" ", "-")}',
                         )
                         if priority not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
