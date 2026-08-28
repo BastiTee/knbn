@@ -22,8 +22,9 @@ _CSV_FIELDNAMES = [
     'Priority',
     'Category',
     'Name',
-    'Delegate',
-    'Feedback',
+    'FreeText1',
+    'FreeText2',
+    'FreeText3',
     'KeyResource',
 ]
 
@@ -74,8 +75,9 @@ def _task_to_row(task: Task) -> dict[str, str]:
         'Priority': task.priority,
         'Category': task.category,
         'Name': task.title,
-        'Delegate': task.delegated_to,
-        'Feedback': task.feedback_from,
+        'FreeText1': task.free_text_1,
+        'FreeText2': task.free_text_2,
+        'FreeText3': task.free_text_3,
         'KeyResource': task.key_resource,
     }
 
@@ -90,8 +92,9 @@ def _row_to_task(row: dict[str, str]) -> Task:
         date_modified=row['DateTimeEdited'],
         due=row.get('DateTimeDue', ''),
         key_resource=row.get('KeyResource', ''),
-        feedback_from=row.get('Feedback', ''),
-        delegated_to=row.get('Delegate', ''),
+        free_text_1=row.get('FreeText1', ''),
+        free_text_2=row.get('FreeText2', ''),
+        free_text_3=row.get('FreeText3', ''),
     )
 
 

@@ -27,7 +27,8 @@ alias tt="k add --fast"
 alias knbn-demo="cd ${here} && KNBN_DATA_DIR=demo uv run knbn"
 function knbn_create_clear() {
     data_dir="$( mktemp -d )"
-    echo $data_dir
-    KNBN_DATA_DIR=$data_dir uv run knbn
+    echo ${data_dir}
+    KNBN_DATA_DIR=${data_dir} uv run knbn
+    open ${data_dir}
 }
 alias knbn-clear="cd ${here} && knbn_create_clear"

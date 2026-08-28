@@ -5,22 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
-STATUS_ACTIVE: list[str] = ['Todo', 'Now', 'Feedback']
-STATUS_TERMINAL: list[str] = ['Done', 'Delegated', 'Stopped']
-STATUS_VALUES: list[str] = STATUS_ACTIVE + STATUS_TERMINAL
-
-PRIORITY_VALUES: list[str] = ['High', 'Medium', 'Low']
-
-DEFAULT_CATEGORIES: list[str] = [
-    'People',
-    'Hiring',
-    'Strategy',
-    'Product',
-    'Engineering',
-    'Work Life',
-    'Ideas',
-]
-
 _NEW_DATETIME_FMT = '%Y-%m-%d %H:%M'
 _NEW_DATE_FMT = '%Y-%m-%d'
 _OLD_FMTS = ['%B %d, %Y %I:%M %p', '%B  %d, %Y %I:%M %p']
@@ -81,5 +65,6 @@ class Task:
     date_modified: str
     due: str = field(default='')
     key_resource: str = field(default='')
-    feedback_from: str = field(default='')
-    delegated_to: str = field(default='')
+    free_text_1: str = field(default='')
+    free_text_2: str = field(default='')
+    free_text_3: str = field(default='')

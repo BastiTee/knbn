@@ -4,11 +4,6 @@ import re
 from datetime import datetime
 
 from knbn.model.task import (
-    DEFAULT_CATEGORIES,
-    PRIORITY_VALUES,
-    STATUS_ACTIVE,
-    STATUS_TERMINAL,
-    STATUS_VALUES,
     Task,
     display_date,
     now_str,
@@ -31,8 +26,9 @@ def test_task_required_fields_only() -> None:
     assert t.priority == 'Medium'
     assert t.due == ''
     assert t.key_resource == ''
-    assert t.feedback_from == ''
-    assert t.delegated_to == ''
+    assert t.free_text_1 == ''
+    assert t.free_text_2 == ''
+    assert t.free_text_3 == ''
 
 
 def test_task_all_fields() -> None:
@@ -45,41 +41,28 @@ def test_task_all_fields() -> None:
         date_modified='2026-07-14 17:14',
         due='2026-07-17 09:00',
         key_resource='https://example.com/thread',
-        feedback_from='Carol',
-        delegated_to='',
+        free_text_1='Carol',
+        free_text_2='',
+        free_text_3='Extra',
     )
-    assert t.feedback_from == 'Carol'
+    assert t.free_text_1 == 'Carol'
+    assert t.free_text_3 == 'Extra'
     assert t.key_resource == 'https://example.com/thread'
     assert t.due == '2026-07-17 09:00'
 
 
-def test_status_active_values() -> None:
-    assert STATUS_ACTIVE == ['Todo', 'Now', 'Feedback']
-
-
-def test_status_terminal_values() -> None:
-    assert STATUS_TERMINAL == ['Done', 'Delegated', 'Stopped']
-
-
-def test_status_values_combined() -> None:
-    assert STATUS_VALUES == ['Todo', 'Now', 'Feedback', 'Done', 'Delegated', 'Stopped']
-
-
-def test_priority_order() -> None:
-    assert PRIORITY_VALUES == ['High', 'Medium', 'Low']
-
-
-def test_default_categories_present() -> None:
-    expected = [
-        'People',
-        'Hiring',
-        'Strategy',
-        'Product',
-        'Engineering',
-        'Work Life',
-        'Ideas',
-    ]
-    assert expected == DEFAULT_CATEGORIES
+def test_free_text_fields_default_to_empty() -> None:
+    t = Task(
+        title='Test',
+        category='Ideas',
+        status='Todo',
+        priority='Medium',
+        date_created='2026-07-01 14:27',
+        date_modified='2026-07-01 14:27',
+    )
+    assert t.free_text_1 == ''
+    assert t.free_text_2 == ''
+    assert t.free_text_3 == ''
 
 
 def test_now_str_format() -> None:

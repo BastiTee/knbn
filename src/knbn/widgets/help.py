@@ -7,7 +7,9 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
-_HELP_TEXT = """\
+from knbn.config import BoardConfig
+
+_HELP_GLOBAL = """\
 [bold]Global[/bold]
   [cyan]q[/cyan] / [cyan]Ctrl+C[/cyan]  Quit
   [cyan]1[/cyan]           Kanban view
@@ -15,15 +17,17 @@ _HELP_TEXT = """\
   [cyan]3[/cyan]           Closed view
   [cyan]a[/cyan]           Add task
   [cyan]?[/cyan]           This help
+"""
 
+_HELP_KANBAN_STATIC = """\
 [bold]Kanban board[/bold]
   [cyan]← →[/cyan]         Move between columns
   [cyan]↑ ↓[/cyan]         Move between cards
   [cyan]Enter[/cyan]       Edit task
   [cyan]n[/cyan]           Open / create notes
-  [cyan]d[/cyan]           Mark Done
-  [cyan]x[/cyan]           Mark Stopped
-  [cyan]g[/cyan]           Mark Delegated
+"""
+
+_HELP_KANBAN_TAIL = """\
   [cyan]Del[/cyan]         Delete task
   [cyan]PgUp / PgDn[/cyan]   Promote / demote priority
   [cyan]Shift+←→[/cyan]      Move to adjacent lane
@@ -45,6 +49,10 @@ _HELP_TEXT = """\
 class HelpOverlay(ModalScreen[None]):
     """Key bindings help overlay."""
 
+    @property
+    def _board_config(self) -> BoardConfig:
+        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
+
     BINDINGS = [
         Binding('escape', 'dismiss', 'Close'),
         Binding('question_mark', 'dismiss', 'Close'),
@@ -64,7 +72,12 @@ class HelpOverlay(ModalScreen[None]):
     """
 
     def compose(self) -> ComposeResult:
-        yield Static(_HELP_TEXT, markup=True)
+        terminal = self._board_config.default_terminal_status
+        mark_done_line = f'  [cyan]d[/cyan]           Mark {terminal}\n'
+        help_text = (
+            _HELP_GLOBAL + _HELP_KANBAN_STATIC + mark_done_line + _HELP_KANBAN_TAIL
+        )
+        yield Static(help_text, markup=True)
 
     def action_dismiss(self, result: None = None) -> None:  # type: ignore[override]
         self.dismiss(result)

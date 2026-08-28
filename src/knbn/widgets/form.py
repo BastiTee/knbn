@@ -13,14 +13,9 @@ from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
 
+from knbn.config import BoardConfig
 from knbn.model.store import add_task, update_task
-from knbn.model.task import (
-    DEFAULT_CATEGORIES,
-    PRIORITY_VALUES,
-    STATUS_VALUES,
-    Task,
-    now_str,
-)
+from knbn.model.task import Task, now_str
 
 _DUE_RE = re.compile(r'^(\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?)?$')
 
@@ -85,6 +80,10 @@ class TaskForm(ModalScreen[None]):
     class TaskSaved(Message):
         """Posted after a task is successfully saved."""
 
+    @property
+    def _board_config(self) -> BoardConfig:
+        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
+
     def __init__(
         self,
         data_dir: Path,
@@ -103,6 +102,19 @@ class TaskForm(ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         t = self.existing_task
+        board_config = self._board_config
+        all_statuses = board_config.all_statuses()
+        priorities = board_config.priorities
+        categories = [c.name for c in board_config.categories]
+
+        default_status = t.status if t else (self.initial_status or all_statuses[0])
+        default_priority = (
+            t.priority
+            if t
+            else (self.initial_priority or priorities[len(priorities) // 2])
+        )
+        default_category = t.category if t else (categories[-1] if categories else '')
+
         with Static():
             yield Label(
                 '[bold]Add Task[/bold]' if t is None else '[bold]Edit Task[/bold]',
@@ -113,18 +125,16 @@ class TaskForm(ModalScreen[None]):
             yield Input(value=t.title if t else '', id='f-title')
 
             yield Label('Status')
-            status_opts = [(s, s) for s in STATUS_VALUES]
-            default_status = t.status if t else (self.initial_status or 'Todo')
+            status_opts = [(s, s) for s in all_statuses]
             yield Select(status_opts, value=default_status, id='f-status')
 
             yield Label('Priority')
-            priority_opts = [(p, p) for p in PRIORITY_VALUES]
-            default_priority = t.priority if t else (self.initial_priority or 'Medium')
+            priority_opts = [(p, p) for p in priorities]
             yield Select(priority_opts, value=default_priority, id='f-priority')
 
             yield Label('Category')
-            cat_opts = [(c, c) for c in DEFAULT_CATEGORIES]
-            yield Select(cat_opts, value=t.category if t else 'Ideas', id='f-category')
+            cat_opts = [(c, c) for c in categories]
+            yield Select(cat_opts, value=default_category, id='f-category')
 
             yield Label('Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)')
             yield DueInput(value=t.due if t else '', id='f-due')
@@ -133,11 +143,10 @@ class TaskForm(ModalScreen[None]):
             yield Label('Key Resource (URL, optional)')
             yield Input(value=t.key_resource if t else '', id='f-resource')
 
-            yield Label('Feedback From (optional)')
-            yield Input(value=t.feedback_from if t else '', id='f-feedback')
-
-            yield Label('Delegated To (optional)')
-            yield Input(value=t.delegated_to if t else '', id='f-delegated')
+            for idx, label in board_config.active_free_text_fields():
+                yield Label(f'{label} (optional)')
+                val = getattr(t, f'free_text_{idx + 1}', '') if t else ''
+                yield Input(value=val, id=f'f-free-{idx}')
 
             with Static(id='form-buttons'):
                 yield Button('Save', id='save-btn', variant='primary')
@@ -187,13 +196,17 @@ class TaskForm(ModalScreen[None]):
             v = sel.value
             return str(v) if v is not None and v != Select.BLANK else ''
 
-        status = _sel_val('#f-status') or 'Todo'
-        priority = _sel_val('#f-priority') or 'Medium'
-        category = _sel_val('#f-category') or 'Ideas'
+        status = _sel_val('#f-status') or self._board_config.active_statuses[0]
+        priority = _sel_val('#f-priority') or self._board_config.priorities[0]
+        categories = [c.name for c in self._board_config.categories]
+        category = _sel_val('#f-category') or (categories[-1] if categories else '')
         due = self.query_one('#f-due', DueInput).value.strip()
         key_resource = self.query_one('#f-resource', Input).value.strip()
-        feedback_from = self.query_one('#f-feedback', Input).value.strip()
-        delegated_to = self.query_one('#f-delegated', Input).value.strip()
+
+        free_text = ['', '', '']
+        for idx, _ in self._board_config.active_free_text_fields():
+            widget = self.query_one(f'#f-free-{idx}', Input)
+            free_text[idx] = widget.value.strip()
 
         due_field = self.query_one('#f-due', DueInput)
         due_error = self.query_one('#due-error', Static)
@@ -215,8 +228,9 @@ class TaskForm(ModalScreen[None]):
                 category=category,
                 due=due,
                 key_resource=key_resource,
-                feedback_from=feedback_from,
-                delegated_to=delegated_to,
+                free_text_1=free_text[0],
+                free_text_2=free_text[1],
+                free_text_3=free_text[2],
                 date_modified=now,
             )
             update_task(self.data_dir, self.task_index, updated)
@@ -230,8 +244,9 @@ class TaskForm(ModalScreen[None]):
                 date_modified=now,
                 due=due,
                 key_resource=key_resource,
-                feedback_from=feedback_from,
-                delegated_to=delegated_to,
+                free_text_1=free_text[0],
+                free_text_2=free_text[1],
+                free_text_3=free_text[2],
             )
             add_task(self.data_dir, new_task)
 

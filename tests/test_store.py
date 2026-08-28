@@ -53,7 +53,9 @@ def test_ensure_data_dir_idempotent(tmp_path: Path) -> None:
 def test_ensure_data_dir_preserves_existing_settings(tmp_path: Path) -> None:
     data_dir = tmp_path / 'knbn'
     ensure_data_dir(data_dir)
-    (data_dir / 'settings.json').write_text('{"theme": "light"}', encoding='utf-8')
+    (data_dir / 'settings.json').write_text(
+        '{"app": {"theme": "light"}}', encoding='utf-8'
+    )
     ensure_data_dir(data_dir)
     assert '"light"' in (data_dir / 'settings.json').read_text()
 
@@ -103,8 +105,9 @@ def test_round_trip(tmp_path: Path) -> None:
         assert orig.date_modified == reloaded_task.date_modified
         assert orig.due == reloaded_task.due
         assert orig.key_resource == reloaded_task.key_resource
-        assert orig.feedback_from == reloaded_task.feedback_from
-        assert orig.delegated_to == reloaded_task.delegated_to
+        assert orig.free_text_1 == reloaded_task.free_text_1
+        assert orig.free_text_2 == reloaded_task.free_text_2
+        assert orig.free_text_3 == reloaded_task.free_text_3
 
 
 def test_atomic_save_uses_tmp_file(
@@ -112,7 +115,6 @@ def test_atomic_save_uses_tmp_file(
 ) -> None:
     ensure_data_dir(tmp_path)
     tasks = [_make_task()]
-    # Patch rename to capture that tmp file was used
     renamed_from: list[Path] = []
     original_rename = Path.rename
 

@@ -14,6 +14,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
+from knbn.config import BoardConfig
 from knbn.model.store import (
     delete_task,
     load_tasks,
@@ -21,16 +22,9 @@ from knbn.model.store import (
     save_tasks,
     update_task,
 )
-from knbn.model.task import (
-    PRIORITY_VALUES,
-    Task,
-    now_str,
-)
+from knbn.model.task import Task, now_str
 from knbn.widgets._confirm import ConfirmDialog
-from knbn.widgets._modals import PromptModal
 from knbn.widgets.card import TaskCard
-
-_STATUS_ORDER = ['Todo', 'Now', 'Feedback']
 
 
 class LaneHeader(Static):
@@ -73,7 +67,7 @@ class LaneHeader(Static):
 
 
 class KanbanView(Widget):
-    """3x3 Kanban board view."""
+    """Config-driven Kanban board view."""
 
     BINDINGS = [
         Binding('left', 'focus_left', 'Left', show=False),
@@ -88,8 +82,6 @@ class KanbanView(Widget):
         Binding('n', 'open_notes', 'Notes', show=False),
         Binding('o', 'open_url', 'Open URL', show=False),
         Binding('d', 'mark_done', 'Done', show=False),
-        Binding('x', 'mark_stopped', 'Stopped', show=False),
-        Binding('g', 'delegate', 'Delegate', show=False),
         Binding('delete', 'delete_task', 'Delete', show=False),
         Binding('backspace', 'delete_task', 'Delete', show=False),
     ]
@@ -115,7 +107,11 @@ class KanbanView(Widget):
         self.data_dir = data_dir
         self._collapsed: set[str] = set()
         self._focused_col = 0
-        self._focused_row: dict[int, int] = {0: 0, 1: 0, 2: 0}
+        self._focused_row: dict[int, int] = {}
+
+    @property
+    def _board_config(self) -> BoardConfig:
+        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
     def _tasks_for(self, status: str, priority: str) -> list[tuple[int, Task]]:
         return [
@@ -128,31 +124,30 @@ class KanbanView(Widget):
         return sum(1 for t in self._tasks if t.status == status)
 
     def compose(self) -> ComposeResult:
+        active_statuses = self._board_config.active_statuses
+        priorities = self._board_config.priorities
+
         with Static(id='board-header'):
-            for status in _STATUS_ORDER:
+            for status in active_statuses:
                 count = self._count_for_status(status)
                 yield Static(f'{status}  {count}', classes='col-header')
 
         with Container(id='board-body'):
-            for col_idx, status in enumerate(_STATUS_ORDER):
+            for col_idx, status in enumerate(active_statuses):
                 with Vertical(classes='board-col', id=f'col-{col_idx}'):
-                    for priority in PRIORITY_VALUES:
+                    for priority in priorities:
                         yield LaneHeader(
                             priority,
                             collapsed=priority in self._collapsed,
-                            id=f'lane-{col_idx}-{priority.lower()}',
+                            id=f'lane-{col_idx}-{priority.lower().replace(" ", "-")}',
                         )
                         if priority not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
                                 yield TaskCard(task, self.data_dir, id=f'card-{idx}')
 
-        done = self._count_for_status('Done')
-        delegated = self._count_for_status('Delegated')
-        stopped = self._count_for_status('Stopped')
-        yield Static(
-            f'  Done {done:>6}   Delegated {delegated:>4}   Stopped {stopped:>4}',
-            id='archive-bar',
-        )
+        terminal_statuses = self._board_config.terminal_statuses
+        parts = [f'{s} {self._count_for_status(s):>6}' for s in terminal_statuses]
+        yield Static('  ' + '   '.join(parts), id='archive-bar')
 
     async def on_lane_header_toggled(self, message: LaneHeader.Toggled) -> None:
         if message.collapsed:
@@ -179,11 +174,15 @@ class KanbanView(Widget):
 
     def get_lane_context(self) -> tuple[str, str] | None:
         focused = self.app.focused
+        active_statuses = self._board_config.active_statuses
         if isinstance(focused, TaskCard):
             t = focused.knbn_task
             return t.status, t.priority
         if isinstance(focused, LaneHeader):
-            status = _STATUS_ORDER[self._focused_col]
+            if self._focused_col < len(active_statuses):
+                status = active_statuses[self._focused_col]
+            else:
+                status = active_statuses[0]
             return status, focused._priority
         return None
 
@@ -208,7 +207,8 @@ class KanbanView(Widget):
             self._focus_col_card()
 
     def action_focus_right(self) -> None:
-        if self._focused_col >= 2:
+        n_cols = len(self._board_config.active_statuses)
+        if self._focused_col >= n_cols - 1:
             return
         focused = self.app.focused
         self._focused_col += 1
@@ -315,25 +315,14 @@ class KanbanView(Widget):
         if ft is None:
             return
         _, task = ft
+        terminal = self._board_config.default_terminal_status
 
         def on_confirm(confirmed: bool | None) -> None:
             if confirmed:
-                self._set_status('Done')
-
-        self.app.push_screen(ConfirmDialog(f'Mark "{task.title}" as Done?'), on_confirm)
-
-    def action_mark_stopped(self) -> None:
-        ft = self._focused_task()
-        if ft is None:
-            return
-        _, task = ft
-
-        def on_confirm(confirmed: bool | None) -> None:
-            if confirmed:
-                self._set_status('Stopped')
+                self._set_status(terminal)
 
         self.app.push_screen(
-            ConfirmDialog(f'Mark "{task.title}" as Stopped?'), on_confirm
+            ConfirmDialog(f'Mark "{task.title}" as {terminal}?'), on_confirm
         )
 
     def _set_status(self, new_status: str) -> None:
@@ -346,34 +335,6 @@ class KanbanView(Widget):
         self._tasks = load_tasks(self.data_dir)
         self.call_after_refresh(self.recompose)
 
-    def action_delegate(self) -> None:
-        ft = self._focused_task()
-        if ft is None:
-            return
-        idx, task = ft
-
-        def on_name(name: str | None) -> None:
-            if not name:
-                return
-
-            def on_confirm(confirmed: bool | None) -> None:
-                if confirmed:
-                    updated = replace(
-                        task,
-                        status='Delegated',
-                        delegated_to=name,
-                        date_modified=now_str(),
-                    )
-                    update_task(self.data_dir, idx, updated)
-                    self._tasks = load_tasks(self.data_dir)
-                    self.call_after_refresh(self.recompose)
-
-            self.app.push_screen(
-                ConfirmDialog(f'Delegate "{task.title}" to {name}?'), on_confirm
-            )
-
-        self.app.push_screen(PromptModal('Delegated To:'), on_name)
-
     def _move_task(self, updated: Task) -> None:
         """Save updated task, reload, then recompose and refocus by title."""
         ft = self._focused_task()
@@ -381,7 +342,12 @@ class KanbanView(Widget):
             return
         idx, _ = ft
         title = updated.title
-        target_col = _STATUS_ORDER.index(updated.status)
+        active_statuses = self._board_config.active_statuses
+        target_col = (
+            active_statuses.index(updated.status)
+            if updated.status in active_statuses
+            else 0
+        )
         update_task(self.data_dir, idx, updated)
         self._tasks = load_tasks(self.data_dir)
 
@@ -410,7 +376,6 @@ class KanbanView(Widget):
         if ft is None:
             return
         idx, task = ft
-        # Tasks in the same lane (same status+priority), ordered as they appear in the CSV
         lane = [
             i
             for i, t in enumerate(self._tasks)
@@ -418,7 +383,6 @@ class KanbanView(Widget):
         ]
         pos = lane.index(idx)
         if pos > 0:
-            # Swap with the task above within the same lane
             tasks = list(self._tasks)
             tasks[lane[pos]], tasks[lane[pos - 1]] = (
                 tasks[lane[pos - 1]],
@@ -443,11 +407,13 @@ class KanbanView(Widget):
             self.call_after_refresh(self.recompose)
             self.call_after_refresh(_refocus_up)
         else:
-            # Already at the top of the lane — promote to next higher priority
-            pri_idx = PRIORITY_VALUES.index(task.priority)
-            if pri_idx == 0:
+            priorities = self._board_config.priorities
+            pri_idx = (
+                priorities.index(task.priority) if task.priority in priorities else -1
+            )
+            if pri_idx <= 0:
                 return
-            self._move_task(replace(task, priority=PRIORITY_VALUES[pri_idx - 1]))
+            self._move_task(replace(task, priority=priorities[pri_idx - 1]))
 
     def action_move_down(self) -> None:
         ft = self._focused_task()
@@ -461,7 +427,6 @@ class KanbanView(Widget):
         ]
         pos = lane.index(idx)
         if pos < len(lane) - 1:
-            # Swap with the task below within the same lane
             tasks = list(self._tasks)
             tasks[lane[pos]], tasks[lane[pos + 1]] = (
                 tasks[lane[pos + 1]],
@@ -486,35 +451,39 @@ class KanbanView(Widget):
             self.call_after_refresh(self.recompose)
             self.call_after_refresh(_refocus_down)
         else:
-            # Already at the bottom of the lane — demote to next lower priority
-            pri_idx = PRIORITY_VALUES.index(task.priority)
-            if pri_idx == len(PRIORITY_VALUES) - 1:
+            priorities = self._board_config.priorities
+            pri_idx = (
+                priorities.index(task.priority) if task.priority in priorities else -1
+            )
+            if pri_idx < 0 or pri_idx >= len(priorities) - 1:
                 return
-            self._move_task(replace(task, priority=PRIORITY_VALUES[pri_idx + 1]))
+            self._move_task(replace(task, priority=priorities[pri_idx + 1]))
 
     def action_move_left(self) -> None:
         ft = self._focused_task()
         if ft is None:
             return
         _, task = ft
+        active_statuses = self._board_config.active_statuses
         col_idx = (
-            _STATUS_ORDER.index(task.status) if task.status in _STATUS_ORDER else -1
+            active_statuses.index(task.status) if task.status in active_statuses else -1
         )
         if col_idx <= 0:
             return
-        self._move_task(replace(task, status=_STATUS_ORDER[col_idx - 1]))
+        self._move_task(replace(task, status=active_statuses[col_idx - 1]))
 
     def action_move_right(self) -> None:
         ft = self._focused_task()
         if ft is None:
             return
         _, task = ft
+        active_statuses = self._board_config.active_statuses
         col_idx = (
-            _STATUS_ORDER.index(task.status) if task.status in _STATUS_ORDER else -1
+            active_statuses.index(task.status) if task.status in active_statuses else -1
         )
-        if col_idx < 0 or col_idx >= len(_STATUS_ORDER) - 1:
+        if col_idx < 0 or col_idx >= len(active_statuses) - 1:
             return
-        self._move_task(replace(task, status=_STATUS_ORDER[col_idx + 1]))
+        self._move_task(replace(task, status=active_statuses[col_idx + 1]))
 
     def action_delete_task(self) -> None:
         ft = self._focused_task()

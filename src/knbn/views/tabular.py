@@ -6,20 +6,23 @@ from textual.app import ComposeResult
 from textual.events import Resize
 from textual.widgets import Static
 
-from knbn.model.task import PRIORITY_VALUES, STATUS_ACTIVE, Task, display_date
+from knbn.config import BoardConfig
+from knbn.model.task import Task, display_date
 from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
 
-_PRIORITY_RANK = {p: i for i, p in enumerate(PRIORITY_VALUES)}
 
-
-def _sort_key(task: Task) -> tuple[int, str]:
-    return (_PRIORITY_RANK.get(task.priority, 99), task.date_modified)
+def _sort_key(priority_rank: dict[str, int], task: Task) -> tuple[int, str]:
+    return (priority_rank.get(task.priority, 99), task.date_modified)
 
 
 class TabularView(RowListView):
     """Flat table of active tasks grouped by status."""
+
+    @property
+    def _board_config(self) -> BoardConfig:
+        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
     DEFAULT_CSS = """
     TabularView {
@@ -50,10 +53,14 @@ class TabularView(RowListView):
         tw = title_col_width(self.size.width)
         yield Static(header_text(tw), classes='col-header-row')
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
-        for status in STATUS_ACTIVE:
+
+        board_config = self._board_config
+        priority_rank = {p: i for i, p in enumerate(board_config.priorities)}
+
+        for status in board_config.active_statuses:
             group = sorted(
                 [t for t in self._tasks if t.status == status],
-                key=_sort_key,
+                key=lambda t: _sort_key(priority_rank, t),
             )
             if not group:
                 continue
