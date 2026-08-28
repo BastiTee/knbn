@@ -16,7 +16,7 @@ The system SHALL run an interactive CLI setup wizard when `knbn init` or `knbn b
 - **THEN** the wizard is skipped regardless of whether `tasks.csv` exists
 
 ### Requirement: Active status configuration step
-The wizard SHALL prompt the user to enter 2–5 active status names, one per line, with a blank line to finish. The first entry SHALL automatically become the default active status (leftmost column on the board). The wizard SHALL reject input with fewer than 2 or more than 5 entries, displaying a clear error and re-prompting.
+The wizard SHALL prompt the user to enter 2–5 active status names, one per line, with a blank line to finish. The first entry SHALL automatically become the default active status (leftmost column on the board). The wizard SHALL reject input with fewer than 2 or more than 5 entries, and SHALL reject any individual name shorter than 2 or longer than 15 characters, displaying a clear error and re-prompting in each case.
 
 #### Scenario: Two active statuses accepted
 - **WHEN** the user enters two status names and a blank line
@@ -30,8 +30,16 @@ The wizard SHALL prompt the user to enter 2–5 active status names, one per lin
 - **WHEN** the user enters six status names
 - **THEN** the wizard displays an error message and re-prompts
 
+#### Scenario: Status name too short rejected
+- **WHEN** the user enters a single-character status name
+- **THEN** the wizard displays an error message and re-prompts
+
+#### Scenario: Status name too long rejected
+- **WHEN** the user enters a status name longer than 15 characters
+- **THEN** the wizard displays an error message and re-prompts
+
 ### Requirement: Terminal status configuration step
-The wizard SHALL prompt the user to enter 1–3 terminal (done/archived) status names. The wizard SHALL ask which one is the default terminal status (used for the quick "mark done" action). The wizard SHALL reject fewer than 1 or more than 3 entries.
+The wizard SHALL prompt the user to enter 1–3 terminal (done/archived) status names. The wizard SHALL ask which one is the default terminal status (used for the quick "mark done" action). The wizard SHALL reject fewer than 1 or more than 3 entries, and SHALL reject any individual name shorter than 2 or longer than 15 characters.
 
 #### Scenario: Single terminal status accepted
 - **WHEN** the user enters one terminal status name
@@ -42,14 +50,14 @@ The wizard SHALL prompt the user to enter 1–3 terminal (done/archived) status 
 - **THEN** `default_terminal_status` in config matches the selection
 
 ### Requirement: Priority configuration step
-The wizard SHALL prompt the user to enter 1–5 priority names in order from highest to lowest. The wizard SHALL reject fewer than 1 or more than 5 entries.
+The wizard SHALL prompt the user to enter 1–5 priority names in order from highest to lowest. The wizard SHALL reject fewer than 1 or more than 5 entries, and SHALL reject any individual name shorter than 2 or longer than 15 characters.
 
 #### Scenario: Valid priority list accepted
 - **WHEN** the user enters three priority names in order
 - **THEN** all three are recorded as `priorities` in the board config
 
 ### Requirement: Category configuration step
-The wizard SHALL prompt the user to enter 1–10 category names. Colors SHALL be auto-assigned from the fixed palette defined in the board-config spec and SHALL NOT be asked for during the wizard. The wizard SHALL reject fewer than 1 or more than 10 entries.
+The wizard SHALL prompt the user to enter 1–10 category names. Colors SHALL be auto-assigned from the fixed palette defined in the board-config spec and SHALL NOT be asked for during the wizard. The wizard SHALL reject fewer than 1 or more than 10 entries, and SHALL reject any individual name shorter than 2 or longer than 15 characters.
 
 #### Scenario: Categories auto-colored
 - **WHEN** the user enters three category names during the wizard

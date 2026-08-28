@@ -16,7 +16,7 @@ The system SHALL store board configuration under a top-level `board` key in `set
 - **THEN** `load_board_config()` returns the built-in default `BoardConfig`
 
 ### Requirement: Board config validation
-The system SHALL validate the `board` block on load and raise `BoardConfigError` with a descriptive message if any of the following violations are found: fewer than 2 or more than 5 active statuses, fewer than 1 or more than 3 terminal statuses, `default_active_status` not in `active_statuses`, `default_terminal_status` not in `terminal_statuses`, fewer than 1 or more than 5 priorities, fewer than 1 or more than 10 categories, more than 3 entries in `free_text_fields`.
+The system SHALL validate the `board` block on load and raise `BoardConfigError` with a descriptive message if any of the following violations are found: fewer than 2 or more than 5 active statuses, fewer than 1 or more than 3 terminal statuses, `default_active_status` not in `active_statuses`, `default_terminal_status` not in `terminal_statuses`, fewer than 1 or more than 5 priorities, fewer than 1 or more than 10 categories, more than 3 entries in `free_text_fields`. Each individual status name, category name, and priority name SHALL be between 2 and 15 characters (inclusive); any value outside that range SHALL raise `BoardConfigError`.
 
 #### Scenario: Too few active statuses rejected
 - **WHEN** `board.active_statuses` contains only one entry
@@ -29,6 +29,26 @@ The system SHALL validate the `board` block on load and raise `BoardConfigError`
 #### Scenario: Too many categories rejected
 - **WHEN** `board.categories` contains 11 entries
 - **THEN** `load_board_config()` raises `BoardConfigError`
+
+#### Scenario: Status name too short rejected
+- **WHEN** an active status name is a single character
+- **THEN** `load_board_config()` raises `BoardConfigError` naming the offending value
+
+#### Scenario: Status name too long rejected
+- **WHEN** an active status name is 16 characters
+- **THEN** `load_board_config()` raises `BoardConfigError` naming the offending value
+
+#### Scenario: Priority name at minimum length accepted
+- **WHEN** a priority name is exactly 2 characters
+- **THEN** `load_board_config()` loads successfully
+
+#### Scenario: Category name at maximum length accepted
+- **WHEN** a category name is exactly 15 characters
+- **THEN** `load_board_config()` loads successfully
+
+#### Scenario: Category name too long rejected
+- **WHEN** a category name is 16 characters
+- **THEN** `load_board_config()` raises `BoardConfigError` naming the offending value
 
 ### Requirement: BoardConfig dataclass
 The system SHALL expose a `BoardConfig` dataclass (importable from `knbn.config`) with typed fields: `active_statuses: list[str]`, `default_active_status: str`, `terminal_statuses: list[str]`, `default_terminal_status: str`, `priorities: list[str]`, `categories: list[CategoryConfig]`, `free_text_fields: list[str]`. `CategoryConfig` SHALL be a dataclass with `name: str` and `color: str`. Helper methods SHALL include `category_color(name: str) -> str` (returns configured hex or `'#888888'` fallback), `active_free_text_fields() -> list[tuple[int, str]]` (returns `(index, label)` pairs for non-empty entries only), and `all_statuses() -> list[str]` (active + terminal concatenated).
