@@ -81,7 +81,9 @@ def run_setup_wizard(data_dir: Path) -> None:
     """Interactive first-run board setup wizard."""
     click.echo("Welcome to knbn! Let's configure your board.")
 
-    active_statuses = _collect_names('Active statuses (columns on the board)', 2, 5)
+    active_statuses = _collect_names(
+        'Active statuses, e.g., Todo, Doing, ... (columns on the board)', 2, 5
+    )
     default_active = active_statuses[0]
     click.echo(f'  → Default active status: {default_active}')
 
