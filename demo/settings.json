@@ -1,3 +1,59 @@
 {
-  "theme": "catppuccin-frappe"
+  "app": {
+    "theme": "catppuccin-frappe",
+    "deadline_warning_hours": "24"
+  },
+  "board": {
+    "active_statuses": [
+      "Todo",
+      "Now",
+      "Feedback"
+    ],
+    "default_active_status": "Now",
+    "terminal_statuses": [
+      "Done",
+      "Delegated",
+      "Stopped"
+    ],
+    "default_terminal_status": "Done",
+    "priorities": [
+      "High",
+      "Medium",
+      "Low"
+    ],
+    "categories": [
+      {
+        "name": "People",
+        "color": "#e879a0"
+      },
+      {
+        "name": "Hiring",
+        "color": "#f4a7b9"
+      },
+      {
+        "name": "Strategy",
+        "color": "#7ec8e3"
+      },
+      {
+        "name": "Product",
+        "color": "#5b9bd5"
+      },
+      {
+        "name": "Engineering",
+        "color": "#4dbfbf"
+      },
+      {
+        "name": "Work Life",
+        "color": "#f5a623"
+      },
+      {
+        "name": "Ideas",
+        "color": "#cccccc"
+      }
+    ],
+    "free_text_fields": [
+      "Feedback From",
+      "Delegated To"
+    ]
+  }
 }
