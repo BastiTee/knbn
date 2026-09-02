@@ -49,7 +49,6 @@ src/knbn/
   widgets/
     _confirm.py      # ConfirmDialog — ModalScreen[bool], y/n/escape keybindings
     card.py          # TaskCard — uses knbn_task (not task) to avoid asyncio.Task clash
-    detail.py        # TaskDetailPanel modal — uses knbn_task
     form.py          # TaskForm modal — posts TaskForm.TaskSaved message on save
     help.py          # HelpOverlay modal
 ```

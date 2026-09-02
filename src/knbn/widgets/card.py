@@ -118,9 +118,6 @@ class TaskCard(Static):
         else:
             self.remove_class('-deadline-warning')
 
-    def refresh_notes(self) -> None:
-        self.refresh(layout=True)
-
     def on_resize(self, event: object) -> None:
         self.call_after_refresh(self.recompose)
 

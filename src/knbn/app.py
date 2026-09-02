@@ -179,7 +179,6 @@ class KnbnApp(App[None]):
         self.push_screen(HelpOverlay())
 
     def on_task_form_task_saved(self) -> None:
-        self._reload_tasks()
         self._show_view(self._current_view)
 
     def watch_theme(self, theme: str) -> None:

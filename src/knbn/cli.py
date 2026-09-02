@@ -39,9 +39,9 @@ def init(path: str | None) -> None:
     data_dir = Path(path) if path else resolve_data_dir()
     from knbn.setup import run_setup_wizard, should_run_wizard
 
+    already_existed = data_dir.exists()
     if should_run_wizard(data_dir):
         run_setup_wizard(data_dir)
-    already_existed = data_dir.exists()
     ensure_data_dir(data_dir)
     if already_existed:
         print(f'Already initialized at {data_dir}')

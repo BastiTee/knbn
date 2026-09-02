@@ -15,8 +15,8 @@ _SETTINGS_FILENAME = 'settings.json'
 _SETTINGS_TMP_FILENAME = '.settings.json.tmp'
 
 _HEX_COLOR_RE = re.compile(r'^#[0-9a-f]{6}$')
-_NAME_MIN = 2
-_NAME_MAX = 20
+NAME_MIN = 2
+NAME_MAX = 20
 
 CATEGORY_COLOR_PALETTE: list[str] = [
     '#e879a0',
@@ -103,7 +103,6 @@ def load_settings(data_dir: Path) -> dict[str, Any]:
     settings_file = data_dir / _SETTINGS_FILENAME
     result: dict[str, Any] = {
         'app': dict(SETTINGS_DEFAULTS['app']),
-        'board': {},
     }
     if not settings_file.exists():
         return result
@@ -131,9 +130,9 @@ def get_app_setting(data_dir: Path, key: str, default: Any = '') -> Any:
 
 
 def _validate_name(value: str, field: str) -> None:
-    if not (_NAME_MIN <= len(value) <= _NAME_MAX):
+    if not (NAME_MIN <= len(value) <= NAME_MAX):
         raise BoardConfigError(
-            f'{field} name {value!r} must be between {_NAME_MIN} and {_NAME_MAX} characters'
+            f'{field} name {value!r} must be between {NAME_MIN} and {NAME_MAX} characters'
         )
 
 
@@ -233,10 +232,10 @@ def _parse_free_text_fields(board: dict[str, Any]) -> list[str]:
     fields: list[str] = []
     for label in raw:
         label_str = str(label)
-        if label_str and not (_NAME_MIN <= len(label_str) <= _NAME_MAX):
+        if label_str and not (NAME_MIN <= len(label_str) <= NAME_MAX):
             raise BoardConfigError(
                 f'free_text_fields label {label_str!r} must be between '
-                f'{_NAME_MIN} and {_NAME_MAX} characters'
+                f'{NAME_MIN} and {NAME_MAX} characters'
             )
         fields.append(label_str)
     while len(fields) < 3:

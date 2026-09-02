@@ -371,10 +371,15 @@ class KanbanView(Widget):
         self.call_after_refresh(self.recompose)
         self.call_after_refresh(refocus)
 
-    def action_move_up(self) -> None:
+    def _swap_in_lane(self, direction: int) -> bool:
+        """Swap the focused task one position within its lane.
+
+        Returns True if the swap happened, False if the task is at the boundary.
+        direction: -1 for up, +1 for down.
+        """
         ft = self._focused_task()
         if ft is None:
-            return
+            return False
         idx, task = ft
         lane = [
             i
@@ -382,82 +387,56 @@ class KanbanView(Widget):
             if t.status == task.status and t.priority == task.priority
         ]
         pos = lane.index(idx)
-        if pos > 0:
-            tasks = list(self._tasks)
-            tasks[lane[pos]], tasks[lane[pos - 1]] = (
-                tasks[lane[pos - 1]],
-                tasks[lane[pos]],
-            )
-            save_tasks(self.data_dir, tasks)
-            self._tasks = load_tasks(self.data_dir)
-            title = task.title
-            col = self._focused_col
+        target = pos + direction
+        if not (0 <= target < len(lane)):
+            return False
+        tasks = list(self._tasks)
+        tasks[lane[pos]], tasks[lane[target]] = tasks[lane[target]], tasks[lane[pos]]
+        save_tasks(self.data_dir, tasks)
+        self._tasks = load_tasks(self.data_dir)
+        title = task.title
+        col = self._focused_col
 
-            def _refocus_up() -> None:
-                col_cards = self._get_cards_in_col(col)
-                for i, card in enumerate(col_cards):
-                    cid = card.id or ''
-                    if cid.startswith('card-'):
-                        cidx = int(cid[5:])
-                        if cidx < len(self._tasks) and self._tasks[cidx].title == title:
-                            self._focused_row[col] = i
-                            self._focus_col_card()
-                            return
+        def _refocus() -> None:
+            col_cards = self._get_cards_in_col(col)
+            for i, card in enumerate(col_cards):
+                cid = card.id or ''
+                if cid.startswith('card-'):
+                    cidx = int(cid[5:])
+                    if cidx < len(self._tasks) and self._tasks[cidx].title == title:
+                        self._focused_row[col] = i
+                        self._focus_col_card()
+                        return
 
-            self.call_after_refresh(self.recompose)
-            self.call_after_refresh(_refocus_up)
-        else:
-            priorities = self._board_config.priorities
-            pri_idx = (
-                priorities.index(task.priority) if task.priority in priorities else -1
-            )
-            if pri_idx <= 0:
-                return
-            self._move_task(replace(task, priority=priorities[pri_idx - 1]))
+        self.call_after_refresh(self.recompose)
+        self.call_after_refresh(_refocus)
+        return True
+
+    def action_move_up(self) -> None:
+        if self._swap_in_lane(-1):
+            return
+        ft = self._focused_task()
+        if ft is None:
+            return
+        _, task = ft
+        priorities = self._board_config.priorities
+        pri_idx = priorities.index(task.priority) if task.priority in priorities else -1
+        if pri_idx <= 0:
+            return
+        self._move_task(replace(task, priority=priorities[pri_idx - 1]))
 
     def action_move_down(self) -> None:
+        if self._swap_in_lane(1):
+            return
         ft = self._focused_task()
         if ft is None:
             return
-        idx, task = ft
-        lane = [
-            i
-            for i, t in enumerate(self._tasks)
-            if t.status == task.status and t.priority == task.priority
-        ]
-        pos = lane.index(idx)
-        if pos < len(lane) - 1:
-            tasks = list(self._tasks)
-            tasks[lane[pos]], tasks[lane[pos + 1]] = (
-                tasks[lane[pos + 1]],
-                tasks[lane[pos]],
-            )
-            save_tasks(self.data_dir, tasks)
-            self._tasks = load_tasks(self.data_dir)
-            title = task.title
-            col = self._focused_col
-
-            def _refocus_down() -> None:
-                col_cards = self._get_cards_in_col(col)
-                for i, card in enumerate(col_cards):
-                    cid = card.id or ''
-                    if cid.startswith('card-'):
-                        cidx = int(cid[5:])
-                        if cidx < len(self._tasks) and self._tasks[cidx].title == title:
-                            self._focused_row[col] = i
-                            self._focus_col_card()
-                            return
-
-            self.call_after_refresh(self.recompose)
-            self.call_after_refresh(_refocus_down)
-        else:
-            priorities = self._board_config.priorities
-            pri_idx = (
-                priorities.index(task.priority) if task.priority in priorities else -1
-            )
-            if pri_idx < 0 or pri_idx >= len(priorities) - 1:
-                return
-            self._move_task(replace(task, priority=priorities[pri_idx + 1]))
+        _, task = ft
+        priorities = self._board_config.priorities
+        pri_idx = priorities.index(task.priority) if task.priority in priorities else -1
+        if pri_idx < 0 or pri_idx >= len(priorities) - 1:
+            return
+        self._move_task(replace(task, priority=priorities[pri_idx + 1]))
 
     def action_move_left(self) -> None:
         ft = self._focused_task()

@@ -9,12 +9,11 @@ import click
 
 from knbn.config import (
     CATEGORY_COLOR_PALETTE,
+    NAME_MAX,
+    NAME_MIN,
     SETTINGS_DEFAULTS,
     save_settings,
 )
-
-_NAME_MIN = 2
-_NAME_MAX = 20
 
 
 def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
@@ -27,8 +26,8 @@ def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
             name = click.prompt('  > ', default='', show_default=False).strip()
             if not name:
                 break
-            if not (_NAME_MIN <= len(name) <= _NAME_MAX):
-                click.echo(f'  Error: name must be {_NAME_MIN}–{_NAME_MAX} characters.')
+            if not (NAME_MIN <= len(name) <= NAME_MAX):
+                click.echo(f'  Error: name must be {NAME_MIN}–{NAME_MAX} characters.')
                 continue
             names.append(name)
             if len(names) >= max_count:
@@ -51,10 +50,8 @@ def _collect_free_text_fields() -> list[str]:
             if not label:
                 fields.append('')
                 break
-            if not (_NAME_MIN <= len(label) <= _NAME_MAX):
-                click.echo(
-                    f'  Error: label must be {_NAME_MIN}–{_NAME_MAX} characters.'
-                )
+            if not (NAME_MIN <= len(label) <= NAME_MAX):
+                click.echo(f'  Error: label must be {NAME_MIN}–{NAME_MAX} characters.')
                 continue
             fields.append(label)
             break
