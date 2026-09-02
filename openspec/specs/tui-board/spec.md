@@ -7,9 +7,9 @@ Terminal UI board: Kanban layout, view switching, navigation, and interaction.
 ## Requirements
 
 ### Requirement: Kanban view layout
-The TUI SHALL display a Kanban board with three columns (`Todo`, `Now`, `Feedback`) and three swim lane rows (`High`, `Medium`, `Low`), forming a 3×3 matrix. Columns SHALL have equal width. Column headers SHALL show the status name and the count of tasks in that column. Swim lane headers SHALL show the priority label. Archive counts (Done/Delegated/Stopped) SHALL be displayed in a footer or sidebar.
+The TUI SHALL display a Kanban board with one column per configured active status and one swim-lane row per configured priority, forming an N×M matrix where N is the number of active statuses (2–5) and M is the number of priorities (1–5). The leftmost column SHALL correspond to `default_active_status`. Columns SHALL have equal width. Column headers SHALL show the status name and the count of tasks in that column. Swim lane headers SHALL show the priority label. Archive counts (for all configured terminal statuses) SHALL be displayed in a footer.
 
-Task card titles SHALL be truncated to fit the available inner width of the card (column width minus border and padding), ensuring equal left and right margins. Cards SHALL be separated by a single border row with no additional blank lines between them.
+Task card titles SHALL be truncated to fit the available inner width of the card. Cards SHALL be separated by a single border row with no additional blank lines between them.
 
 Each task card SHALL display two rows:
 1. **Title row**: truncated title, indicator glyphs (`☰`/`※`), and — if a due date is set — the due date right-aligned within the card width (formatted as `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`). The title SHALL be truncated to leave space for the due date string when both are present. The due date SHALL be rendered in bold red when the task is overdue, or dimmed otherwise.
@@ -19,7 +19,23 @@ A card whose due date is within `deadline_warning_hours` hours of the current ti
 
 #### Scenario: Board renders all active tasks
 - **WHEN** the board is launched with tasks in multiple statuses and priorities
-- **THEN** each task card appears in its correct (column, row) cell
+- **THEN** each task card appears in its correct (column, row) cell based on configured statuses and priorities
+
+#### Scenario: Leftmost column is default active status
+- **WHEN** the board is launched with `default_active_status` set to `'Sprint'`
+- **THEN** the leftmost column is labelled `Sprint`
+
+#### Scenario: Column count matches config
+- **WHEN** `active_statuses` contains two entries
+- **THEN** the board renders exactly two columns
+
+#### Scenario: Swim-lane count matches config
+- **WHEN** `priorities` contains two entries
+- **THEN** the board renders exactly two swim-lane rows
+
+#### Scenario: Footer lists all configured terminal statuses
+- **WHEN** `terminal_statuses` is `['Done', 'Archived']`
+- **THEN** the footer shows counts for both `Done` and `Archived`
 
 #### Scenario: Column header shows count
 - **WHEN** a column has 3 tasks
@@ -107,7 +123,11 @@ The TUI SHALL provide a tabular view listing all active tasks grouped by status 
 - **THEN** the task edit form opens pre-populated with that task's fields
 
 ### Requirement: Closed view
-The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing terminal-status tasks (`Done`, `Delegated`, `Stopped`) grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present, or `YYYY-MM-DD` when only a date is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
+The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing tasks whose status is any value in `BoardConfig.terminal_statuses`, grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL NOT assume specific status name strings. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present, or `YYYY-MM-DD` when only a date is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
+
+#### Scenario: Done view shows all configured terminal statuses
+- **WHEN** `terminal_statuses` is `['Done', 'Archived', 'Dropped']`
+- **THEN** tasks with any of those three statuses appear in the Done view
 
 #### Scenario: Closed view shows column headers
 - **WHEN** the user switches to the Closed view
@@ -169,7 +189,7 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 - **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
-The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark Done (with confirmation), `x` to stop, `g` to delegate, `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first focusable element (card or, if the column is empty, its first lane header) in the first column SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. If the target column has no cards at all, focus SHALL land on the topmost visible `LaneHeader` in that column. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column (`Todo ↔ Now ↔ Feedback`), clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses (`Done`, `Delegated`, `Stopped`) are not reachable via Shift+arrow gestures. Marking a task Done, Stopped, or Delegated SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
+The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark done (with confirmation), `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first focusable element (card or, if the column is empty, its first lane header) in the first column SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. If the target column has no cards at all, focus SHALL land on the topmost visible `LaneHeader` in that column. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column, clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses are not reachable via Shift+arrow gestures. Marking a task via the mark-done quick action SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
 
 #### Scenario: Arrow navigation between cards
 - **WHEN** the user presses `←`/`→` on the board
@@ -196,24 +216,16 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 - **THEN** a confirmation dialog appears asking whether to mark the task Done
 
 #### Scenario: Confirm done marks task and stamps Last edited time
-- **WHEN** the user confirms in the Done confirmation dialog
-- **THEN** the task status changes to `Done`, `Last edited time` is updated to now, and the card disappears from the board
+- **WHEN** the user confirms in the done confirmation dialog
+- **THEN** the task status changes to the configured default terminal status, `Last edited time` is updated to now, and the card disappears from the board
 
 #### Scenario: Cancel done leaves task intact
-- **WHEN** the user cancels the Done confirmation dialog
+- **WHEN** the user cancels the done confirmation dialog
 - **THEN** the task remains unchanged on the board
 
 #### Scenario: Mark task done
 - **WHEN** the user confirms `d` on a focused card
-- **THEN** the task status changes to `Done`, `Last edited time` is updated to now, and the card disappears from the board
-
-#### Scenario: Mark task stopped stamps Last edited time
-- **WHEN** the user confirms `x` on a focused card
-- **THEN** the task status changes to `Stopped` and `Last edited time` is updated to now
-
-#### Scenario: Delegate task stamps Last edited time
-- **WHEN** the user confirms delegation via `g` on a focused card
-- **THEN** the task status changes to `Delegated` and `Last edited time` is updated to now
+- **THEN** the task status changes to the configured default terminal status, `Last edited time` is updated to now, and the card disappears from the board
 
 #### Scenario: Tab does nothing in Kanban view
 - **WHEN** the user presses Tab or Shift+Tab in the Kanban view
@@ -254,6 +266,28 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 #### Scenario: o key is no-op when no URL set
 - **WHEN** the user presses `o` on a focused card with no `key_resource`
 - **THEN** nothing happens
+
+### Requirement: Mark Done quick action
+The TUI SHALL provide a `mark_done` action bound to key `d` that transitions the focused task to `BoardConfig.default_terminal_status`, updates `date_modified`, persists the change, and reloads the view. A `ConfirmDialog` SHALL be shown before the transition.
+
+#### Scenario: Mark done uses default terminal status
+- **WHEN** `default_terminal_status` is `'Archived'` and the user presses `d`
+- **THEN** the confirm dialog reads `'Mark "<title>" as Archived?'` and on confirmation sets status to `'Archived'`
+
+#### Scenario: Mark done still works with legacy config
+- **WHEN** `default_terminal_status` is `'Done'` (default config) and the user presses `d`
+- **THEN** the task is transitioned to `Done`
+
+### Requirement: Promote and demote priority actions
+The TUI SHALL provide actions to promote (increase priority) and demote (decrease priority) a focused task's priority. The priority order SHALL be determined by `BoardConfig.priorities` (index 0 = highest). Promoting at the highest priority or demoting at the lowest SHALL be a no-op.
+
+#### Scenario: Promote uses config priority order
+- **WHEN** `priorities` is `['Critical', 'Normal', 'Low']` and a task has priority `'Normal'`
+- **THEN** promoting the task sets its priority to `'Critical'`
+
+#### Scenario: Demote at lowest is no-op
+- **WHEN** a task has the last priority in `BoardConfig.priorities` and the user demotes
+- **THEN** the task's priority is unchanged
 
 ### Requirement: Inline add/edit form
 The TUI SHALL provide an overlay form for creating and editing tasks, accessible via `a` (add) from any view and `Enter` on a focused task from any view (edit). The form SHALL be dismissible with `Esc`. The form SHALL be saveable with `Ctrl+S` provided the title field contains at least one non-whitespace character. The Due field label SHALL read `Due (YYYY-MM-DD or YYYY-MM-DD HH:MM, optional)`. When saving, if the Due field is non-empty and does not match `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`, the form SHALL display an inline validation error below the Due field and SHALL NOT save the task. The Due field SHALL additionally apply a red border highlight (CSS class `--invalid`) when its value fails validation; this highlight SHALL be cleared when the user begins editing the field again.
