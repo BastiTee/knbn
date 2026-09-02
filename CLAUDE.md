@@ -19,6 +19,9 @@ uv run knbn --help                         # CLI entry point
 uv run knbn add --fast --title "My task"  # quick task add
 uv run knbn board                          # launch TUI
 make build                                 # full build chain (test + mypy + lint + format + uv build)
+make test                                  # tests only
+make lint                                  # auto-fix lint
+make format                                # auto-fix format
 ```
 
 ## Before committing
@@ -33,8 +36,11 @@ Always run `make format` and `make lint` before staging and committing. The buil
 src/knbn/
   __main__.py        # entry point — dispatches to cli.py
   cli.py             # Click commands: init, board, add
-  config.py          # resolve_data_dir(): KNBN_DATA_DIR env var or ~/.knbn/
+  config.py          # resolve_data_dir(), user settings (settings.json), board config load/save/validate
+  setup.py           # first-run setup wizard (CLI prompts to configure statuses, priorities, categories)
   app.py             # Textual App — view switching, global keybindings
+  defaults/
+    settings.json    # bundled factory-default board config; loaded when no user settings exist
   model/
     task.py          # Task dataclass + STATUS_*/PRIORITY_VALUES/DEFAULT_CATEGORIES constants
     store.py         # CSV read/write (atomic via .tmp rename), notes path resolution
@@ -65,6 +71,17 @@ Tasks live in `~/.knbn/tasks.csv` (override with `KNBN_DATA_DIR`). The CSV schem
 - `LaneHeader.Toggled` is a nested `Message` class; the handler is `on_lane_header_toggled`.
 - **`get_system_commands`** is overridden in `KnbnApp` to restrict the `Ctrl+P` command palette to `Theme → Quit → Keys` only. Screenshot and Maximize/Minimize are intentionally suppressed.
 - The form posts `TaskForm.TaskSaved`; the app handles it via `on_task_form_task_saved`.
+
+### OpenSpec design workflow
+
+New features follow an OpenSpec workflow tracked in `openspec/`:
+
+- `openspec/DESIGN.md` — authoritative design document; wins over source comments when they conflict
+- `openspec/specs/` — per-feature delta specs (one subdirectory per feature)
+- `openspec/changes/` — active and archived change proposals linking specs to implementation tasks
+- `openspec/config.yaml` — workflow configuration
+
+Use the `/openspec-propose`, `/openspec-apply-change`, and `/openspec-archive-change` skills to work within this workflow.
 
 ### Testing
 
