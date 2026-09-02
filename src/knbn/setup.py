@@ -12,6 +12,7 @@ from knbn.config import (
     NAME_MAX,
     NAME_MIN,
     SETTINGS_DEFAULTS,
+    load_default_board_config,
     save_settings,
 )
 
@@ -74,9 +75,35 @@ def should_run_wizard(data_dir: Path) -> bool:
         return 'board' not in raw
 
 
+def _apply_board_cfg(data_dir: Path, board_cfg: dict) -> None:
+    data_dir.mkdir(parents=True, exist_ok=True)
+    settings_file = data_dir / 'settings.json'
+    existing_settings: dict = {'app': dict(SETTINGS_DEFAULTS['app']), 'board': {}}
+    if settings_file.exists():
+        try:
+            raw = json.loads(settings_file.read_text(encoding='utf-8'))
+            if isinstance(raw, dict) and 'app' in raw and isinstance(raw['app'], dict):
+                existing_settings['app'].update(raw['app'])
+        except (json.JSONDecodeError, OSError):
+            pass
+    existing_settings['board'] = board_cfg
+    save_settings(data_dir, existing_settings)
+
+
 def run_setup_wizard(data_dir: Path) -> None:
     """Interactive first-run board setup wizard."""
     click.echo("Welcome to knbn! Let's configure your board.")
+
+    answer = (
+        click
+        .prompt('Use standard settings? [Y/n]', default='', show_default=False)
+        .strip()
+        .lower()
+    )
+    if answer in ('', 'y'):
+        _apply_board_cfg(data_dir, load_default_board_config())
+        click.echo('\nBoard configuration saved.')
+        return
 
     active_statuses = _collect_names(
         'Active statuses, e.g., Todo, Doing, ... (columns on the board)', 2, 5
@@ -119,17 +146,5 @@ def run_setup_wizard(data_dir: Path) -> None:
         'free_text_fields': free_text_fields,
     }
 
-    data_dir.mkdir(parents=True, exist_ok=True)
-    settings_file = data_dir / 'settings.json'
-    existing_settings: dict = {'app': dict(SETTINGS_DEFAULTS['app']), 'board': {}}
-    if settings_file.exists():
-        try:
-            raw = json.loads(settings_file.read_text(encoding='utf-8'))
-            if isinstance(raw, dict) and 'app' in raw and isinstance(raw['app'], dict):
-                existing_settings['app'].update(raw['app'])
-        except (json.JSONDecodeError, OSError):
-            pass
-    existing_settings['board'] = board_cfg
-    save_settings(data_dir, existing_settings)
-
+    _apply_board_cfg(data_dir, board_cfg)
     click.echo('\nBoard configuration saved.')

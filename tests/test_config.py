@@ -4,7 +4,23 @@ from pathlib import Path
 
 import pytest
 
-from knbn.config import resolve_data_dir
+from knbn.config import load_default_board_config, resolve_data_dir
+
+
+def test_load_default_board_config_returns_board_keys() -> None:
+    board = load_default_board_config()
+    assert 'active_statuses' in board
+    assert 'terminal_statuses' in board
+    assert 'priorities' in board
+    assert 'categories' in board
+    assert 'free_text_fields' in board
+
+
+def test_load_default_board_config_is_not_empty() -> None:
+    board = load_default_board_config()
+    assert len(board['active_statuses']) >= 2
+    assert len(board['priorities']) >= 1
+    assert len(board['categories']) >= 1
 
 
 def test_default_data_dir(monkeypatch: pytest.MonkeyPatch) -> None:

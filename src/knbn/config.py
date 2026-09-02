@@ -6,6 +6,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
@@ -65,30 +66,29 @@ class BoardConfig:
         return self.active_statuses + self.terminal_statuses
 
 
-BOARD_CONFIG_DEFAULTS: dict[str, Any] = {
-    'active_statuses': ['Todo', 'Now', 'Feedback'],
-    'default_active_status': 'Now',
-    'terminal_statuses': ['Done', 'Delegated', 'Stopped'],
-    'default_terminal_status': 'Done',
-    'priorities': ['High', 'Medium', 'Low'],
-    'categories': [
-        {'name': 'People', 'color': '#e879a0'},
-        {'name': 'Hiring', 'color': '#f4a7b9'},
-        {'name': 'Strategy', 'color': '#7ec8e3'},
-        {'name': 'Product', 'color': '#5b9bd5'},
-        {'name': 'Engineering', 'color': '#4dbfbf'},
-        {'name': 'Work Life', 'color': '#f5a623'},
-        {'name': 'Ideas', 'color': '#cccccc'},
-    ],
-    'free_text_fields': ['Feedback From', 'Delegated To', ''],
-}
+def load_default_board_config() -> dict[str, Any]:
+    """Return the board config block from the bundled defaults/settings.json."""
+    resource = files('knbn').joinpath('defaults/settings.json')
+    try:
+        raw = resource.read_text(encoding='utf-8')
+    except (FileNotFoundError, OSError) as exc:
+        raise RuntimeError(
+            f'knbn defaults file not found — package may be incomplete: {exc}'
+        ) from exc
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f'knbn defaults/settings.json is not valid JSON: {exc}'
+        ) from exc
+    return dict(data['board'])
+
 
 SETTINGS_DEFAULTS: dict[str, Any] = {
     'app': {
         'theme': 'textual-dark',
         'deadline_warning_hours': '24',
     },
-    'board': BOARD_CONFIG_DEFAULTS,
 }
 
 
@@ -137,7 +137,7 @@ def _validate_name(value: str, field: str) -> None:
 
 
 def build_default_board_config() -> BoardConfig:
-    d = BOARD_CONFIG_DEFAULTS
+    d = load_default_board_config()
     categories = [
         CategoryConfig(name=c['name'], color=c['color']) for c in d['categories']
     ]
@@ -148,7 +148,7 @@ def build_default_board_config() -> BoardConfig:
         default_terminal_status=d['default_terminal_status'],
         priorities=list(d['priorities']),
         categories=categories,
-        free_text_fields=list(d['free_text_fields']),
+        free_text_fields=_parse_free_text_fields(d),
     )
 
 

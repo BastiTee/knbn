@@ -306,11 +306,11 @@ def test_build_default_board_config_returns_legacy_defaults() -> None:
     cfg = build_default_board_config()
     assert isinstance(cfg, BoardConfig)
     assert cfg.active_statuses == ['Todo', 'Now', 'Feedback']
-    assert cfg.default_active_status == 'Now'
+    assert cfg.default_active_status == 'Todo'
     assert cfg.terminal_statuses == ['Done', 'Delegated', 'Stopped']
     assert cfg.default_terminal_status == 'Done'
     assert cfg.priorities == ['High', 'Medium', 'Low']
-    assert len(cfg.categories) == 7
+    assert len(cfg.categories) == 5
     assert isinstance(cfg.categories[0], CategoryConfig)
     assert cfg.free_text_fields == ['Feedback From', 'Delegated To', '']
 

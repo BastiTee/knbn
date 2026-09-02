@@ -8,7 +8,11 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from knbn.config import CATEGORY_COLOR_PALETTE, load_board_config
+from knbn.config import (
+    CATEGORY_COLOR_PALETTE,
+    load_board_config,
+    load_default_board_config,
+)
 from knbn.setup import run_setup_wizard, should_run_wizard
 
 
@@ -47,7 +51,7 @@ def test_should_run_wizard_malformed_settings(tmp_path: Path) -> None:
 
 # --- run_setup_wizard ---
 # Active(2): Todo Now | Terminal(1): Done | Priorities(2): High Low | Cat(1): Work | FTF: all blank
-_MINIMAL_INPUT = 'Todo\nNow\n\nDone\n\nHigh\nLow\n\nWork\n\n\n\n\n'
+_MINIMAL_INPUT = 'n\nTodo\nNow\n\nDone\n\nHigh\nLow\n\nWork\n\n\n\n\n'
 
 
 def test_wizard_minimal_creates_config(tmp_path: Path) -> None:
@@ -72,7 +76,7 @@ def test_wizard_settings_file_has_board_key(tmp_path: Path) -> None:
 
 def test_wizard_with_free_text_label(tmp_path: Path) -> None:
     # Active(2), Terminal(1), Priority(1), Cat(1), FTF1=Notes blank blank
-    wizard_input = 'Todo\nNow\n\nDone\n\nHigh\n\nWork\n\nNotes\n\n\n'
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHigh\n\nWork\n\nNotes\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -84,7 +88,7 @@ def test_wizard_with_free_text_label(tmp_path: Path) -> None:
 
 def test_wizard_multiple_terminal_statuses_with_default(tmp_path: Path) -> None:
     # Active(2), Terminal(2): Done Archived → select 2 as default | Prio(1) Cat(1) FTF blank
-    wizard_input = 'Todo\nNow\n\nDone\nArchived\n\n2\nHi\n\nStuff\n\n\n\n\n'
+    wizard_input = 'n\nTodo\nNow\n\nDone\nArchived\n\n2\nHi\n\nStuff\n\n\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -95,7 +99,7 @@ def test_wizard_multiple_terminal_statuses_with_default(tmp_path: Path) -> None:
 
 def test_wizard_auto_assigns_palette_colors(tmp_path: Path) -> None:
     # Two categories → first two palette colors
-    wizard_input = 'Todo\nNow\n\nDone\n\nHigh\n\nAlpha\nBeta\n\n\n\n\n'
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHigh\n\nAlpha\nBeta\n\n\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -107,7 +111,7 @@ def test_wizard_auto_assigns_palette_colors(tmp_path: Path) -> None:
 
 def test_wizard_rejects_short_status_name(tmp_path: Path) -> None:
     # 'X' is too short (1 char), then valid names
-    wizard_input = 'X\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
+    wizard_input = 'n\nX\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -118,7 +122,7 @@ def test_wizard_rejects_short_status_name(tmp_path: Path) -> None:
 
 def test_wizard_rejects_long_status_name(tmp_path: Path) -> None:
     long_name = 'A' * 21
-    wizard_input = f'{long_name}\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
+    wizard_input = f'n\n{long_name}\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -129,7 +133,7 @@ def test_wizard_rejects_long_status_name(tmp_path: Path) -> None:
 
 def test_wizard_rejects_too_few_statuses(tmp_path: Path) -> None:
     # Enter only 1 status then blank → error → try again with 2
-    wizard_input = 'OnlyOne\n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
+    wizard_input = 'n\nOnlyOne\n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -139,7 +143,7 @@ def test_wizard_rejects_too_few_statuses(tmp_path: Path) -> None:
 
 def test_wizard_rejects_short_free_text_label(tmp_path: Path) -> None:
     # 'X' too short for FTF slot 1, then 'Notes' valid
-    wizard_input = 'Todo\nNow\n\nDone\n\nHi\n\nWork\n\nX\nNotes\n\n\n'
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\nX\nNotes\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -149,7 +153,7 @@ def test_wizard_rejects_short_free_text_label(tmp_path: Path) -> None:
 
 def test_wizard_rejects_long_free_text_label(tmp_path: Path) -> None:
     long_label = 'B' * 21
-    wizard_input = f'Todo\nNow\n\nDone\n\nHi\n\nWork\n\n{long_label}\nNotes\n\n\n'
+    wizard_input = f'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n{long_label}\nNotes\n\n\n'
     runner = CliRunner()
     result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
     assert result.exit_code == 0
@@ -183,6 +187,7 @@ def test_wizard_free_text_blank_slots(tmp_path: Path, idx: int) -> None:
 def test_wizard_accepts_multi_word_names(tmp_path: Path) -> None:
     # Multi-word status, priority, category, and free-text label
     wizard_input = (
+        'n\n'  # decline quick-start
         'In Progress\nNot Started\n\n'  # active statuses
         'Not Done\n\n'  # terminal status
         'Very High\nMedium\n\n'  # priorities
@@ -198,3 +203,25 @@ def test_wizard_accepts_multi_word_names(tmp_path: Path) -> None:
     assert cfg.priorities == ['Very High', 'Medium']
     assert cfg.categories[0].name == 'Senior Task'
     assert cfg.free_text_fields[0] == 'Blocked By'
+
+
+def test_wizard_quickstart_accept_writes_default_config(tmp_path: Path) -> None:
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input='\n')
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    defaults = load_default_board_config()
+    assert cfg.active_statuses == defaults['active_statuses']
+    assert cfg.terminal_statuses == defaults['terminal_statuses']
+    assert cfg.priorities == defaults['priorities']
+    assert [c.name for c in cfg.categories] == [
+        c['name'] for c in defaults['categories']
+    ]
+
+
+def test_wizard_quickstart_decline_proceeds_to_interactive(tmp_path: Path) -> None:
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=_MINIMAL_INPUT)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.active_statuses == ['Todo', 'Now']

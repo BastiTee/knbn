@@ -89,7 +89,7 @@ def test_add_fast_with_title(data_dir: Path, monkeypatch: pytest.MonkeyPatch) ->
     assert task.title == 'My fast task'
     assert task.status == 'Todo'
     assert task.priority == 'Medium'
-    assert task.category == 'Ideas'
+    assert task.category == 'Other'
     assert task.key_resource == ''
 
 
