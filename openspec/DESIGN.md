@@ -21,15 +21,16 @@ Every task has exactly the following fields. The CSV column names are canonical 
 | CSV Column | Internal Name | Type | Required | Notes |
 |---|---|---|---|---|
 | `Name` | `title` | `str` | Yes | Short task label, free text |
-| `Category` | `category` | `str` (enum-like) | Yes | One of the predefined category values; see §2.3 |
-| `Status` | `status` | `str` (enum) | Yes | One of the six status values; see §2.4 |
-| `Priority` | `priority` | `str` (enum) | Yes | `High`, `Medium`, or `Low` |
-| `Due` | `due` | `str` (datetime, optional) | No | Format: `DD/MM/YYYY HH:MM (GMT+N)` as used in source data; stored as-is, displayed as date only |
-| `Key Resource` | `key_resource` | `str` (URL, optional) | No | Single URL; empty string when absent |
-| `Feedback From` | `feedback_from` | `str` (optional) | No | Name of person; populated only for `Feedback` status tasks |
-| `Delegated To` | `delegated_to` | `str` (optional) | No | Name of person; populated only for `Delegated` status tasks |
-| `Date Created` | `date_created` | `str` (datetime) | Yes | Format: `Month D, YYYY H:MM AM/PM`; set automatically on creation; never edited |
-| `Last edited time` | `date_modified` | `str` (datetime) | Yes | Same format; updated automatically on every save |
+| `Category` | `category` | `str` (enum-like) | Yes | One of the configured category values; see §2.3 |
+| `Status` | `status` | `str` (enum) | Yes | One of the configured status values; see §2.4 |
+| `Priority` | `priority` | `str` (enum) | Yes | One of the configured priority values; see §2.2 |
+| `DateTimeDue` | `due` | `str` (datetime, optional) | No | Format: `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`; empty when absent |
+| `KeyResource` | `key_resource` | `str` (URL, optional) | No | Single URL; empty string when absent |
+| `FreeText1` | `free_text_1` | `str` (optional) | No | User-configurable free text field; label set in board config (default: `Feedback From`) |
+| `FreeText2` | `free_text_2` | `str` (optional) | No | User-configurable free text field; label set in board config (default: `Delegated To`) |
+| `FreeText3` | `free_text_3` | `str` (optional) | No | User-configurable free text field; label set in board config (empty by default) |
+| `DateTimeCreated` | `date_created` | `str` (datetime) | Yes | Format: `YYYY-MM-DD HH:MM`; set automatically on creation; never edited |
+| `DateTimeEdited` | `date_modified` | `str` (datetime) | Yes | Same format; updated automatically on every save |
 
 **Derived / display-only field** (not stored in CSV):
 - `notes_file` — presence of a corresponding Markdown file; see §3.2.
@@ -44,21 +45,19 @@ Exactly three values, in this rank order (highest first):
 
 ### 2.3 Category Values
 
-The category list is drawn from the existing Notion database (screenshot of category picker). These are the predefined values; the implementation must allow the user to type a new value that is then added to the list:
+Categories are configured in `settings.json` under `board.categories`. Each entry has a `name` and a `color` (hex string). The default set is:
 
 - `People`
-- `Hiring`
 - `Strategy`
 - `Product`
 - `Engineering`
-- `Work Life`
-- `Ideas`
+- `Other`
 
-Categories are free-form strings — no fixed enum enforcement at the data layer. The UI presents known values as suggestions.
+Categories are free-form strings — no fixed enum enforcement at the data layer. The UI presents known values as suggestions. New categories can be added via the setup wizard or by editing `settings.json` directly.
 
 ### 2.4 Status Values and Task Lifecycle
 
-Six statuses, split into two groups:
+Statuses are configured in `settings.json` under `board.active_statuses` and `board.terminal_statuses`. The defaults are:
 
 **Active statuses** (shown on the Kanban board):
 
@@ -113,19 +112,20 @@ The data directory path is configurable via an environment variable `KNBN_DATA_D
 
 ### 3.2 CSV Schema
 
-`tasks.csv` is a standard comma-separated file with a header row. Column order must match exactly (for forward compatibility):
+`tasks.csv` is a standard comma-separated file with a header row. Column order must match exactly:
 
 ```
-Name,Category,Date Created,Delegated To,Due,Feedback From,Key Resource,Last edited time,Priority,Status
+DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource
 ```
-
-This matches the existing Notion CSV export format. Importing a Notion CSV export (e.g. `_temp_/example-database-content.csv`) requires no transformation — the tool should be able to read it directly.
 
 Rules:
-- UTF-8 encoding, Unix line endings (`\n`).
+- UTF-8 encoding (BOM-tolerant on read), Unix line endings (`\n`).
 - Fields containing commas or newlines are quoted with double quotes per RFC 4180.
 - Empty optional fields are represented as empty string (no value between consecutive commas).
-- Dates are stored as strings in the format present in the source data (`Month D, YYYY H:MM AM/PM`).
+- Dates are stored in `YYYY-MM-DD HH:MM` format (datetime) or `YYYY-MM-DD` (date-only).
+- On load, the schema is validated; a mismatch raises a `ValueError` with a descriptive message.
+
+**Legacy format**: Tasks exported from earlier versions used Notion's `Month D, YYYY H:MM AM/PM` date format. The parser accepts both formats transparently, but new writes always use `YYYY-MM-DD HH:MM`.
 
 ### 3.3 Markdown Notes Files
 
@@ -202,16 +202,17 @@ Add `textual` to `[project.dependencies]` in `pyproject.toml`.
 
 ### 5.1 Kanban View (Primary View)
 
-The board is a **3-column × 3-row matrix** of task cards.
+The board is a **config-driven matrix** of task cards. By default it has 3 columns × 3 rows.
 
-**Columns** (left to right): `Todo` | `Now` | `Feedback`
-**Rows** (top to bottom): `High` | `Medium` | `Low`
+**Columns** (left to right): configured `active_statuses` (default: `Todo` | `Now` | `Feedback`)
+**Rows** (top to bottom): configured `priorities` (default: `High` | `Medium` | `Low`)
 
 Each cell shows the tasks for that (status, priority) combination, stacked vertically. Each task is a card showing:
-- Title (truncated to fit card width)
-- Category tag (colored pill)
-- Due date (if set; shown in a muted color; highlighted red if overdue)
-- Notes indicator icon (e.g. `📝` or `[N]`) if a Markdown notes file exists
+- Title (truncated to fit card width), with indicators appended: `☰` if a notes file exists, `※` if a key resource URL is set
+- Due date (if set; shown right-aligned on the title line; dim when upcoming, bold red when overdue)
+- Category tag (colored pill on the second line)
+
+A thick amber right border on the card signals an upcoming deadline within the configured `deadline_warning_hours` window (default: 24 hours).
 
 The board occupies the full terminal width and height. Column widths are equal (`floor(available_width / 3)`). Row heights distribute the remaining vertical space equally.
 
@@ -231,20 +232,18 @@ Swim lanes are collapsible (toggle with Enter or Space when the lane header is f
 
 **Minimum terminal size**: 100 columns × 30 rows. If the terminal is smaller, display an error message: `Terminal too small. Minimum size: 100×30.` and exit gracefully.
 
-**Archive counts** are shown in a right-side sidebar (or status bar, whichever fits) showing Done/Delegated/Stopped counts, mirroring the Notion "Pinned groups" panel:
+**Archive counts** are displayed in a bar below the board (above the footer), showing counts for each terminal status:
 ```
-  Done      1302
-  Delegated   31
-  Stopped    112
+  Done    1302   Delegated    31   Stopped   112
 ```
 
 ### 5.2 Tabular View
 
 A flat table listing all active tasks (Todo + Now + Feedback), grouped by Status. Within each status group, tasks are sorted by priority (High → Medium → Low), then by `Last edited time` descending.
 
-Columns displayed: `Name` | `Priority` | `Category` | `Due`
+Columns displayed: `Name` | `Status` | `Priority` | `Category` | `Created` | `Edited` | `Due Date`
 
-Column widths: Name takes remaining space after other columns are sized. Priority and Category are fixed-width. Due is fixed-width.
+The `Name` column is responsive — it takes all remaining space after the fixed-width columns are sized. Minimum title column width: 20 characters.
 
 Group headers show status name and count:
 ```
@@ -257,13 +256,13 @@ Group headers show status name and count:
   ...
 ```
 
-### 5.3 Done-by-Week View
+### 5.3 Closed View
 
-Shows archived tasks (Done + Delegated + Stopped) grouped by ISO calendar week of `Last edited time`, most recent week first.
+Shows terminal-status tasks (Done + Delegated + Stopped, or whatever `terminal_statuses` are configured) grouped by ISO calendar week of `date_modified`, most recent week first.
 
 Group header format: `Jul 12–18 2026  7` (date range + count)
 
-Columns: `Name` | `Category` | `Priority` | `Last edited time` | `Date Created`
+Columns: `Name` | `Status` | `Priority` | `Category` | `Created` | `Edited` | `Due Date`
 
 ### 5.4 View Switching
 
@@ -273,7 +272,7 @@ Views are accessible via keyboard shortcuts and displayed in a top navigation ba
 |---|---|
 | `1` | Kanban (default) |
 | `2` | Tabular |
-| `3` | Done-by-Week |
+| `3` | Closed |
 
 The top bar also shows the active view name and the data directory path.
 
@@ -290,9 +289,8 @@ All interactions are keyboard-driven. Mouse support is not required in the MVP.
 | `q` / `Ctrl+C` | Quit application |
 | `1` | Switch to Kanban view |
 | `2` | Switch to Tabular view |
-| `3` | Switch to Done-by-Week view |
+| `3` | Switch to Closed view |
 | `a` | Open quick-add form (inline, without leaving the TUI) |
-| `r` | Reload data from CSV (manual refresh) |
 | `?` | Show key bindings help overlay |
 
 ### 6.2 Kanban View Navigation
@@ -300,32 +298,18 @@ All interactions are keyboard-driven. Mouse support is not required in the MVP.
 | Key | Action |
 |---|---|
 | `←` / `→` | Move focus between columns |
-| `↑` / `↓` | Move focus between task cards within a column |
-| `Tab` | Next card (wraps across columns/rows) |
-| `Shift+Tab` | Previous card |
-| `Enter` | Open task detail panel |
-| `e` | Edit task (opens inline edit form) |
+| `↑` / `↓` | Move focus between items within a column (cards and lane headers) |
+| `Shift+←` / `Shift+→` | Move focused task to the previous/next status column |
+| `Enter` / `e` | Edit task (opens inline edit form) |
 | `n` | Open / create Markdown notes for focused task |
-| `d` | Move focused task to Done |
-| `x` | Move focused task to Stopped |
-| `g` | Delegate focused task (prompts for Delegated To name) |
-| `m` | Move focused task (prompts for new status selection) |
-| `p` | Change priority of focused task |
-| `Del` / `Backspace` | Confirm-delete focused task (shows confirmation prompt) |
-| `Space` / `Enter` on lane header | Collapse/expand swim lane |
-
-### 6.3 Task Detail Panel
-
-Triggered by `Enter` on a focused card. Opens a right-side panel (or overlay) showing all task fields. Navigation within panel:
-
-| Key | Action |
-|---|---|
-| `Esc` / `q` | Close panel, return to board |
-| `e` | Edit task |
-| `n` | Open notes in `$EDITOR` |
 | `o` | Open Key Resource URL in default browser (`open <url>` on macOS) |
+| `d` | Move focused task to the configured default terminal status (default: `Done`) |
+| `Del` / `Backspace` | Confirm-delete focused task (shows confirmation prompt) |
+| `PgUp` | Promote task: move up within its lane; at the top, promotes to the next higher priority |
+| `PgDn` | Demote task: move down within its lane; at the bottom, demotes to the next lower priority |
+| `Enter` on lane header | Collapse/expand swim lane |
 
-### 6.4 Inline Add / Edit Form
+### 6.3 Inline Add / Edit Form
 
 The quick-add form opens as an overlay modal. Fields are navigated with `Tab`/`Shift+Tab`. `Enter` on the last field (or a Submit button) saves. `Esc` cancels without saving.
 
@@ -339,41 +323,48 @@ Form fields (in order): Title → Status → Priority → Category → Due Date 
 
 ### 7.1 Card Layout
 
+Two-line layout. Line 1: title with optional indicators and due date. Line 2: category tag.
+
 ```
 ┌─────────────────────────────┐
 │ Research feedback models    │
-│ [Ideas]          High       │
+│ [Ideas]                     │
 └─────────────────────────────┘
 ```
 
-If a due date is set:
+With a due date:
 ```
 ┌─────────────────────────────┐
-│ Org planning with SLT       │
-│ [People]        17/07/2026 ⏰│
+│ Org planning with SLT  2026-07-17│
+│ [People]                    │
 └─────────────────────────────┘
 ```
 
-If a notes file exists, append a `📝` (or plain `[N]` in environments without emoji support) after the title.
+**Indicators** appended to the title (before the due date padding):
+- `☰` — a Markdown notes file exists
+- `※` — a key resource URL is set
+- Both: `☰ ※`
 
-If overdue (due date < today), the due date is rendered in red/bold.
+**Due date styling**: dim when upcoming; bold red when overdue (due < now).
+
+**Deadline warning**: a thick amber right border is shown when due date is within `deadline_warning_hours` (default: 24h).
+
+If the title is too long to fit, it is truncated with `…`.
 
 ### 7.2 Category Tag Colors
 
-Category tags use consistent colors. The color mapping is fixed and derived from the visual appearance in Notion screenshots:
+Category tag colors are configured in `settings.json` under `board.categories`. Each entry specifies a `name` and a `color` (6-digit lowercase hex, e.g. `#e879a0`). Unknown categories fall back to `#888888`.
 
-| Category | Color |
+Default color mapping:
+
+| Category | Hex color |
 |---|---|
-| People | Pink / rose |
-| Hiring | Light pink |
-| Strategy | Light blue |
-| Product | Blue |
-| Engineering | Blue-green / teal |
-| Work Life | Orange / yellow |
-| Ideas | White / neutral |
-| (unknown) | Gray |
-
-In Textual, these map to named color constants or CSS color strings on the tag widget.
+| People | `#e879a0` |
+| Strategy | `#7ec8e3` |
+| Product | `#5b9bd5` |
+| Engineering | `#4dbfbf` |
+| Other | `#cccccc` |
+| (unknown) | `#888888` |
 
 ### 7.3 Focused Card Highlight
 
@@ -387,24 +378,31 @@ The currently focused card gets a border highlight (e.g. bright white or blue bo
 
 ```
 src/knbn/
-  __init__.py          # Public API (empty for now; no exported symbols needed)
+  __init__.py          # Public API (empty)
   __main__.py          # CLI entry point; dispatches to subcommands
   cli.py               # Click command definitions (add, board, init)
   app.py               # Textual App class; top-level TUI wiring
-  views/
-    kanban.py          # KanbanView widget
-    tabular.py         # TabularView widget
-    done_week.py       # DoneByWeekView widget
-  widgets/
-    card.py            # TaskCard widget
-    form.py            # Add/edit form overlay
-    detail.py          # Task detail panel
-    help.py            # Key bindings help overlay
+  config.py            # resolve_data_dir(), settings.json load/save, BoardConfig
+  setup.py             # First-run setup wizard (CLI prompts)
+  defaults/
+    settings.json      # Bundled factory-default board config and app settings
   model/
-    task.py            # Task dataclass + field validation
-    store.py           # CSV read/write; Markdown notes management
-    slug.py            # Title → filename slug utility
-  config.py            # Data directory resolution (env var + default)
+    task.py            # Task dataclass, parse_datetime, display_date, now_str
+    store.py           # CSV read/write (atomic via .tmp rename), notes management
+    slug.py            # Title → filename slug, collision suffixes
+  views/
+    _columns.py        # Shared column layout constants and format helpers
+    _row.py            # TaskRow — focusable widget used in list views
+    _row_list.py       # RowListView — base class for tabular/closed views
+    kanban.py          # KanbanView (config-driven board)
+    tabular.py         # TabularView (active tasks grouped by status)
+    done_week.py       # ClosedView (terminal tasks grouped by ISO week)
+  widgets/
+    _confirm.py        # ConfirmDialog modal
+    card.py            # TaskCard widget
+    date_picker.py     # Date picker widget used in TaskForm
+    form.py            # TaskForm modal
+    help.py            # HelpOverlay modal
 ```
 
 ### 8.2 Task Dataclass
@@ -414,22 +412,15 @@ src/knbn/
 class Task:
     title: str
     category: str
-    status: str  # one of STATUS_VALUES
-    priority: str  # one of PRIORITY_VALUES
-    date_created: str  # stored as original string
-    date_modified: str  # stored as original string
+    status: str  # one of active_statuses or terminal_statuses
+    priority: str  # one of priorities
+    date_created: str  # stored as YYYY-MM-DD HH:MM
+    date_modified: str  # stored as YYYY-MM-DD HH:MM
     due: str = ''
     key_resource: str = ''
-    feedback_from: str = ''
-    delegated_to: str = ''
-```
-
-Constants:
-```python
-STATUS_ACTIVE = ['Todo', 'Now', 'Feedback']
-STATUS_TERMINAL = ['Done', 'Delegated', 'Stopped']
-STATUS_VALUES = STATUS_ACTIVE + STATUS_TERMINAL
-PRIORITY_VALUES = ['High', 'Medium', 'Low']
+    free_text_1: str = ''
+    free_text_2: str = ''
+    free_text_3: str = ''
 ```
 
 ### 8.3 Store Interface
@@ -452,12 +443,13 @@ def notes_exist(data_dir: Path, task: Task) -> bool: ...
 
 ### 8.4 Date Handling
 
-Dates are stored as strings matching the Notion CSV format. For comparison (overdue detection, week grouping), they are parsed on read using `datetime.strptime`. The exact format strings:
+**Storage format** (new): `%Y-%m-%d %H:%M` for datetime fields (e.g. `2026-07-01 14:27`); `%Y-%m-%d` for date-only values.
 
-- `Date Created` / `Last edited time`: `"%B %d, %Y %I:%M %p"` (e.g. `July 1, 2026 2:27 PM`)
-- `Due`: `"%d/%m/%Y %H:%M (%Z)"` — but since `GMT+2` is not a valid Python `%Z` token, parse only the date portion `"%d/%m/%Y"` for display and comparison purposes.
+**Legacy format** (read-only, for backward compatibility): `%B %d, %Y %I:%M %p` (e.g. `July 01, 2026 02:27 PM`). The parser accepts both transparently; new writes always use the new format.
 
-When `knbn` writes new dates (on task creation/modification), it uses: `datetime.now().strftime("%B %-d, %Y %-I:%M %p")` (macOS/Linux). This produces `July 1, 2026 2:27 PM`.
+`now_str()` returns `datetime.now().strftime('%Y-%m-%d %H:%M')`.
+
+For display, `display_date(s)` normalises any supported format to `YYYY-MM-DD HH:MM` (with time) or `YYYY-MM-DD` (date-only). For overdue detection, `parse_datetime(s)` returns `(datetime, has_time) | None`.
 
 ---
 
@@ -480,12 +472,33 @@ No other runtime dependencies. Keep the dependency surface minimal.
 
 ## 10. Configuration
 
-No configuration file in the MVP. All configuration is via:
+Configuration is stored in `settings.json` inside the data directory (default: `~/.knbn/settings.json`). It is created automatically on first run from bundled defaults (`src/knbn/defaults/settings.json`).
 
 | Mechanism | Purpose |
 |---|---|
 | `KNBN_DATA_DIR` env var | Override default data directory (`~/.knbn/`) |
 | `$EDITOR` env var | Editor used to open Markdown notes |
+| `settings.json` → `app.theme` | Textual theme name (default: `catppuccin-frappe`) |
+| `settings.json` → `app.deadline_warning_hours` | Hours before due date to show amber border warning (default: `24`) |
+| `settings.json` → `board.*` | Full board config: statuses, priorities, categories, free text field labels |
+
+### Board config structure (`board` block)
+
+```json
+{
+  "active_statuses": ["Todo", "Now", "Feedback"],
+  "default_active_status": "Todo",
+  "terminal_statuses": ["Done", "Delegated", "Stopped"],
+  "default_terminal_status": "Done",
+  "priorities": ["High", "Medium", "Low"],
+  "categories": [
+    { "name": "People", "color": "#e879a0" }
+  ],
+  "free_text_fields": ["Feedback From", "Delegated To", ""]
+}
+```
+
+Constraints: `active_statuses` 2–5 entries; `terminal_statuses` 1–3; `priorities` 1–5; `categories` 1–10; each name 2–20 characters; colors must match `#[0-9a-f]{6}`. A `BoardConfigError` is raised on invalid config at startup.
 
 ---
 
@@ -620,8 +633,7 @@ Expected active tasks on board (as of the fixture):
 | `src/knbn/views/tabular.py` | Create | |
 | `src/knbn/views/done_week.py` | Create | |
 | `src/knbn/widgets/card.py` | Create | |
-| `src/knbn/widgets/form.py` | Create | |
-| `src/knbn/widgets/detail.py` | Create | |
+| `src/knbn/widgets/form.py` | Create | Add/edit form overlay |
 | `src/knbn/widgets/help.py` | Create | |
 | `src/knbn/model/task.py` | Create | |
 | `src/knbn/model/store.py` | Create | |
