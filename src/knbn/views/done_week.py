@@ -52,7 +52,7 @@ class ClosedView(RowListView):
     """
 
     def on_resize(self, event: Resize) -> None:
-        self.call_after_refresh(self.recompose)
+        self._recompose_keeping_focus()
 
     def compose(self) -> ComposeResult:
         self._rows = []

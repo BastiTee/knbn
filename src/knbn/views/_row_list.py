@@ -68,6 +68,18 @@ class RowListView(Widget):
         if self._rows:
             self._rows[0].focus()
 
+    def _recompose_keeping_focus(self) -> None:
+        saved = self._focused_index()
+
+        def _refocus() -> None:
+            if not self._rows:
+                return
+            target = saved if saved >= 0 else 0
+            self._rows[min(target, len(self._rows) - 1)].focus()
+
+        self.call_after_refresh(self.recompose)
+        self.call_after_refresh(_refocus)
+
     def on_key(self, event: object) -> None:
         if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
             event.prevent_default()
