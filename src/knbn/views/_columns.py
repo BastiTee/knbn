@@ -13,7 +13,7 @@ _PADDING_OVERHEAD = 6
 # Combined overhead used to derive a responsive title column width.
 FIXED_OVERHEAD = _NON_TITLE_WIDTH + _PADDING_OVERHEAD  # 90
 
-MIN_TITLE_WIDTH = 20
+MIN_TITLE_WIDTH = 0
 
 
 def title_col_width(widget_width: int) -> int:

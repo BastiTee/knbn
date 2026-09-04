@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from rich.text import Text
 from textual.events import Key
 from textual.widgets import Static
 
@@ -23,7 +24,7 @@ class TaskRow(Static):
     def __init__(
         self, task_index: int, knbn_task: Task, row_text: str, **kwargs: object
     ) -> None:
-        super().__init__(row_text, **kwargs)  # type: ignore[arg-type]
+        super().__init__(Text(row_text, no_wrap=True, overflow='ellipsis'), **kwargs)  # type: ignore[arg-type]
         self.task_index = task_index
         self.knbn_task = knbn_task
         self.can_focus = True
