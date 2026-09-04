@@ -33,6 +33,16 @@ class RowListView(Widget):
     def compose(self) -> ComposeResult:
         raise NotImplementedError
 
+    @property
+    def _view_width(self) -> int:
+        """Return the best available width for layout, even before self is sized."""
+        if self.size.width > 0:
+            return self.size.width
+        parent = self.parent
+        if isinstance(parent, Widget) and parent.size.width > 0:
+            return parent.size.width
+        return self.app.size.width
+
     def _focused_index(self) -> int:
         focused = self.app.focused
         for i, row in enumerate(self._rows):

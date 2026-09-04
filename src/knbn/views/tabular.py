@@ -50,7 +50,7 @@ class TabularView(RowListView):
 
     def compose(self) -> ComposeResult:
         self._rows = []
-        tw = title_col_width(self.size.width)
+        tw = title_col_width(self._view_width)
         yield Static(header_text(tw), classes='col-header-row')
         task_index = {id(t): i for i, t in enumerate(self._tasks)}
 
