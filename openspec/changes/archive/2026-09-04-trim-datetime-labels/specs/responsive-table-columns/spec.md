@@ -1,3 +1,5 @@
+## MODIFIED Requirements
+
 ### Requirement: Title column fills available terminal width
 The table views (TabularView and ClosedView) SHALL dynamically compute the title column width so that it uses all horizontal space not occupied by the fixed columns (status, priority, category, created, edited, due, and padding).
 
@@ -13,12 +15,7 @@ The table views (TabularView and ClosedView) SHALL dynamically compute the title
 - **WHEN** the user resizes the terminal window while a table view is active
 - **THEN** the view SHALL recompose and the title column width SHALL reflect the new width
 
-### Requirement: Header row stays aligned with data rows
-The column header row SHALL use the same `title_width` value as the data rows in the same render pass.
-
-#### Scenario: Header alignment after resize
-- **WHEN** the terminal is resized and the view recomposes
-- **THEN** the header labels and data row columns SHALL remain horizontally aligned
+## ADDED Requirements
 
 ### Requirement: Date columns display date only, no time
 The Created, Edited, and Due columns in table views SHALL display only the date portion (`YYYY-MM-DD`), regardless of whether a time component is stored in the underlying value.

@@ -55,6 +55,17 @@ def display_date(s: str) -> str:
     return dt.strftime(_NEW_DATE_FMT)
 
 
+def display_date_only(s: str) -> str:
+    """Return YYYY-MM-DD for a stored date/datetime value, stripping any time component."""
+    if not s:
+        return ''
+    result = parse_datetime(s)
+    if result is None:
+        return s
+    dt, _ = result
+    return dt.strftime(_NEW_DATE_FMT)
+
+
 @dataclass
 class Task:
     title: str

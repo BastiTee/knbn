@@ -7,7 +7,7 @@ from textual.events import Resize
 from textual.widgets import Static
 
 from knbn.config import BoardConfig
-from knbn.model.task import Task, display_date
+from knbn.model.task import Task, display_date_only
 from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
@@ -67,14 +67,14 @@ class TabularView(RowListView):
             yield Static(f'▼ {status}  {len(group)}', classes='group-header')
             for task in group:
                 idx = task_index[id(task)]
-                due = display_date(task.due) if task.due else ''
+                due = display_date_only(task.due) if task.due else ''
                 row_text = format_row(
                     task.title,
                     task.status,
                     task.priority,
                     task.category,
-                    display_date(task.date_created),
-                    display_date(task.date_modified),
+                    display_date_only(task.date_created),
+                    display_date_only(task.date_modified),
                     due,
                     tw,
                 )

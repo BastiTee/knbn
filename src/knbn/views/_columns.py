@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 # Non-title column widths in format_row / header_text:
-# 2 (indent) + 11 (status) + 1 + 9 (priority) + 1 + 14 (category)
-# + 1 + 16 (created) + 1 + 16 (edited) + 1 + 8 ("Due Date" header min) = 81
-# An extra 3 chars of margin brings this to 84, reserving a comfortable minimum
-# for the due-date column without pushing the title to MIN_TITLE_WIDTH too aggressively.
+# 2 (indent) + 1 + 11 (status) + 1 + 9 (priority) + 1 + 14 (category)
+# + 1 + 16 (created) + 1 + 16 (edited) + 1 + 10 (due, YYYY-MM-DD) = 84
 _NON_TITLE_WIDTH = 84
 
 # CSS padding consumed per row: view padding:0 1 (2) + TaskRow padding:0 2 (4).
@@ -26,7 +24,7 @@ def title_col_width(widget_width: int) -> int:
 def header_text(title_width: int) -> str:
     return (
         f'  {"Name":<{title_width}} {"Status":<11} {"Priority":<9} {"Category":<14}'
-        f' {"Created":<16} {"Edited":<16} Due Date'
+        f' {"Created":<16} {"Edited":<16} Due'
     )
 
 
