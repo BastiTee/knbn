@@ -38,23 +38,6 @@ def parse_datetime(s: str) -> tuple[datetime, bool] | None:
     return None
 
 
-def display_date(s: str) -> str:
-    """Return a display string for a stored date/datetime value.
-
-    Shows YYYY-MM-DD HH:MM when a time component is present,
-    YYYY-MM-DD when only a date is stored. Returns '' for empty input.
-    """
-    if not s:
-        return ''
-    result = parse_datetime(s)
-    if result is None:
-        return s
-    dt, has_time = result
-    if has_time:
-        return dt.strftime(_NEW_DATETIME_FMT)
-    return dt.strftime(_NEW_DATE_FMT)
-
-
 def display_date_only(s: str) -> str:
     """Return YYYY-MM-DD for a stored date/datetime value, stripping any time component."""
     if not s:

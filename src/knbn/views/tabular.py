@@ -40,9 +40,6 @@ class TabularView(RowListView):
         padding: 0 1;
         margin-top: 1;
     }
-    .group-header:first-child {
-        margin-top: 0;
-    }
     """
 
     def on_resize(self, event: Resize) -> None:

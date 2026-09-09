@@ -5,7 +5,6 @@ from datetime import datetime
 
 from knbn.model.task import (
     Task,
-    display_date,
     display_date_only,
     now_str,
     parse_datetime,
@@ -109,22 +108,6 @@ def test_parse_datetime_empty() -> None:
 
 def test_parse_datetime_unrecognised() -> None:
     assert parse_datetime('not a date') is None
-
-
-def test_display_date_datetime_input() -> None:
-    assert display_date('2026-07-21 15:45') == '2026-07-21 15:45'
-
-
-def test_display_date_date_only_input() -> None:
-    assert display_date('2026-07-21') == '2026-07-21'
-
-
-def test_display_date_legacy_format() -> None:
-    assert display_date('July 21, 2026 3:45 PM') == '2026-07-21 15:45'
-
-
-def test_display_date_empty() -> None:
-    assert display_date('') == ''
 
 
 def test_display_date_only_strips_time() -> None:

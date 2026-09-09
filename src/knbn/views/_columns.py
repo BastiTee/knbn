@@ -11,14 +11,14 @@ _NON_TITLE_WIDTH = 84
 _PADDING_OVERHEAD = 6
 
 # Combined overhead used to derive a responsive title column width.
-FIXED_OVERHEAD = _NON_TITLE_WIDTH + _PADDING_OVERHEAD  # 90
+_FIXED_OVERHEAD = _NON_TITLE_WIDTH + _PADDING_OVERHEAD  # 90
 
-MIN_TITLE_WIDTH = 0
+_MIN_TITLE_WIDTH = 0
 
 
 def title_col_width(widget_width: int) -> int:
     """Return the title column width that fills available space."""
-    return max(MIN_TITLE_WIDTH, widget_width - FIXED_OVERHEAD)
+    return max(_MIN_TITLE_WIDTH, widget_width - _FIXED_OVERHEAD)
 
 
 def header_text(title_width: int) -> str:
