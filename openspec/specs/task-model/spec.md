@@ -22,7 +22,7 @@ The system SHALL represent each task as a typed dataclass with exactly eleven fi
 - **THEN** all three free-text fields are empty strings
 
 ### Requirement: Datetime format and helpers
-The system SHALL define the canonical datetime formats as `YYYY-MM-DD HH:MM` for datetime values and `YYYY-MM-DD` for date-only values. The `now_str()` function SHALL return the current local time in `YYYY-MM-DD HH:MM` format. The module SHALL expose a `parse_datetime(s: str) -> tuple[datetime, bool] | None` function that recognises both the new canonical formats and the legacy `"Month DD, YYYY HH:MM AM/PM"` verbose format; the boolean in the tuple is `True` when the parsed value includes a time component. The module SHALL expose a `display_date(s: str) -> str` function that returns `YYYY-MM-DD HH:MM` if the value has a time component, or `YYYY-MM-DD` if it is date-only; it SHALL handle both new and legacy format inputs.
+The system SHALL define the canonical datetime formats as `YYYY-MM-DD HH:MM` for datetime values and `YYYY-MM-DD` for date-only values. The `now_str()` function SHALL return the current local time in `YYYY-MM-DD HH:MM` format. The module SHALL expose a `parse_datetime(s: str) -> tuple[datetime, bool] | None` function that recognises both the new canonical formats and the legacy `"Month DD, YYYY HH:MM AM/PM"` verbose format; the boolean in the tuple is `True` when the parsed value includes a time component. The module SHALL expose a `display_date_only(s: str) -> str` function that always returns `YYYY-MM-DD`, stripping any time component; it SHALL handle both new and legacy format inputs.
 
 #### Scenario: now_str emits new format
 - **WHEN** `now_str()` is called
@@ -43,15 +43,3 @@ The system SHALL define the canonical datetime formats as `YYYY-MM-DD HH:MM` for
 #### Scenario: parse_datetime returns None for unrecognised input
 - **WHEN** `parse_datetime("not a date")` is called
 - **THEN** it returns `None`
-
-#### Scenario: display_date shows date and time when time is present
-- **WHEN** `display_date("2026-07-21 15:45")` is called
-- **THEN** it returns `"2026-07-21 15:45"`
-
-#### Scenario: display_date shows date only when no time component
-- **WHEN** `display_date("2026-07-21")` is called
-- **THEN** it returns `"2026-07-21"`
-
-#### Scenario: display_date normalises legacy format to new format
-- **WHEN** `display_date("July 21, 2026 3:45 PM")` is called
-- **THEN** it returns `"2026-07-21 15:45"`

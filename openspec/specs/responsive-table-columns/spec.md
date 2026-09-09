@@ -1,13 +1,21 @@
+# responsive-table-columns
+
+## Purpose
+
+Dynamic title column sizing and date-only display for table views (Tabular and Closed).
+
+## Requirements
+
 ### Requirement: Title column fills available terminal width
-The table views (TabularView and ClosedView) SHALL dynamically compute the title column width so that it uses all horizontal space not occupied by the fixed columns (status, priority, category, created, edited, due, and padding).
+The table views (TabularView and ClosedView) SHALL dynamically compute the title column width so that it uses all horizontal space not occupied by the fixed columns (status, priority, category, created, edited, due, and padding). The minimum title column width is 0 (no floor is enforced).
 
 #### Scenario: Wide terminal
 - **WHEN** the terminal width is 160 columns
-- **THEN** the title column width SHALL be `max(20, 160 - FIXED_COLS_WIDTH)`, and task titles up to that length are shown untruncated
+- **THEN** the title column width SHALL be `max(0, 160 - FIXED_COLS_WIDTH)`, and task titles up to that length are shown untruncated
 
 #### Scenario: Narrow terminal
-- **WHEN** the terminal width is less than `FIXED_COLS_WIDTH + 20`
-- **THEN** the title column width SHALL be clamped to a minimum of 20 characters
+- **WHEN** the terminal width is less than `FIXED_COLS_WIDTH`
+- **THEN** the title column width is 0 and title content is not shown
 
 #### Scenario: Terminal resize
 - **WHEN** the user resizes the terminal window while a table view is active

@@ -22,11 +22,11 @@ The system SHALL resolve the data directory from the `KNBN_DATA_DIR` environment
 - **THEN** the directory, `tasks.csv` (with header), and `notes/` subdirectory are created
 
 ### Requirement: CSV schema
-The store SHALL use a CSV file (`tasks.csv`) with exactly ten columns in this order: `DateTimeCreated`, `DateTimeEdited`, `DateTimeDue`, `Status`, `Priority`, `Category`, `Name`, `Delegate`, `Feedback`, `KeyResource`. The column order is canonical and must not change. On reading an existing CSV, the store SHALL validate that the header row matches the expected columns exactly (name and order); if it does not match, the store SHALL raise a `ValueError` with a message showing both the expected and the found header, before any task rows are read.
+The store SHALL use a CSV file (`tasks.csv`) with exactly eleven columns in this order: `DateTimeCreated`, `DateTimeEdited`, `DateTimeDue`, `Status`, `Priority`, `Category`, `Name`, `FreeText1`, `FreeText2`, `FreeText3`, `KeyResource`. The column order is canonical and must not change. On reading an existing CSV, the store SHALL validate that the header row matches the expected columns exactly (name and order); if it does not match, the store SHALL raise a `ValueError` with a message showing both the expected and the found header, before any task rows are read.
 
 #### Scenario: Fresh init writes correct header
 - **WHEN** `ensure_data_dir` is called on an empty directory
-- **THEN** the created `tasks.csv` has the header `DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,Delegate,Feedback,KeyResource`
+- **THEN** the created `tasks.csv` has the header `DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource`
 
 #### Scenario: Load tasks succeeds with correct schema
 - **WHEN** `load_tasks` is called on a CSV with the correct header
@@ -38,7 +38,7 @@ The store SHALL use a CSV file (`tasks.csv`) with exactly ten columns in this or
 
 #### Scenario: Round-trip preserves all fields
 - **WHEN** tasks are saved with `save_tasks` and reloaded with `load_tasks`
-- **THEN** all ten task fields are identical to the originals
+- **THEN** all eleven task fields are identical to the originals
 
 ### Requirement: Atomic CSV writes
 The system SHALL write the CSV atomically by writing to a temporary file then renaming it, preventing data corruption if the process is interrupted during a write.

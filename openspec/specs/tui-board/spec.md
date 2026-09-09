@@ -72,27 +72,23 @@ The TUI SHALL enforce a minimum terminal size of 100 columns × 30 rows. If the 
 Each swim lane (priority row) SHALL be collapsible. Toggling a collapsed lane SHALL hide all cards in that lane, showing only the lane header with the task count.
 
 #### Scenario: Collapse swim lane
-- **WHEN** the user presses Space or Enter on a focused lane header
+- **WHEN** the user presses Enter on a focused lane header
 - **THEN** the lane collapses and only the header with task count is visible
 
 #### Scenario: Expand swim lane
-- **WHEN** a collapsed lane header is focused and the user presses Space or Enter
+- **WHEN** a collapsed lane header is focused and the user presses Enter
 - **THEN** the lane expands and all cards are visible again
 
 ### Requirement: Tabular view
-The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present in the stored value, or `YYYY-MM-DD` when only a date is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
+The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
 
 #### Scenario: Tabular view shows column headers
 - **WHEN** the user switches to the Tabular view
-- **THEN** a non-focusable header row appears at the top showing `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date`
+- **THEN** a non-focusable header row appears at the top showing `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due`
 
-#### Scenario: Date-only value shown without time
-- **WHEN** a task has a `date_modified` of `2026-07-21` (no time component)
-- **THEN** the Edited column shows `2026-07-21`
-
-#### Scenario: Datetime value shown with time
+#### Scenario: Date value shown as date only
 - **WHEN** a task has a `date_modified` of `2026-07-21 15:45`
-- **THEN** the Edited column shows `2026-07-21 15:45`
+- **THEN** the Edited column shows `2026-07-21` (time component stripped)
 
 #### Scenario: Tabular view groups by status
 - **WHEN** the user switches to the Tabular view
@@ -102,12 +98,12 @@ The TUI SHALL provide a tabular view listing all active tasks grouped by status 
 - **WHEN** the user presses `↑` or `↓` in the Tabular view
 - **THEN** focus moves to the previous or next task row and the focused row is visually highlighted
 
-#### Scenario: Skip 10 rows with Shift+Up
-- **WHEN** the user presses `Shift+↑` on a focused row in the Tabular view
+#### Scenario: Skip 10 rows with PgUp
+- **WHEN** the user presses `PgUp` on a focused row in the Tabular view
 - **THEN** focus moves 10 rows up, clamping at the first row
 
-#### Scenario: Skip 10 rows with Shift+Down
-- **WHEN** the user presses `Shift+↓` on a focused row in the Tabular view
+#### Scenario: Skip 10 rows with PgDn
+- **WHEN** the user presses `PgDn` on a focused row in the Tabular view
 - **THEN** focus moves 10 rows down, clamping at the last row
 
 #### Scenario: Tab does nothing in Tabular view
@@ -123,7 +119,7 @@ The TUI SHALL provide a tabular view listing all active tasks grouped by status 
 - **THEN** the task edit form opens pre-populated with that task's fields
 
 ### Requirement: Closed view
-The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing tasks whose status is any value in `BoardConfig.terminal_statuses`, grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL NOT assume specific status name strings. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due Date`. Date fields SHALL be displayed using `display_date()`: showing `YYYY-MM-DD HH:MM` when a time component is present, or `YYYY-MM-DD` when only a date is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `Shift+↑`/`Shift+↓` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
+The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing tasks whose status is any value in `BoardConfig.terminal_statuses`, grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL NOT assume specific status name strings. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
 
 #### Scenario: Done view shows all configured terminal statuses
 - **WHEN** `terminal_statuses` is `['Done', 'Archived', 'Dropped']`
@@ -131,7 +127,7 @@ The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessibl
 
 #### Scenario: Closed view shows column headers
 - **WHEN** the user switches to the Closed view
-- **THEN** a non-focusable header row appears at the top showing `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due Date`
+- **THEN** a non-focusable header row appears at the top showing `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due`
 
 #### Scenario: Closed tasks grouped by week
 - **WHEN** the user switches to the Closed view
@@ -149,12 +145,12 @@ The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessibl
 - **WHEN** the user presses `↑` or `↓` in the Closed view
 - **THEN** focus moves to the previous or next task row and the focused row is visually highlighted
 
-#### Scenario: Skip 10 rows with Shift+Up
-- **WHEN** the user presses `Shift+↑` on a focused row in the Closed view
+#### Scenario: Skip 10 rows with PgUp
+- **WHEN** the user presses `PgUp` on a focused row in the Closed view
 - **THEN** focus moves 10 rows up, clamping at the first row
 
-#### Scenario: Skip 10 rows with Shift+Down
-- **WHEN** the user presses `Shift+↓` on a focused row in the Closed view
+#### Scenario: Skip 10 rows with PgDn
+- **WHEN** the user presses `PgDn` on a focused row in the Closed view
 - **THEN** focus moves 10 rows down, clamping at the last row
 
 #### Scenario: Tab does nothing in Closed view
@@ -189,7 +185,7 @@ The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` fo
 - **THEN** the corresponding tab key (`1`, `2`, or `3`) in the footer is rendered in bold to indicate the active view
 
 ### Requirement: Keyboard navigation on board
-The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark done (with confirmation), `m` to move to a different status, `p` to change priority, `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first focusable element (card or, if the column is empty, its first lane header) in the first column SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. If the target column has no cards at all, focus SHALL land on the topmost visible `LaneHeader` in that column. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column, clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses are not reachable via Shift+arrow gestures. Marking a task via the mark-done quick action SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
+The TUI SHALL support arrow key navigation between cards on the Kanban board, `Enter` to open the task edit form, `d` to mark done (with confirmation), `o` to open the focused card's `key_resource` URL in the default browser (no-op if no URL is set), and `Del`/`Backspace` with confirmation to delete a task. Tab and Shift+Tab SHALL have no effect in the Kanban view. The first focusable element (card or, if the column is empty, its first lane header) in the first column SHALL receive focus automatically when the Kanban view is mounted. When moving left or right between columns, focus SHALL land on the card at the same row index as the current card (counting from the top of the column, ignoring swimlane boundaries), clamped to the last card if the target column has fewer cards. If the target column has no cards at all, focus SHALL land on the topmost visible `LaneHeader` in that column. `PgUp`/`PgDn` SHALL reorder the focused card within its lane or move it to the adjacent priority lane. `Shift+←`/`Shift+→` SHALL move the focused card to the adjacent active status column, clamping at the boundaries; after the move the card SHALL remain focused in its new column. Terminal statuses are not reachable via Shift+arrow gestures. Marking a task via the mark-done quick action SHALL update `Last edited time` to the current timestamp at the moment of confirmation.
 
 #### Scenario: Arrow navigation between cards
 - **WHEN** the user presses `←`/`→` on the board
@@ -235,16 +231,16 @@ The TUI SHALL support arrow key navigation between cards on the Kanban board, `E
 - **WHEN** the Kanban view is displayed
 - **THEN** the first focusable element (card or lane header) in the first column is immediately focused without any keypress
 
-#### Scenario: Shift+Up promotes priority
-- **WHEN** the user presses `Shift+↑` on a focused card with priority `Medium`
+#### Scenario: PgUp promotes priority
+- **WHEN** the user presses `PgUp` on a focused card with priority `Medium`
 - **THEN** the card's priority changes to `High`, the board refreshes, and the moved card is focused
 
-#### Scenario: Shift+Up at top priority is a no-op
-- **WHEN** the user presses `Shift+↑` on a focused card with priority `High`
+#### Scenario: PgUp at top priority is a no-op
+- **WHEN** the user presses `PgUp` on a focused card with priority `High`
 - **THEN** the card is unchanged
 
-#### Scenario: Shift+Down demotes priority
-- **WHEN** the user presses `Shift+↓` on a focused card with priority `Medium`
+#### Scenario: PgDn demotes priority
+- **WHEN** the user presses `PgDn` on a focused card with priority `Medium`
 - **THEN** the card's priority changes to `Low`, the board refreshes, and the moved card is focused
 
 #### Scenario: Shift+Right moves card to next active status
