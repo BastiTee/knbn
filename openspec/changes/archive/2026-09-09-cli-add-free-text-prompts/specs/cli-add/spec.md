@@ -1,10 +1,4 @@
-# cli-add
-
-## Purpose
-
-CLI subcommands for adding tasks and launching the board from the terminal.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: knbn add command
 The system SHALL provide a `knbn add` subcommand that captures a new task interactively from the terminal. The prompt sequence SHALL be: title (required, free text) → status (numbered selection, default is the first configured active status) → priority (numbered selection, default `Medium`) → category (numbered selection from known categories, default is the last configured category) → key resource (URL, optional, Enter to skip) → one optional prompt per active free-text field (in `BoardConfig.free_text_fields` index order, skippable with Enter). Only fields whose label is non-empty in `BoardConfig.free_text_fields` SHALL be prompted. After saving, the command SHALL print `✓ Task added: <title>` and exit.
@@ -29,6 +23,8 @@ The system SHALL provide a `knbn add` subcommand that captures a new task intera
 - **WHEN** `free_text_fields` is `['', '', '']` (all empty labels)
 - **THEN** no free-text prompts appear and the task is saved with all free-text fields empty
 
+## MODIFIED Requirements
+
 ### Requirement: Quick-add flags
 The `knbn add` command SHALL support the following flags: `--title TEXT` (pre-fills title, skips title prompt), `--status-default` (use the first configured active status, skip status prompt), `--priority-default` (use `Medium`, skip priority prompt), `--category-default` (use the last configured category, skip category prompt), `--no-resource` (skip key resource prompt), `--no-free-text` (skip all free-text field prompts), `--fast` / `-f` (equivalent to all four `--*-default` flags plus `--no-resource` and `--no-free-text`).
 
@@ -43,21 +39,3 @@ The `knbn add` command SHALL support the following flags: `--title TEXT` (pre-fi
 #### Scenario: no-free-text flag skips free-text prompts
 - **WHEN** `knbn add --no-free-text` is run with active free-text fields configured
 - **THEN** no free-text prompts appear and all free-text fields are stored as empty string
-
-### Requirement: knbn board command
-The system SHALL provide a `knbn board` subcommand (also callable as `knbn` with no subcommand) that launches the full TUI board.
-
-#### Scenario: Launch board
-- **WHEN** `knbn board` is executed
-- **THEN** the TUI application starts and displays the Kanban view
-
-### Requirement: knbn init command
-The system SHALL provide a `knbn init [PATH]` subcommand that initializes the data directory. If the directory already exists, the command SHALL print the existing path and exit without error.
-
-#### Scenario: Init creates data directory
-- **WHEN** `knbn init` is called and `~/.knbn/` does not exist
-- **THEN** the directory, `tasks.csv`, and `notes/` are created
-
-#### Scenario: Init is idempotent
-- **WHEN** `knbn init` is called and the data directory already exists
-- **THEN** no error is raised and the existing path is printed

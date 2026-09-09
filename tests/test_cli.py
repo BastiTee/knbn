@@ -129,6 +129,7 @@ def test_add_status_default_flag(
                 '--priority-default',
                 '--category-default',
                 '--no-resource',
+                '--no-free-text',
             ],
         )
     assert result.exit_code == 0
@@ -153,9 +154,10 @@ def test_add_interactive_prompts_full(
     """Test add with all prompts answered interactively (no flags)."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
-    # Inputs: title, status (1=Todo), priority (1=High), category (1=People), resource (empty)
+    # Inputs: title, status (1=Todo), priority (1=High), category (1=People), resource (empty),
+    # free_text_1 (Feedback From, skip), free_text_2 (Delegated To, skip)
     with patch('knbn.cli.add_task') as mock_add:
-        result = runner.invoke(add, [], input='Interactive task\n1\n1\n1\n\n')
+        result = runner.invoke(add, [], input='Interactive task\n1\n1\n1\n\n\n\n')
     assert result.exit_code == 0
     assert '✓ Task added: Interactive task' in result.output
     task: Task = mock_add.call_args[0][1]
@@ -169,7 +171,7 @@ def test_add_interactive_prompts_full(
 def test_add_no_free_text_fields_in_cli(
     data_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """CLI add no longer prompts for free-text fields."""
+    """--fast implies --no-free-text; free-text fields are empty."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
     with patch('knbn.cli.add_task') as mock_add:
@@ -193,6 +195,7 @@ def test_add_with_key_resource(data_dir: Path, monkeypatch: pytest.MonkeyPatch) 
                 '--status-default',
                 '--priority-default',
                 '--category-default',
+                '--no-free-text',
             ],
             input='https://example.com/thread\n',
         )
@@ -215,9 +218,79 @@ def test_add_dash_clears_resource(
                 '--status-default',
                 '--priority-default',
                 '--category-default',
+                '--no-free-text',
             ],
             input='-\n',
         )
     assert result.exit_code == 0
     task: Task = mock_add.call_args[0][1]
     assert task.key_resource == ''
+
+
+def test_add_free_text_prompts_with_active_fields(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Free-text prompts appear for each active field; entered values are saved."""
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    runner = CliRunner()
+    # Default config has Feedback From (idx 0) and Delegated To (idx 1) active
+    with patch('knbn.cli.add_task') as mock_add:
+        result = runner.invoke(
+            add,
+            [
+                '--title',
+                'FT task',
+                '--status-default',
+                '--priority-default',
+                '--category-default',
+                '--no-resource',
+            ],
+            input='Alice\nBob\n',
+        )
+    assert result.exit_code == 0
+    task: Task = mock_add.call_args[0][1]
+    assert task.free_text_1 == 'Alice'
+    assert task.free_text_2 == 'Bob'
+    assert task.free_text_3 == ''
+
+
+def test_add_no_free_text_flag_skips_prompts(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """--no-free-text skips all free-text prompts; fields are empty string."""
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    runner = CliRunner()
+    with patch('knbn.cli.add_task') as mock_add:
+        result = runner.invoke(
+            add,
+            [
+                '--title',
+                'No FT',
+                '--status-default',
+                '--priority-default',
+                '--category-default',
+                '--no-resource',
+                '--no-free-text',
+            ],
+        )
+    assert result.exit_code == 0
+    task: Task = mock_add.call_args[0][1]
+    assert task.free_text_1 == ''
+    assert task.free_text_2 == ''
+    assert task.free_text_3 == ''
+
+
+def test_add_fast_skips_free_text_prompts(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """--fast implies --no-free-text; no free-text prompts appear."""
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    runner = CliRunner()
+    with patch('knbn.cli.add_task') as mock_add:
+        result = runner.invoke(add, ['--fast', '--title', 'Fast task'])
+    assert result.exit_code == 0
+    assert 'Feedback From' not in result.output
+    assert 'Delegated To' not in result.output
+    task: Task = mock_add.call_args[0][1]
+    assert task.free_text_1 == ''
+    assert task.free_text_2 == ''

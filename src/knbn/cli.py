@@ -85,6 +85,9 @@ def board() -> None:
     '--no-resource', 'no_resource', is_flag=True, help='Skip key resource prompt'
 )
 @click.option(
+    '--no-free-text', 'no_free_text', is_flag=True, help='Skip free-text field prompts'
+)
+@click.option(
     '--fast', '-f', is_flag=True, help='Use all defaults and skip all optional prompts'
 )
 def add(
@@ -93,11 +96,14 @@ def add(
     priority_default: bool,
     category_default: bool,
     no_resource: bool,
+    no_free_text: bool,
     fast: bool,
 ) -> None:
     """Quickly add a new task."""
     if fast:
-        status_default = priority_default = category_default = no_resource = True
+        status_default = priority_default = category_default = no_resource = (
+            no_free_text
+        ) = True
 
     data_dir = resolve_data_dir()
     ensure_data_dir(data_dir)
@@ -141,6 +147,16 @@ def add(
         )
         key_resource = '' if raw in ('', '-') else raw
 
+    # Free-text fields
+    free_texts: dict[str, str] = {}
+    if not no_free_text:
+        for i, label in board_config.active_free_text_fields():
+            raw = click.prompt(
+                click.style(label, bold=True) + ' (Enter to skip)',
+                default='',
+            )
+            free_texts[f'free_text_{i + 1}'] = raw
+
     now = now_str()
     task = Task(
         title=title,
@@ -151,6 +167,9 @@ def add(
         date_modified=now,
         due='',
         key_resource=key_resource,
+        free_text_1=free_texts.get('free_text_1', ''),
+        free_text_2=free_texts.get('free_text_2', ''),
+        free_text_3=free_texts.get('free_text_3', ''),
     )
     add_task(data_dir, task)
     print(f'✓ Task added: {title}')
