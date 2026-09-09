@@ -88,6 +88,14 @@ The system SHALL expose a `BoardConfig` dataclass (importable from `knbn.config`
 ### Requirement: Auto-assigned category colors
 The system SHALL assign a color to each category from a fixed 10-color palette when generating default or wizard-created board config. Colors SHALL be assigned in palette order cycling as needed. The palette SHALL include (in order): `#e879a0`, `#f4a7b9`, `#7ec8e3`, `#5b9bd5`, `#4dbfbf`, `#f5a623`, `#cccccc`, `#a78bfa`, `#34d399`, `#fbbf24`. A manually specified color in `settings.json` SHALL always take precedence over palette assignment.
 
+#### Scenario: First category gets first palette color
+- **WHEN** a board config is generated with one category `'Work'` and no explicit color
+- **THEN** `Work` is assigned color `'#e879a0'`
+
+#### Scenario: Eleventh category cycles palette
+- **WHEN** ten categories are already assigned and an eleventh is added via settings.json
+- **THEN** the eleventh category is assigned color `'#e879a0'` (palette index 0)
+
 ### Requirement: Category color format
 Every category `color` value SHALL be a 6-digit lowercase hex string prefixed with `#` (e.g. `#4dbfbf`). `load_board_config()` SHALL reject any color value that does not match the pattern `#[0-9a-f]{6}` with a `BoardConfigError`.
 
@@ -106,11 +114,3 @@ Every category `color` value SHALL be a 6-digit lowercase hex string prefixed wi
 #### Scenario: Missing hash rejected
 - **WHEN** a category has `color` value `"4dbfbf"`
 - **THEN** `load_board_config()` raises `BoardConfigError` naming the invalid color
-
-#### Scenario: First category gets first palette color
-- **WHEN** a board config is generated with one category `'Work'` and no explicit color
-- **THEN** `Work` is assigned color `'#e879a0'`
-
-#### Scenario: Eleventh category cycles palette
-- **WHEN** ten categories are already assigned and an eleventh is added via settings.json
-- **THEN** the eleventh category is assigned color `'#e879a0'` (palette index 0)
