@@ -17,6 +17,7 @@ _HELP_GLOBAL = """\
   [cyan]3[/cyan]           Closed view
   [cyan]a[/cyan]           Add task
   [cyan]?[/cyan]           This help
+  [cyan]r[/cyan]           Reload
 """
 
 _HELP_KANBAN_STATIC = """\

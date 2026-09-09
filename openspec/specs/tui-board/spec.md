@@ -384,11 +384,27 @@ The TUI SHALL display a key bindings help overlay when the user presses `?`, and
 - **THEN** a help overlay listing all key bindings appears
 
 ### Requirement: Global quit
-The TUI SHALL quit cleanly when the user presses `q` or `Ctrl+C` from any view. There is no dedicated Reload keybinding.
+The TUI SHALL quit cleanly when the user presses `q` or `Ctrl+C` from any view.
 
 #### Scenario: Quit with q
 - **WHEN** the user presses `q` (not in a text input field)
 - **THEN** the TUI exits and the terminal is restored to its prior state
+
+### Requirement: Global reload
+The TUI SHALL reload all tasks from disk when the user presses `r` from any view. The current view SHALL remain active after reload. The reloaded data SHALL reflect any changes made externally (e.g. via `knbn add` in another terminal). No confirmation dialog is required.
+
+#### Scenario: Reload picks up externally added task
+- **WHEN** a task is added via `knbn add` in another terminal while the TUI is open
+- **AND** the user presses `r`
+- **THEN** the newly added task appears in the current view without restarting the TUI
+
+#### Scenario: Reload is available from all views
+- **WHEN** the user presses `r` while the Kanban, Tabular, or Closed view is active
+- **THEN** the tasks are reloaded from disk and the current view refreshes
+
+#### Scenario: Help overlay lists reload key
+- **WHEN** the user opens the help overlay with `?`
+- **THEN** `r Reload` appears in the listed key bindings
 
 ### Requirement: Command palette
 The TUI SHALL expose a command palette via `Ctrl+P`. The palette SHALL contain exactly the following commands in order: `Theme`, `Quit`, `Keys`. The `Screenshot` and `Maximize`/`Minimize` commands SHALL NOT appear in the palette. The application SHALL NOT display a title header bar; no mouse-clickable palette trigger SHALL be present.

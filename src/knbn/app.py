@@ -77,6 +77,7 @@ class KnbnApp(App[None]):
         Binding('q', 'quit', 'Quit', show=True),
         Binding('a', 'add_task', 'Add', show=True),
         Binding('question_mark', 'help', 'Help', show=True),
+        Binding('r', 'reload', 'Reload', show=False),
     ]
 
     def __init__(self, data_dir: Path, theme: str = 'textual-dark') -> None:
