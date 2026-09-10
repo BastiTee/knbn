@@ -32,3 +32,21 @@ Then run:
 ```bash
 uv run knbn
 ```
+
+To simplify access, you can put this into your shell-rc:
+
+```
+source /path/to/cloned/folder/knbn-rc.sh
+```
+
+and after shell restart run:
+
+```
+k
+```
+
+See [knbn-rc.sh](knbn-rc.sh) for more details.
+
+## License
+
+[Apache License Version 2.0, January 2004](LICENSE.txt)
