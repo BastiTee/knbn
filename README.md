@@ -7,7 +7,7 @@
 ## Features
 
 - **Terminal-native Kanban board** — full task lifecycle (capture, triage, close) without leaving the terminal; no browser required
-- **Flat-file CSV and Markdown storage** — tasks live in a single `~/.knbn/` folder; human-readable, version-control friendly, no database
+- **Flat-file CSV and Markdown storage** — tasks live in a single `~/.knbn/` folder; human- and agent-readable, version-control friendly, no database
 - **Markdown notes per task** — attach a freeform note to any task, opened in your `$EDITOR`
 - **Rich TUI powered by Textual** — interactive board with keyboard navigation, modal forms, and live filtering
 - **Three views in one tool** — Kanban board (3×3 grid), tabular active-task list, and a "Done this week" archive view
