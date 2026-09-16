@@ -6,14 +6,17 @@ import calendar
 from datetime import date
 
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.events import Resize
 from textual.widgets import Static
 
 from knbn.config import BoardConfig
+from knbn.model.store import delete_task, load_tasks
 from knbn.model.task import Task, display_date_only, parse_datetime
 from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 from knbn.views._row_list import RowListView
+from knbn.widgets._confirm import ConfirmDialog
 
 
 def _week_range_label(iso_year: int, iso_week: int) -> str:
@@ -28,6 +31,11 @@ def _week_range_label(iso_year: int, iso_week: int) -> str:
 
 class ClosedView(RowListView):
     """Terminal-status tasks grouped by ISO week of last-modified date."""
+
+    BINDINGS = [
+        Binding('delete', 'delete_task', 'Delete', show=False),
+        Binding('backspace', 'delete_task', 'Delete', show=False),
+    ]
 
     @property
     def _board_config(self) -> BoardConfig:
@@ -96,3 +104,19 @@ class ClosedView(RowListView):
                 row = TaskRow(idx, task, row_text)
                 self._rows.append(row)
                 yield row
+
+    def action_delete_task(self) -> None:
+        i = self._focused_index()
+        if i < 0:
+            return
+        row = self._rows[i]
+        task = row.knbn_task
+        idx = row.task_index
+
+        def on_confirm(confirmed: bool | None) -> None:
+            if confirmed:
+                delete_task(self.data_dir, idx)
+                self._tasks = load_tasks(self.data_dir)
+                self._recompose_keeping_focus()
+
+        self.app.push_screen(ConfirmDialog(f'Delete "{task.title}"?'), on_confirm)

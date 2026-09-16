@@ -80,7 +80,7 @@ Each swim lane (priority row) SHALL be collapsible. Toggling a collapsed lane SH
 - **THEN** the lane expands and all cards are visible again
 
 ### Requirement: Tabular view
-The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
+The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields. Pressing `d` on a focused row SHALL prompt for confirmation and, on confirmation, transition the task to `BoardConfig.default_terminal_status`, update `date_modified`, persist the change, and reload the view. Pressing `Del` or `Backspace` on a focused row SHALL prompt for confirmation and, on confirmation, permanently delete the task and reload the view.
 
 #### Scenario: Tabular view shows column headers
 - **WHEN** the user switches to the Tabular view
@@ -118,8 +118,24 @@ The TUI SHALL provide a tabular view listing all active tasks grouped by status 
 - **WHEN** the user presses `Enter` on a focused task row in the Tabular view
 - **THEN** the task edit form opens pre-populated with that task's fields
 
+#### Scenario: Mark task done from Tabular view
+- **WHEN** the user presses `d` on a focused row in the Tabular view
+- **THEN** a confirmation dialog appears; on confirmation the task status changes to `default_terminal_status`, `date_modified` is updated to now, the task disappears from the Tabular view, and focus moves to the next row (or previous if it was the last row)
+
+#### Scenario: Cancel mark-done from Tabular view leaves task unchanged
+- **WHEN** the user presses `d` then cancels the confirmation dialog in the Tabular view
+- **THEN** the task remains in the Tabular view unchanged
+
+#### Scenario: Delete task from Tabular view
+- **WHEN** the user presses `Del` or `Backspace` on a focused row in the Tabular view
+- **THEN** a confirmation dialog appears; on confirmation the task is permanently deleted, the view reloads, and focus moves to the next row (or previous if it was the last row)
+
+#### Scenario: Cancel delete from Tabular view leaves task unchanged
+- **WHEN** the user presses `Del` or `Backspace` then cancels the confirmation dialog in the Tabular view
+- **THEN** the task remains in the Tabular view unchanged
+
 ### Requirement: Closed view
-The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing tasks whose status is any value in `BoardConfig.terminal_statuses`, grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL NOT assume specific status name strings. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields.
+The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessible via key `3`) listing tasks whose status is any value in `BoardConfig.terminal_statuses`, grouped by ISO calendar week of `Last edited time`, most recent week first. The view SHALL NOT assume specific status name strings. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Week-group headers SHALL use the same background colour as Tabular view group headers (`$primary-darken-2`). Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields. Pressing `Del` or `Backspace` on a focused row SHALL prompt for confirmation and, on confirmation, permanently delete the task and reload the view. The `d` key SHALL have no effect in the Closed view — tasks in terminal statuses cannot be marked done again.
 
 #### Scenario: Done view shows all configured terminal statuses
 - **WHEN** `terminal_statuses` is `['Done', 'Archived', 'Dropped']`
@@ -164,6 +180,18 @@ The TUI SHALL provide a Closed view (labelled `Closed` in the toolbar, accessibl
 #### Scenario: Enter opens edit form from closed view
 - **WHEN** the user presses `Enter` on a focused task row in the Closed view
 - **THEN** the task edit form opens pre-populated with that task's fields
+
+#### Scenario: Delete task from Closed view
+- **WHEN** the user presses `Del` or `Backspace` on a focused row in the Closed view
+- **THEN** a confirmation dialog appears; on confirmation the task is permanently deleted, the view reloads, and focus moves to the next row (or previous if it was the last row)
+
+#### Scenario: Cancel delete from Closed view leaves task unchanged
+- **WHEN** the user presses `Del` or `Backspace` then cancels the confirmation dialog in the Closed view
+- **THEN** the task remains in the Closed view unchanged
+
+#### Scenario: d key is no-op in Closed view
+- **WHEN** the user presses `d` on a focused row in the Closed view
+- **THEN** nothing happens
 
 ### Requirement: View switching
 The TUI SHALL allow switching between views via keyboard: `1` for Kanban, `2` for Tabular, `3` for Closed. The footer toolbar SHALL display the `q Quit` button to the left of the three view-switching buttons (`1 Kanban`, `2 Tabular`, `3 Closed`). The footer SHALL visually indicate which view is currently active by rendering the corresponding tab key in bold.
