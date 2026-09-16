@@ -165,7 +165,6 @@ class KnbnApp(App[None]):
         yield SystemCommand(
             'Theme', 'Change the current theme', self.action_change_theme
         )
-        yield SystemCommand('Quit', 'Quit the application', self.action_quit)
         if screen.query('HelpPanel'):
             yield SystemCommand(
                 'Keys', 'Hide the keys panel', self.action_hide_help_panel
