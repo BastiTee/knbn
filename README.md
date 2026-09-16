@@ -20,6 +20,7 @@
 ## Installation
 
 Requires Python 3.10+.
+The default data directory is `~/.knbn`. If you want to change this, set the environment variable `KNBN_DATA_DIR`.
 
 ### From PyPi
 
@@ -31,6 +32,12 @@ or
 
 ```
 uv tool install knbn
+```
+
+Then you can run in a new shell:
+
+```
+knbn
 ```
 
 ### From Source

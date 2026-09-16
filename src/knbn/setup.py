@@ -92,11 +92,19 @@ def _apply_board_cfg(data_dir: Path, board_cfg: dict) -> None:
 
 def run_setup_wizard(data_dir: Path) -> None:
     """Interactive first-run board setup wizard."""
+    home = Path.home()
+    try:
+        rel = data_dir.relative_to(home)
+        data_dir_display = '~' if rel == Path() else f'~/{rel}'
+    except ValueError:
+        data_dir_display = str(data_dir)
+
     click.echo("Welcome to knbn! Let's configure your board.")
+    click.echo(f'Your data will be stored in {data_dir_display}')
 
     answer = (
         click
-        .prompt('Use standard settings? [Y/n]', default='', show_default=False)
+        .prompt('\nUse standard settings? [Y/n]', default='', show_default=False)
         .strip()
         .lower()
     )
