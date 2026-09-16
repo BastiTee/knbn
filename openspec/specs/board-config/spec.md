@@ -13,11 +13,15 @@ The system SHALL store board configuration under a top-level `board` key in `set
 
 #### Scenario: Missing board key triggers defaults
 - **WHEN** `settings.json` exists but has no `board` key
-- **THEN** `load_board_config()` returns the built-in default `BoardConfig` (active: `['Todo', 'Now', 'Feedback']`, default active: `'Now'`, terminal: `['Done', 'Delegated', 'Stopped']`, default terminal: `'Done'`, priorities: `['High', 'Medium', 'Low']`, categories matching the seven legacy defaults, free_text_fields: `['Feedback From', 'Delegated To', '']`)
+- **THEN** `load_board_config()` returns the built-in default `BoardConfig` (active: `['Todo', 'Now', 'Feedback']`, default active: `'Now'`, terminal: `['Done', 'Delegated', 'Stopped']`, default terminal: `'Done'`, priorities: `['High', 'Medium', 'Low']`, categories: `Personal`, `Work`, `Other`, free_text_fields: `['Feedback From', 'Delegated To', '']`)
 
 #### Scenario: settings.json absent triggers defaults
 - **WHEN** `settings.json` does not exist
 - **THEN** `load_board_config()` returns the built-in default `BoardConfig`
+
+#### Scenario: Built-in defaults are independent of the demo dataset
+- **WHEN** the built-in default categories (`Personal`, `Work`, `Other`) are compared against the categories used in the bundled demo dataset (`demo/settings.json`, `demo/tasks.csv`)
+- **THEN** the two category sets are allowed to differ, and no test or build step SHALL require them to match
 
 ### Requirement: Board config validation
 The system SHALL validate the `board` block on load and raise `BoardConfigError` with a descriptive message if any of the following violations are found: fewer than 2 or more than 5 active statuses, fewer than 1 or more than 3 terminal statuses, `default_active_status` not in `active_statuses`, `default_terminal_status` not in `terminal_statuses`, fewer than 1 or more than 5 priorities, fewer than 1 or more than 10 categories, more than 3 entries in `free_text_fields`. Each individual status name, category name, and priority name SHALL be between 2 and 20 characters (inclusive); any value outside that range SHALL raise `BoardConfigError`. Each non-empty `free_text_fields` label SHALL also be between 2 and 20 characters (inclusive); any non-empty label outside that range SHALL raise `BoardConfigError`.

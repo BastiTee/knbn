@@ -154,7 +154,7 @@ def test_add_interactive_prompts_full(
     """Test add with all prompts answered interactively (no flags)."""
     monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
     runner = CliRunner()
-    # Inputs: title, status (1=Todo), priority (1=High), category (1=People), resource (empty),
+    # Inputs: title, status (1=Todo), priority (1=High), category (1=Personal), resource (empty),
     # free_text_1 (Feedback From, skip), free_text_2 (Delegated To, skip)
     with patch('knbn.cli.add_task') as mock_add:
         result = runner.invoke(add, [], input='Interactive task\n1\n1\n1\n\n\n\n')
@@ -164,7 +164,7 @@ def test_add_interactive_prompts_full(
     assert task.title == 'Interactive task'
     assert task.status == 'Todo'
     assert task.priority == 'High'
-    assert task.category == 'People'
+    assert task.category == 'Personal'
     assert task.key_resource == ''
 
 

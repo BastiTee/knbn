@@ -310,7 +310,7 @@ def test_build_default_board_config_returns_legacy_defaults() -> None:
     assert cfg.terminal_statuses == ['Done', 'Delegated', 'Stopped']
     assert cfg.default_terminal_status == 'Done'
     assert cfg.priorities == ['High', 'Medium', 'Low']
-    assert len(cfg.categories) == 5
+    assert [c.name for c in cfg.categories] == ['Personal', 'Work', 'Other']
     assert isinstance(cfg.categories[0], CategoryConfig)
     assert cfg.free_text_fields == ['Feedback From', 'Delegated To', '']
 
