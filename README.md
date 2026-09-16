@@ -1,8 +1,5 @@
 # knbn
 
-![](https://img.shields.io/pypi/v/knbn)
-![](https://img.shields.io/pypi/pyversions/knbn)
-
 **Kanban, but terminal-native and CSV/Markdown-based.**
 
 <img width="1465" height="732" alt="image" src="https://github.com/user-attachments/assets/603b3ec4-4f23-4552-a8d6-d6467761a71a" />
