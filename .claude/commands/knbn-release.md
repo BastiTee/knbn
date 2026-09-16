@@ -31,7 +31,13 @@ Show the user the current version and the commit list, then ask: **"What should 
 
 ## Step 3 — Draft and confirm changelog entry
 
-Using the commit list from Step 2, draft a new `## X.Y.Z` section for `CHANGELOG.md`. Show it to the user and ask them to confirm or edit before writing anything.
+Extract PR numbers from merge commits and build a draft `## X.Y.Z` section:
+
+```bash
+git log $(git describe --tags --abbrev=0)..HEAD --oneline | grep "Merge pull request"
+```
+
+For each user-facing change, include a linked PR reference in the format `([#N](https://github.com/BastiTee/knbn/pull/N))`. Skip Dependabot and pure CI commits. Show the draft to the user and ask them to confirm or edit before writing anything.
 
 ## Step 4 — Update files
 
