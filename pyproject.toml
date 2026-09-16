@@ -5,12 +5,11 @@ build-backend = "uv_build"
 [project]
 name = "knbn"
 version = "0.0.1"
-description = "A terminal-native personal Kanban board"
+description = "Kanban, but terminal-native and CSV/Markdown-based."
 license = "Apache-2.0"
 readme = "README.md"
 keywords = ["python", "kanban", "terminal", "task-management"]
-homepage = "https://github.com/BastiTee/knbn"
-repository = "https://github.com/BastiTee/knbn"
+license-files = ["LICENSE.txt"]
 authors = [
   {name = "Basti Tee", email = "basti.tee@icloud.com"}
 ]
@@ -35,6 +34,11 @@ dependencies = [
     "textual>=0.80.0",
     "click>=8.1.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/BastiTee/knbn"
+Repository = "https://github.com/BastiTee/knbn"
+"Bug Tracker" = "https://github.com/BastiTee/knbn/issues"
 
 [project.scripts]
 knbn = 'knbn.__main__:main'

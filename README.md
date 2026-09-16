@@ -17,9 +17,25 @@
 - **Zero external services** — no account, no sync server, no cloud dependency; your data stays local and offline
 - **Pure Python, uv-managed** — install with a single uv command; typed, linted, and tested; easy to fork or extend
 
-## Install from source
+## Installation
 
-Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.10+.
+
+### From PyPi
+
+```
+pip install knbn
+```
+
+or
+
+```
+uv tool install knbn
+```
+
+### From Source
+
+Additionally needs [uv](https://docs.astral.sh/uv/).
 
 ```bash
 git clone https://github.com/BastiTee/knbn.git
@@ -33,7 +49,7 @@ Then run:
 uv run knbn
 ```
 
-To simplify access, you can put this into your shell-rc:
+To simplify access via source, you can put this into your shell-rc:
 
 ```
 source /path/to/cloned/folder/knbn-rc.sh
