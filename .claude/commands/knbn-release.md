@@ -69,7 +69,15 @@ gh release create X.Y.Z \
   --notes "See [CHANGELOG](https://github.com/BastiTee/knbn/blob/main/CHANGELOG.md#XYZ)"
 ```
 
-## Step 8 — Publish to PyPI _(manual — requires your credentials)_
+## Step 8 — Build the release artifact
+
+```bash
+make build
+```
+
+This must succeed before publishing. Fix any failures before continuing.
+
+## Step 9 — Publish to PyPI _(manual — requires your credentials)_
 
 Tell the user to run this themselves in the terminal:
 
