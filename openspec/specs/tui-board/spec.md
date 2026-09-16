@@ -472,11 +472,11 @@ The TUI SHALL reload all tasks from disk when the user presses `r` from any view
 - **THEN** `r Reload` appears in the listed key bindings
 
 ### Requirement: Command palette
-The TUI SHALL expose a command palette via `Ctrl+P`. The palette SHALL contain exactly the following commands in order: `Theme`, `Quit`, `Keys`. The `Screenshot` and `Maximize`/`Minimize` commands SHALL NOT appear in the palette. The application SHALL NOT display a title header bar; no mouse-clickable palette trigger SHALL be present.
+The TUI SHALL expose a command palette via `Ctrl+P`. The palette SHALL contain exactly the following commands in order: `Theme`, `Keys`. The `Quit`, `Screenshot`, and `Maximize`/`Minimize` commands SHALL NOT appear in the palette. The application SHALL NOT display a title header bar; no mouse-clickable palette trigger SHALL be present.
 
 #### Scenario: Palette shows Theme then Quit
 - **WHEN** the user opens the command palette with `Ctrl+P`
-- **THEN** the first entry is `Theme` and the second entry is `Quit`
+- **THEN** the only entries listed are `Theme` and `Keys`, in that order, and no `Quit` entry appears
 
 #### Scenario: Screenshot absent from palette
 - **WHEN** the user opens the command palette
