@@ -23,24 +23,16 @@
     ],
     "categories": [
       {
-        "name": "People",
+        "name": "Personal",
         "color": "#e879a0"
       },
       {
-        "name": "Strategy",
-        "color": "#7ec8e3"
-      },
-      {
-        "name": "Product",
-        "color": "#5b9bd5"
-      },
-      {
-        "name": "Engineering",
-        "color": "#4dbfbf"
+        "name": "Work",
+        "color": "#f4a7b9"
       },
       {
         "name": "Other",
-        "color": "#cccccc"
+        "color": "#7ec8e3"
       }
     ],
     "free_text_fields": [
