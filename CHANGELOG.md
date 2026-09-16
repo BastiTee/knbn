@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.4
+
+- Improve release process with proper `uv.lock` commit
+
 ## 0.0.3
 
 - Improve build process and release tooling
