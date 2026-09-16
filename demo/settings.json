@@ -39,6 +39,18 @@
         "color": "#4dbfbf"
       },
       {
+        "name": "Hiring",
+        "color": "#a78bfa"
+      },
+      {
+        "name": "Work Life",
+        "color": "#34d399"
+      },
+      {
+        "name": "Ideas",
+        "color": "#fbbf24"
+      },
+      {
         "name": "Other",
         "color": "#cccccc"
       }
