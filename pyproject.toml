@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "knbn"
-version = "0.0.2"
+version = "0.0.3"
 description = "Kanban, but terminal-native and CSV/Markdown-based."
 license = "Apache-2.0"
 readme = "README.md"

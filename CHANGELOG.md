@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.3
+
+- Improve build process and release tooling
+
 ## 0.0.2
 
 - Add delete and mark-done actions to Tabular and Done views ([#10](https://github.com/BastiTee/knbn/pull/10))
