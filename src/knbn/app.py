@@ -31,9 +31,22 @@ _VIEW_ACTION = {
 
 
 class KnbnFooter(Footer):
-    """Footer that highlights the active view tab key."""
+    """Footer that highlights the active view tab key and shows the data dir."""
 
     active_view: reactive[str] = reactive('kanban')
+
+    def __init__(self, data_dir: Path) -> None:
+        super().__init__()
+        home = Path.home()
+        try:
+            rel = data_dir.relative_to(home)
+            self._data_dir_display = '~' if rel == Path() else f'~/{rel}'
+        except ValueError:
+            self._data_dir_display = str(data_dir)
+
+    def compose(self) -> ComposeResult:
+        yield from super().compose()
+        yield Static(self._data_dir_display, id='data-dir-label')
 
     def bindings_changed(self, screen: Screen) -> None:
         super().bindings_changed(screen)
@@ -67,6 +80,12 @@ class KnbnApp(App[None]):
         color: $footer-key-foreground;
         background: $footer-description-background;
         text-style: bold;
+    }
+    #data-dir-label {
+        width: 1fr;
+        text-align: right;
+        text-style: dim;
+        padding: 0 1;
     }
     """
 
@@ -124,7 +143,7 @@ class KnbnApp(App[None]):
 
     def compose(self) -> ComposeResult:
         yield Static(id='view-container')
-        yield KnbnFooter()
+        yield KnbnFooter(self.data_dir)
 
     def action_reload(self) -> None:
         self._show_view(self._current_view)

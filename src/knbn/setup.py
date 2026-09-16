@@ -20,7 +20,7 @@ from knbn.config import (
 def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
     while True:
         click.echo(
-            f'\n{prompt} (one per line, blank line to finish, {min_count}–{max_count}):'
+            f'\n{prompt} (one per line, blank line to finish, {min_count}–{max_count} items):'
         )
         names: list[str] = []
         while True:
@@ -92,11 +92,19 @@ def _apply_board_cfg(data_dir: Path, board_cfg: dict) -> None:
 
 def run_setup_wizard(data_dir: Path) -> None:
     """Interactive first-run board setup wizard."""
+    home = Path.home()
+    try:
+        rel = data_dir.relative_to(home)
+        data_dir_display = '~' if rel == Path() else f'~/{rel}'
+    except ValueError:
+        data_dir_display = str(data_dir)
+
     click.echo("Welcome to knbn! Let's configure your board.")
+    click.echo(f'Your data will be stored in {data_dir_display}')
 
     answer = (
         click
-        .prompt('Use standard settings? [Y/n]', default='', show_default=False)
+        .prompt('\nUse standard settings? [Y/n]', default='', show_default=False)
         .strip()
         .lower()
     )
