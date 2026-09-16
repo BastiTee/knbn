@@ -33,3 +33,6 @@ class TaskRow(Static):
         if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
             event.prevent_default()
             event.stop()
+
+    def set_text(self, text: str) -> None:
+        self.update(Text(text, no_wrap=True, overflow='ellipsis'))

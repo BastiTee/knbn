@@ -6,7 +6,6 @@ from dataclasses import replace
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.events import Resize
 from textual.widgets import Static
 
 from knbn.config import BoardConfig
@@ -52,9 +51,6 @@ class TabularView(RowListView):
         margin-top: 1;
     }
     """
-
-    def on_resize(self, event: Resize) -> None:
-        self._recompose_keeping_focus()
 
     def compose(self) -> ComposeResult:
         self._rows = []

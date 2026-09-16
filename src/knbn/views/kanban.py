@@ -150,22 +150,41 @@ class KanbanView(Widget):
         yield Static('  ' + '   '.join(parts), id='archive-bar')
 
     async def on_lane_header_toggled(self, message: LaneHeader.Toggled) -> None:
-        if message.collapsed:
-            self._collapsed.add(message.priority)
-        else:
-            self._collapsed.discard(message.priority)
         priority = message.priority
-        col_idx = self._focused_col
-        await self.recompose()
+        if message.collapsed:
+            self._collapsed.add(priority)
+        else:
+            self._collapsed.discard(priority)
 
-        def refocus_header() -> None:
+        active_statuses = self._board_config.active_statuses
+        for col_idx, status in enumerate(active_statuses):
             col = self.query_one(f'#col-{col_idx}')
-            for hdr in col.query(LaneHeader):
-                if hdr._priority == priority:
-                    hdr.focus()
-                    return
-
-        self.call_after_refresh(refocus_header)
+            children = list(col.children)
+            header = next(
+                (
+                    w
+                    for w in children
+                    if isinstance(w, LaneHeader) and w._priority == priority
+                ),
+                None,
+            )
+            if header is None:
+                continue
+            start = children.index(header) + 1
+            old_cards = []
+            for w in children[start:]:
+                if isinstance(w, LaneHeader):
+                    break
+                old_cards.append(w)
+            for card in old_cards:
+                await card.remove()
+            if not message.collapsed:
+                new_cards = [
+                    TaskCard(task, self.data_dir, id=f'card-{idx}')
+                    for idx, task in self._tasks_for(status, priority)
+                ]
+                if new_cards:
+                    await col.mount(*new_cards, after=header)
 
     def _focused_card(self) -> TaskCard | None:
         focused = self.app.focused

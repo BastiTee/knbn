@@ -9,6 +9,7 @@ from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.screen import Screen
+from textual.timer import Timer
 from textual.widgets import Footer, Static
 from textual.widgets._footer import FooterKey
 
@@ -108,6 +109,7 @@ class KnbnApp(App[None]):
         self._tasks: list[Task] = []
         self._current_view: str = 'kanban'
         self._theme_preview_active = False
+        self._preview_timer: Timer | None = None
         self.theme = theme
         self.board_config: BoardConfig = build_default_board_config()
 
@@ -208,12 +210,22 @@ class KnbnApp(App[None]):
 
     def preview_theme(self, theme: str) -> None:
         """Apply a theme live without persisting it to settings."""
+        if self._preview_timer is not None:
+            self._preview_timer.stop()
+        self._preview_timer = self.set_timer(
+            0.03, lambda: self._apply_preview_theme(theme)
+        )
+
+    def _apply_preview_theme(self, theme: str) -> None:
         self._theme_preview_active = True
         self.theme = theme
         self._theme_preview_active = False
 
     def confirm_theme(self, theme: str) -> None:
         """Apply a theme and persist it, replacing the previously saved value."""
+        if self._preview_timer is not None:
+            self._preview_timer.stop()
+            self._preview_timer = None
         self.theme = theme
         self._persist_theme(theme)
 

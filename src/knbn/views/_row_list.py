@@ -6,10 +6,12 @@ from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.events import Key
+from textual.events import Key, Resize
 from textual.widget import Widget
+from textual.widgets import Static
 
-from knbn.model.task import Task
+from knbn.model.task import Task, display_date_only
+from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 
 
@@ -77,6 +79,28 @@ class RowListView(Widget):
     def on_mount(self) -> None:
         if self._rows:
             self._rows[0].focus()
+
+    def on_resize(self, event: Resize) -> None:
+        self._update_widths()
+
+    def _update_widths(self) -> None:
+        tw = title_col_width(self._view_width)
+        self.query_one('.col-header-row', Static).update(header_text(tw))
+        for row in self._rows:
+            task = row.knbn_task
+            due = display_date_only(task.due) if task.due else ''
+            row.set_text(
+                format_row(
+                    task.title,
+                    task.status,
+                    task.priority,
+                    task.category,
+                    display_date_only(task.date_created),
+                    display_date_only(task.date_modified),
+                    due,
+                    tw,
+                )
+            )
 
     def _recompose_keeping_focus(self) -> None:
         saved = self._focused_index()

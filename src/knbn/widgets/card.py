@@ -41,6 +41,8 @@ class TaskCard(Static):
         self.knbn_task = knbn_task
         self.data_dir = data_dir
         self.can_focus = True
+        self._title_static: Static | None = None
+        self._tag_static: Static | None = None
 
     @property
     def _board_config(self) -> BoardConfig:
@@ -88,7 +90,7 @@ class TaskCard(Static):
             return title[: available - 1] + '…'
         return title
 
-    def compose(self) -> ComposeResult:
+    def _build_lines(self) -> tuple[str, str]:
         color = self._board_config.category_color(self.knbn_task.category)
         indicators = self._card_indicators()
         due_str, overdue = self._due_display()
@@ -109,8 +111,14 @@ class TaskCard(Static):
             title_markup_line = f'{title}{indicators}'
 
         tag = f'[on {color}] {self.knbn_task.category} [/on {color}]'
-        yield Static(title_markup_line, markup=True)
-        yield Static(tag, markup=True)
+        return title_markup_line, tag
+
+    def compose(self) -> ComposeResult:
+        title_line, tag_line = self._build_lines()
+        self._title_static = Static(title_line, markup=True)
+        self._tag_static = Static(tag_line, markup=True)
+        yield self._title_static
+        yield self._tag_static
 
     def on_mount(self) -> None:
         if self._is_deadline_warning():
@@ -119,7 +127,11 @@ class TaskCard(Static):
             self.remove_class('-deadline-warning')
 
     def on_resize(self, event: object) -> None:
-        self.call_after_refresh(self.recompose)
+        if self._title_static is None or self._tag_static is None:
+            return
+        title_line, tag_line = self._build_lines()
+        self._title_static.update(title_line)
+        self._tag_static.update(tag_line)
 
     def on_key(self, event: object) -> None:
         if isinstance(event, Key) and event.key in ('tab', 'shift+tab'):
