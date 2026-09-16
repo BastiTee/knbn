@@ -20,7 +20,7 @@ from knbn.config import (
 def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
     while True:
         click.echo(
-            f'\n{prompt} (one per line, blank line to finish, {min_count}–{max_count}):'
+            f'\n{prompt} (one per line, blank line to finish, {min_count}–{max_count} items):'
         )
         names: list[str] = []
         while True:
