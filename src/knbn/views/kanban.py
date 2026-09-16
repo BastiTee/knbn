@@ -154,7 +154,18 @@ class KanbanView(Widget):
             self._collapsed.add(message.priority)
         else:
             self._collapsed.discard(message.priority)
+        priority = message.priority
+        col_idx = self._focused_col
         await self.recompose()
+
+        def refocus_header() -> None:
+            col = self.query_one(f'#col-{col_idx}')
+            for hdr in col.query(LaneHeader):
+                if hdr._priority == priority:
+                    hdr.focus()
+                    return
+
+        self.call_after_refresh(refocus_header)
 
     def _focused_card(self) -> TaskCard | None:
         focused = self.app.focused
@@ -271,6 +282,20 @@ class KanbanView(Widget):
         self._focused_row[self._focused_col] = row
         cards[row].focus()
 
+    def _refocus_after_mutation(self, col_idx: int, old_card_row: int) -> None:
+        col_cards = self._get_cards_in_col(col_idx)
+        if col_cards:
+            new_row = min(old_card_row, len(col_cards) - 1)
+            self._focused_col = col_idx
+            self._focused_row[col_idx] = new_row
+            col_cards[new_row].focus()
+        else:
+            col = self.query_one(f'#col-{col_idx}')
+            headers = list(col.query(LaneHeader))
+            if headers:
+                self._focused_col = col_idx
+                headers[0].focus()
+
     def on_mount(self) -> None:
         self._focus_col_card()
 
@@ -330,10 +355,15 @@ class KanbanView(Widget):
         if ft is None:
             return
         idx, task = ft
+        col_idx = self._focused_col
+        col_cards = self._get_cards_in_col(col_idx)
+        focused_card = self._focused_card()
+        card_row = col_cards.index(focused_card) if focused_card in col_cards else 0
         updated = replace(task, status=new_status, date_modified=now_str())
         update_task(self.data_dir, idx, updated)
         self._tasks = load_tasks(self.data_dir)
         self.call_after_refresh(self.recompose)
+        self.call_after_refresh(lambda: self._refocus_after_mutation(col_idx, card_row))
 
     def _move_task(self, updated: Task) -> None:
         """Save updated task, reload, then recompose and refocus by title."""
@@ -469,11 +499,18 @@ class KanbanView(Widget):
         if ft is None:
             return
         idx, task = ft
+        col_idx = self._focused_col
+        col_cards = self._get_cards_in_col(col_idx)
+        focused_card = self._focused_card()
+        card_row = col_cards.index(focused_card) if focused_card in col_cards else 0
 
         def on_confirm(confirmed: bool | None) -> None:
             if confirmed:
                 delete_task(self.data_dir, idx)
                 self._tasks = load_tasks(self.data_dir)
                 self.call_after_refresh(self.recompose)
+                self.call_after_refresh(
+                    lambda: self._refocus_after_mutation(col_idx, card_row)
+                )
 
         self.app.push_screen(ConfirmDialog(f'Delete "{task.title}"?'), on_confirm)
