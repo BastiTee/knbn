@@ -37,5 +37,7 @@ _temp_/
 # Ruff linter
 .ruff_cache/
 
-# AI tooling
-.claude
+# AI tooling — ignore everything except the knbn release command
+.claude/**
+!.claude/commands/
+!.claude/commands/knbn-release.md
