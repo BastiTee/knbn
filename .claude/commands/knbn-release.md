@@ -66,19 +66,15 @@ The release title is the version number. The notes are a single link to the chan
 ```bash
 gh release create X.Y.Z \
   --title "X.Y.Z" \
-  --notes "https://github.com/BastiTee/knbn/blob/main/CHANGELOG.md#XYZ"
+  --notes "See [CHANGELOG](https://github.com/BastiTee/knbn/blob/main/CHANGELOG.md#XYZ)"
 ```
 
-## Step 8 — Publish to PyPI _(confirm before running — irreversible)_
+## Step 8 — Publish to PyPI _(manual — requires your credentials)_
 
-Tell the user: "`uv publish` will now prompt for PyPI credentials — please enter your token or username/password when asked."
-
-Then run:
+Tell the user to run this themselves in the terminal:
 
 ```bash
 uv publish
 ```
 
-Do NOT pass credentials as arguments. Let the interactive prompt handle it. Wait for the command to complete before reporting success.
-
-Report success and the new version once all steps complete.
+Do not run this command yourself. Report the release as complete once the user confirms it succeeded.
