@@ -76,11 +76,11 @@ update: ## Update all dependencies
 run-venv: ## Run module directly in venv
 	uv run python -m knbn
 
+system-install: ## Install package to system
+	uv pip install --system --upgrade .
 
-install-run: ## Install package and run CLI
-	uv pip install --upgrade .
-	@echo --- Note: The next command might fail before you reload your shell
-	knbn
+system-uninstall: ## Remove package from system
+	uv pip uninstall --system .
 
 audit: ## Scan dependencies for known CVEs
 	uv run pip-audit --skip-editable
