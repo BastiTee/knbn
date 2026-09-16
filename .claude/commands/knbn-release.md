@@ -45,21 +45,29 @@ For each user-facing change, include a linked PR reference in the format `([#N](
 2. Update `version = "..."` in `pyproject.toml` to the new version.
 3. Show `git diff` and ask for confirmation before continuing.
 
-## Step 5 — Commit
+## Step 5 — Build the release artifact
 
 ```bash
-git add CHANGELOG.md pyproject.toml
+make release
+```
+
+This updates `uv.lock` and must succeed before committing. Fix any failures before continuing.
+
+## Step 6 — Commit
+
+```bash
+git add CHANGELOG.md pyproject.toml uv.lock
 git commit -m "Release X.Y.Z"
 ```
 
-## Step 6 — Tag and push _(confirm before running — irreversible)_
+## Step 7 — Tag and push _(confirm before running — irreversible)_
 
 ```bash
 git tag -a X.Y.Z -m "Version X.Y.Z"
 git push && git push --tags
 ```
 
-## Step 7 — Create GitHub release _(confirm before running — irreversible)_
+## Step 8 — Create GitHub release _(confirm before running — irreversible)_
 
 The release title is the version number. The notes are a single link to the changelog section — the anchor is the version with dots stripped (e.g. `0.1.2` → `#012`).
 
@@ -69,15 +77,9 @@ gh release create X.Y.Z \
   --notes "See [CHANGELOG](https://github.com/BastiTee/knbn/blob/main/CHANGELOG.md#XYZ)"
 ```
 
-## Step 8 — Build the release artifact
-
-```bash
-make release
-```
-
-This must succeed before publishing. Fix any failures before continuing.
-
 ## Step 9 — Publish to PyPI _(manual — requires your credentials)_
+
+Tell the user to run this themselves in the terminal:
 
 Tell the user to run this themselves in the terminal:
 
