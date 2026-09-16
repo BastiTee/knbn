@@ -47,8 +47,10 @@ venv: clean ## Clean and recreate virtual environment
 	uv sync
 
 build: test mypy lint-check format-check ## Run the entire build chain
-	rm -rfv ./dist
 	uv build
+
+release: clean build ## Prepare release
+	ls -la dist
 
 test: ## Run pytest test suite
 	uv run py.test tests

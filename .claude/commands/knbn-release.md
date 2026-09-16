@@ -72,7 +72,7 @@ gh release create X.Y.Z \
 ## Step 8 — Build the release artifact
 
 ```bash
-make build
+make release
 ```
 
 This must succeed before publishing. Fix any failures before continuing.
