@@ -69,6 +69,9 @@ class KnbnApp(App[None]):
     Screen {
         background: $surface;
     }
+    ThemeSidebar {
+        background: transparent;
+    }
     #view-container {
         height: 1fr;
     }
@@ -104,6 +107,7 @@ class KnbnApp(App[None]):
         super().__init__()
         self._tasks: list[Task] = []
         self._current_view: str = 'kanban'
+        self._theme_preview_active = False
         self.theme = theme
         self.board_config: BoardConfig = build_default_board_config()
 
@@ -198,10 +202,31 @@ class KnbnApp(App[None]):
 
         self.push_screen(HelpOverlay())
 
+    def action_change_theme(self) -> None:
+        from knbn.widgets.theme_sidebar import ThemeSidebar
+
+        self.push_screen(ThemeSidebar(self.theme))
+
+    def preview_theme(self, theme: str) -> None:
+        """Apply a theme live without persisting it to settings."""
+        self._theme_preview_active = True
+        self.theme = theme
+        self._theme_preview_active = False
+
+    def confirm_theme(self, theme: str) -> None:
+        """Apply a theme and persist it, replacing the previously saved value."""
+        self.theme = theme
+        self._persist_theme(theme)
+
     def on_task_form_task_saved(self) -> None:
         self._show_view(self._current_view)
 
-    def watch_theme(self, theme: str) -> None:
+    def _persist_theme(self, theme: str) -> None:
         settings = load_settings(self.data_dir)
         settings['app']['theme'] = theme
         save_settings(self.data_dir, settings)
+
+    def watch_theme(self, theme: str) -> None:
+        if self._theme_preview_active:
+            return
+        self._persist_theme(theme)
