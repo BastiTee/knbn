@@ -33,8 +33,9 @@ class LaneHeader(Static):
     class Toggled(Message):
         """Posted when the lane is collapsed/expanded."""
 
-        def __init__(self, priority: str, collapsed: bool) -> None:
+        def __init__(self, status: str, priority: str, collapsed: bool) -> None:
             super().__init__()
+            self.status = status
             self.priority = priority
             self.collapsed = collapsed
 
@@ -49,9 +50,10 @@ class LaneHeader(Static):
     """
 
     def __init__(
-        self, priority: str, collapsed: bool = False, **kwargs: object
+        self, status: str, priority: str, collapsed: bool = False, **kwargs: object
     ) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
+        self._status = status
         self._priority = priority
         self._collapsed = collapsed
 
@@ -63,7 +65,9 @@ class LaneHeader(Static):
         if isinstance(event, Key) and event.key == 'enter':
             self._collapsed = not self._collapsed
             self.refresh()
-            self.post_message(LaneHeader.Toggled(self._priority, self._collapsed))
+            self.post_message(
+                LaneHeader.Toggled(self._status, self._priority, self._collapsed)
+            )
 
 
 class KanbanView(Widget):
@@ -105,7 +109,7 @@ class KanbanView(Widget):
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self._tasks = tasks
         self.data_dir = data_dir
-        self._collapsed: set[str] = set()
+        self._collapsed: set[tuple[str, str]] = set()
         self._focused_col = 0
         self._focused_row: dict[int, int] = {}
 
@@ -137,11 +141,12 @@ class KanbanView(Widget):
                 with Vertical(classes='board-col', id=f'col-{col_idx}'):
                     for priority in priorities:
                         yield LaneHeader(
+                            status,
                             priority,
-                            collapsed=priority in self._collapsed,
+                            collapsed=(status, priority) in self._collapsed,
                             id=f'lane-{col_idx}-{priority.lower().replace(" ", "-")}',
                         )
-                        if priority not in self._collapsed:
+                        if (status, priority) not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
                                 yield TaskCard(task, self.data_dir, id=f'card-{idx}')
 
@@ -150,41 +155,46 @@ class KanbanView(Widget):
         yield Static('  ' + '   '.join(parts), id='archive-bar')
 
     async def on_lane_header_toggled(self, message: LaneHeader.Toggled) -> None:
+        status = message.status
         priority = message.priority
+        cell = (status, priority)
         if message.collapsed:
-            self._collapsed.add(priority)
+            self._collapsed.add(cell)
         else:
-            self._collapsed.discard(priority)
+            self._collapsed.discard(cell)
 
         active_statuses = self._board_config.active_statuses
-        for col_idx, status in enumerate(active_statuses):
-            col = self.query_one(f'#col-{col_idx}')
-            children = list(col.children)
-            header = next(
-                (
-                    w
-                    for w in children
-                    if isinstance(w, LaneHeader) and w._priority == priority
-                ),
-                None,
-            )
-            if header is None:
-                continue
-            start = children.index(header) + 1
-            old_cards = []
-            for w in children[start:]:
-                if isinstance(w, LaneHeader):
-                    break
-                old_cards.append(w)
-            for card in old_cards:
-                await card.remove()
-            if not message.collapsed:
-                new_cards = [
-                    TaskCard(task, self.data_dir, id=f'card-{idx}')
-                    for idx, task in self._tasks_for(status, priority)
-                ]
-                if new_cards:
-                    await col.mount(*new_cards, after=header)
+        try:
+            col_idx = active_statuses.index(status)
+        except ValueError:
+            return
+        col = self.query_one(f'#col-{col_idx}')
+        children = list(col.children)
+        header = next(
+            (
+                w
+                for w in children
+                if isinstance(w, LaneHeader) and w._priority == priority
+            ),
+            None,
+        )
+        if header is None:
+            return
+        start = children.index(header) + 1
+        old_cards = []
+        for w in children[start:]:
+            if isinstance(w, LaneHeader):
+                break
+            old_cards.append(w)
+        for card in old_cards:
+            await card.remove()
+        if not message.collapsed:
+            new_cards = [
+                TaskCard(task, self.data_dir, id=f'card-{idx}')
+                for idx, task in self._tasks_for(status, priority)
+            ]
+            if new_cards:
+                await col.mount(*new_cards, after=header)
 
     def _focused_card(self) -> TaskCard | None:
         focused = self.app.focused

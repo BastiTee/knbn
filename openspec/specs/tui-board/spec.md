@@ -69,15 +69,27 @@ The TUI SHALL enforce a minimum terminal size of 100 columns × 30 rows. If the 
 - **THEN** the error message is displayed and the application exits without crashing
 
 ### Requirement: Swim lane collapsibility
-Each swim lane (priority row) SHALL be collapsible. Toggling a collapsed lane SHALL hide all cards in that lane, showing only the lane header with the task count.
+Each (column × priority) cell of the Kanban board SHALL be independently collapsible. Toggling a lane header SHALL only affect the single cell it belongs to — collapsing or expanding cards in that specific column for that specific priority. Lanes with the same priority in other columns SHALL NOT be affected. A collapsed lane SHALL show only the lane header; all cards in that lane SHALL be hidden.
 
-#### Scenario: Collapse swim lane
-- **WHEN** the user presses Enter on a focused lane header
-- **THEN** the lane collapses and only the header with task count is visible
+#### Scenario: Collapse swim lane in one column only
+- **WHEN** the user presses Enter on a focused lane header in the `Todo` column for priority `Medium`
+- **THEN** only the `Medium` lane in `Todo` collapses; the `Medium` lanes in `Now` and `Feedback` remain unchanged
 
-#### Scenario: Expand swim lane
-- **WHEN** a collapsed lane header is focused and the user presses Enter
-- **THEN** the lane expands and all cards are visible again
+#### Scenario: Expand swim lane in one column only
+- **WHEN** a collapsed lane header in the `Now` column for priority `High` is focused and the user presses Enter
+- **THEN** only the `High` lane in `Now` expands; other columns are unaffected
+
+#### Scenario: Independent collapse state per cell
+- **WHEN** the `High` lane is collapsed in `Todo` and expanded in `Now`
+- **THEN** both states are preserved simultaneously and reflected correctly in each column
+
+#### Scenario: Collapse hides cards in that cell
+- **WHEN** a lane is collapsed
+- **THEN** all task cards in that (column × priority) cell are hidden and only the header is visible
+
+#### Scenario: Expand restores cards in that cell
+- **WHEN** a collapsed lane is expanded
+- **THEN** all task cards in that (column × priority) cell become visible again
 
 ### Requirement: Tabular view
 The TUI SHALL provide a tabular view listing all active tasks grouped by status (`Now`, `Feedback`, `Todo`), sorted within each group by priority descending then `Last edited time` descending. The view SHALL display a non-focusable column-header row at the top with the labels `Name`, `Status`, `Priority`, `Category`, `Created`, `Edited`, `Due` aligned to the corresponding data columns. Columns SHALL appear in this order: `Name` (28 chars), `Status` (11 chars), `Priority` (9 chars), `Category` (14 chars), `Created` (16 chars), `Edited` (16 chars), `Due`. Date fields SHALL be displayed using `display_date_only()`, showing only `YYYY-MM-DD` regardless of whether a time component is stored. Task rows SHALL be focusable and navigable with `↑`/`↓`. `PgUp`/`PgDn` SHALL move focus 10 rows at a time, clamping at the first and last row. Tab and Shift+Tab SHALL have no effect in this view. The first row SHALL receive focus automatically when the view is mounted. Pressing `Enter` on a focused row SHALL open the task edit form pre-populated with that task's fields. Pressing `d` on a focused row SHALL prompt for confirmation and, on confirmation, transition the task to `BoardConfig.default_terminal_status`, update `date_modified`, persist the change, and reload the view. Pressing `Del` or `Backspace` on a focused row SHALL prompt for confirmation and, on confirmation, permanently delete the task and reload the view.
