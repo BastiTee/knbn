@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Fix kanban swimlane toggle to be per-cell, not board-wide ([#14](https://github.com/BastiTee/knbn/pull/14))
+
 ## 0.1.0
 
 - Change default categories for new stores to Personal/Work/Other ([#13](https://github.com/BastiTee/knbn/pull/13))
