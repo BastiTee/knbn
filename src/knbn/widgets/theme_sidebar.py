@@ -35,16 +35,16 @@ class ThemeSidebar(ModalScreen[None]):
     def __init__(self, current_theme: str) -> None:
         super().__init__()
         self._original_theme = current_theme
+        self._theme_names: list[str] = []
 
     def compose(self) -> ComposeResult:
-        theme_names = sorted(self.app.available_themes)
-        yield OptionList(*(Option(name, id=name) for name in theme_names))
+        self._theme_names = sorted(self.app.available_themes)
+        yield OptionList(*(Option(name, id=name) for name in self._theme_names))
 
     def on_mount(self) -> None:
         option_list = self.query_one(OptionList)
-        theme_names = sorted(self.app.available_themes)
         try:
-            option_list.highlighted = theme_names.index(self._original_theme)
+            option_list.highlighted = self._theme_names.index(self._original_theme)
         except ValueError:
             option_list.highlighted = 0
         option_list.focus()
