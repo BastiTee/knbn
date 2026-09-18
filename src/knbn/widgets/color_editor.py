@@ -204,31 +204,29 @@ class PaletteGrid(Static, can_focus=True):
                 t.append('\n')
         return t
 
+    def _move_cursor(self, delta: int, *, wrap: bool = False) -> None:
+        new = self._cursor + delta
+        if wrap:
+            new = new % len(_PALETTE)
+        elif not (0 <= new < len(_PALETTE)):
+            return
+        self._cursor = new
+        self.refresh()
+        self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+
     async def _on_key(self, event: Key) -> None:
         if event.key == 'left':
             event.stop()
-            self._cursor = (self._cursor - 1) % len(_PALETTE)
-            self.refresh()
-            self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(-1, wrap=True)
         elif event.key == 'right':
             event.stop()
-            self._cursor = (self._cursor + 1) % len(_PALETTE)
-            self.refresh()
-            self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(1, wrap=True)
         elif event.key == 'up':
             event.stop()
-            new = self._cursor - _PALETTE_COLS
-            if new >= 0:
-                self._cursor = new
-                self.refresh()
-                self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(-_PALETTE_COLS)
         elif event.key == 'down':
             event.stop()
-            new = self._cursor + _PALETTE_COLS
-            if new < len(_PALETTE):
-                self._cursor = new
-                self.refresh()
-                self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(_PALETTE_COLS)
         elif event.key == 'enter':
             event.stop()
             self.post_message(PaletteGrid.Selected(_PALETTE[self._cursor]))
