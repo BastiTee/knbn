@@ -23,6 +23,7 @@ from knbn.model.store import (
     update_task,
 )
 from knbn.model.task import Task, now_str
+from knbn.views._filter import task_matches
 from knbn.widgets._confirm import ConfirmDialog
 from knbn.widgets.card import TaskCard
 
@@ -87,7 +88,6 @@ class KanbanView(Widget):
         Binding('o', 'open_url', 'Open URL', show=False),
         Binding('d', 'mark_done', 'Done', show=False),
         Binding('delete', 'delete_task', 'Delete', show=False),
-        Binding('backspace', 'delete_task', 'Delete', show=False),
     ]
 
     DEFAULT_CSS = """
@@ -117,15 +117,21 @@ class KanbanView(Widget):
     def _board_config(self) -> BoardConfig:
         return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
+    @property
+    def _search_query(self) -> str:
+        return getattr(self.app, '_search_query', '')
+
     def _tasks_for(self, status: str, priority: str) -> list[tuple[int, Task]]:
+        q = self._search_query
         return [
             (i, t)
             for i, t in enumerate(self._tasks)
-            if t.status == status and t.priority == priority
+            if t.status == status and t.priority == priority and task_matches(t, q)
         ]
 
     def _count_for_status(self, status: str) -> int:
-        return sum(1 for t in self._tasks if t.status == status)
+        q = self._search_query
+        return sum(1 for t in self._tasks if t.status == status and task_matches(t, q))
 
     def compose(self) -> ComposeResult:
         active_statuses = self._board_config.active_statuses
@@ -345,6 +351,8 @@ class KanbanView(Widget):
         )
 
     def action_open_notes(self) -> None:
+        if getattr(self.app, '_search_active', False):
+            return
         ft = self._focused_task()
         if ft is None:
             return
@@ -352,6 +360,8 @@ class KanbanView(Widget):
         self._open_notes_for(task)
 
     def action_open_url(self) -> None:
+        if getattr(self.app, '_search_active', False):
+            return
         ft = self._focused_task()
         if ft is None:
             return
@@ -365,6 +375,8 @@ class KanbanView(Widget):
         self.call_after_refresh(self.recompose)
 
     def action_mark_done(self) -> None:
+        if getattr(self.app, '_search_active', False):
+            return
         ft = self._focused_task()
         if ft is None:
             return
