@@ -243,6 +243,27 @@ def _parse_free_text_fields(board: dict[str, Any]) -> list[str]:
     return fields
 
 
+def _board_config_to_dict(board_config: BoardConfig) -> dict[str, Any]:
+    return {
+        'active_statuses': board_config.active_statuses,
+        'default_active_status': board_config.default_active_status,
+        'terminal_statuses': board_config.terminal_statuses,
+        'default_terminal_status': board_config.default_terminal_status,
+        'priorities': board_config.priorities,
+        'categories': [
+            {'name': c.name, 'color': c.color} for c in board_config.categories
+        ],
+        'free_text_fields': board_config.free_text_fields,
+    }
+
+
+def save_board_config(data_dir: Path, board_config: BoardConfig) -> None:
+    """Persist updated BoardConfig to settings.json, preserving the app block."""
+    settings = load_settings(data_dir)
+    settings['board'] = _board_config_to_dict(board_config)
+    save_settings(data_dir, settings)
+
+
 def load_board_config(data_dir: Path) -> BoardConfig:
     settings_file = data_dir / _SETTINGS_FILENAME
     if not settings_file.exists():

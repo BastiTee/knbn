@@ -167,6 +167,11 @@ class KnbnApp(App[None]):
         yield SystemCommand(
             'Theme', 'Change the current theme', self.action_change_theme
         )
+        yield SystemCommand(
+            'Category Colors',
+            'Configure category colors',
+            self.action_configure_category_colors,
+        )
         if screen.query('HelpPanel'):
             yield SystemCommand(
                 'Keys', 'Hide the keys panel', self.action_hide_help_panel
@@ -208,6 +213,13 @@ class KnbnApp(App[None]):
 
         self.push_screen(ThemeSidebar(self.theme))
 
+    def action_configure_category_colors(self) -> None:
+        from knbn.widgets.color_editor import CategoryColorEditor
+
+        self.push_screen(
+            CategoryColorEditor(data_dir=self.data_dir, board_config=self.board_config)
+        )
+
     def preview_theme(self, theme: str) -> None:
         """Apply a theme live without persisting it to settings."""
         if self._preview_timer is not None:
@@ -230,6 +242,13 @@ class KnbnApp(App[None]):
         self._persist_theme(theme)
 
     def on_task_form_task_saved(self) -> None:
+        self._show_view(self._current_view)
+
+    def on_category_color_editor_saved(self, event: object) -> None:
+        from knbn.widgets.color_editor import CategoryColorEditor
+
+        if isinstance(event, CategoryColorEditor.Saved):
+            self.board_config = event.board_config
         self._show_view(self._current_view)
 
     def _persist_theme(self, theme: str) -> None:
