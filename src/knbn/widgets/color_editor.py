@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import replace
 from pathlib import Path
 
@@ -18,12 +17,11 @@ from textual.widgets import Button, Input, ListItem, ListView, Static
 
 from knbn.config import (
     CATEGORY_COLOR_PALETTE,
+    HEX_COLOR_RE,
     BoardConfig,
     CategoryConfig,
     save_board_config,
 )
-
-_HEX_RE = re.compile(r'^#[0-9a-f]{6}$')
 
 _PALETTE = CATEGORY_COLOR_PALETTE
 
@@ -354,7 +352,7 @@ class ColorPickerOverlay(ModalScreen[str | None]):
         self.query_one('#palette-grid', PaletteGrid).focus()
 
     def _update_preview(self, hex_color: str) -> None:
-        if _HEX_RE.match(hex_color):
+        if HEX_COLOR_RE.match(hex_color):
             self.query_one('#preview-swatch', Static).styles.background = Color.parse(
                 hex_color
             )
@@ -374,7 +372,7 @@ class ColorPickerOverlay(ModalScreen[str | None]):
 
     def action_confirm_pick(self) -> None:
         hex_val = self.query_one('#hex-input', Input).value.strip()
-        if not _HEX_RE.match(hex_val):
+        if not HEX_COLOR_RE.match(hex_val):
             self.query_one('#picker-error', Static).update(
                 f'Must be #rrggbb (got {hex_val!r})'
             )
