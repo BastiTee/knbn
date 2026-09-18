@@ -161,6 +161,92 @@ def test_wizard_rejects_long_free_text_label(tmp_path: Path) -> None:
     assert cfg.free_text_fields[0] == 'Notes'
 
 
+def test_wizard_rejects_duplicate_active_status(tmp_path: Path) -> None:
+    # Enter 'Todo' twice → second one rejected, then 'Now' accepted
+    wizard_input = 'n\nTodo\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.active_statuses == ['Todo', 'Now']
+    assert cfg.active_statuses.count('Todo') == 1
+
+
+def test_wizard_rejects_duplicate_terminal_status(tmp_path: Path) -> None:
+    # Enter 'Done' twice → second rejected, then 'Archived' accepted
+    wizard_input = 'n\nTodo\nNow\n\nDone\nDone\nArchived\n\n2\nHi\n\nWork\n\n\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.terminal_statuses == ['Done', 'Archived']
+    assert cfg.terminal_statuses.count('Done') == 1
+
+
+def test_wizard_rejects_terminal_status_matching_active(tmp_path: Path) -> None:
+    # 'Todo' is already an active status → rejected, then 'Done' accepted
+    wizard_input = 'n\nTodo\nNow\n\nTodo\nDone\n\nHi\n\nWork\n\n\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert 'Todo' not in cfg.terminal_statuses
+    assert cfg.terminal_statuses == ['Done']
+
+
+def test_wizard_rejects_duplicate_priority(tmp_path: Path) -> None:
+    # 'High' twice → second rejected, then 'Low' accepted
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHigh\nHigh\nLow\n\nWork\n\n\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.priorities == ['High', 'Low']
+    assert cfg.priorities.count('High') == 1
+
+
+def test_wizard_rejects_duplicate_category(tmp_path: Path) -> None:
+    # 'Work' twice → second rejected, then 'Personal' accepted
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\nWork\nPersonal\n\n\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert [c.name for c in cfg.categories] == ['Work', 'Personal']
+    assert sum(1 for c in cfg.categories if c.name == 'Work') == 1
+
+
+def test_wizard_rejects_duplicate_free_text_label(tmp_path: Path) -> None:
+    # Field 1 = 'Notes', Field 2 = 'Notes' → second rejected, then 'Links' accepted
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\nNotes\nNotes\nLinks\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.free_text_fields[0] == 'Notes'
+    assert cfg.free_text_fields[1] == 'Links'
+
+
+def test_wizard_blank_field_skips_remaining_fields(tmp_path: Path) -> None:
+    # Blank for field 1 → fields 2 and 3 not prompted, all empty
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.free_text_fields == ['', '', '']
+
+
+def test_wizard_blank_field_2_skips_field_3(tmp_path: Path) -> None:
+    # Field 1 = 'Notes', blank for field 2 → field 3 not prompted
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\nNotes\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.free_text_fields == ['Notes', '', '']
+
+
 def test_wizard_preserves_existing_app_settings(tmp_path: Path) -> None:
     (tmp_path / 'settings.json').write_text(
         '{"app": {"theme": "nord"}, "board": {}}', encoding='utf-8'

@@ -8,7 +8,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.widgets import Static
 
-from knbn.config import BoardConfig
 from knbn.model.store import delete_task, load_tasks, update_task
 from knbn.model.task import Task, display_date_only, now_str
 from knbn.views._columns import format_row, header_text, title_col_width
@@ -29,14 +28,6 @@ class TabularView(RowListView):
         Binding('d', 'mark_done', 'Done', show=False),
         Binding('delete', 'delete_task', 'Delete', show=False),
     ]
-
-    @property
-    def _board_config(self) -> BoardConfig:
-        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
-
-    @property
-    def _search_query(self) -> str:
-        return getattr(self.app, '_search_query', '')
 
     DEFAULT_CSS = """
     TabularView {
@@ -95,7 +86,7 @@ class TabularView(RowListView):
                 yield row
 
     def action_mark_done(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         i = self._focused_index()
         if i < 0:

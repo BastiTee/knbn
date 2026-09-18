@@ -10,12 +10,13 @@ from textual.events import Key, Resize
 from textual.widget import Widget
 from textual.widgets import Static
 
+from knbn._mixin import KnbnWidgetMixin
 from knbn.model.task import Task, display_date_only
 from knbn.views._columns import format_row, header_text, title_col_width
 from knbn.views._row import TaskRow
 
 
-class RowListView(Widget):
+class RowListView(KnbnWidgetMixin, Widget):
     """Base widget for views that render a focusable list of TaskRow widgets."""
 
     BINDINGS = [

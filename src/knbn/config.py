@@ -15,7 +15,7 @@ _DEFAULT_DIR = Path.home() / '.knbn'
 _SETTINGS_FILENAME = 'settings.json'
 _SETTINGS_TMP_FILENAME = '.settings.json.tmp'
 
-_HEX_COLOR_RE = re.compile(r'^#[0-9a-f]{6}$')
+HEX_COLOR_RE = re.compile(r'^#[0-9a-f]{6}$')
 NAME_MIN = 2
 NAME_MAX = 20
 
@@ -97,6 +97,16 @@ def resolve_data_dir() -> Path:
     if env_val:
         return Path(env_val)
     return _DEFAULT_DIR
+
+
+def display_data_dir(data_dir: Path) -> str:
+    """Return a tilde-abbreviated path string for user-facing display."""
+    home = Path.home()
+    try:
+        rel = data_dir.relative_to(home)
+        return '~' if rel == Path() else f'~/{rel}'
+    except ValueError:
+        return str(data_dir)
 
 
 def load_settings(data_dir: Path) -> dict[str, Any]:
@@ -214,7 +224,7 @@ def _parse_categories(board: dict[str, Any]) -> list[CategoryConfig]:
         cat_name = str(cat.get('name', ''))
         cat_color = str(cat.get('color', ''))
         _validate_name(cat_name, 'categories')
-        if not _HEX_COLOR_RE.match(cat_color):
+        if not HEX_COLOR_RE.match(cat_color):
             raise BoardConfigError(
                 f'category color {cat_color!r} must match #[0-9a-f]{{6}}'
             )

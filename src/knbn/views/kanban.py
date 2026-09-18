@@ -14,10 +14,11 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
-from knbn.config import BoardConfig
+from knbn._mixin import KnbnWidgetMixin
 from knbn.model.store import (
     delete_task,
     load_tasks,
+    notes_slug_set,
     open_notes_in_editor,
     save_tasks,
     update_task,
@@ -71,7 +72,7 @@ class LaneHeader(Static):
             )
 
 
-class KanbanView(Widget):
+class KanbanView(KnbnWidgetMixin, Widget):
     """Config-driven Kanban board view."""
 
     BINDINGS = [
@@ -113,14 +114,6 @@ class KanbanView(Widget):
         self._focused_col = 0
         self._focused_row: dict[int, int] = {}
 
-    @property
-    def _board_config(self) -> BoardConfig:
-        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
-
-    @property
-    def _search_query(self) -> str:
-        return getattr(self.app, '_search_query', '')
-
     def _tasks_for(self, status: str, priority: str) -> list[tuple[int, Task]]:
         q = self._search_query
         return [
@@ -136,6 +129,7 @@ class KanbanView(Widget):
     def compose(self) -> ComposeResult:
         active_statuses = self._board_config.active_statuses
         priorities = self._board_config.priorities
+        slugs = notes_slug_set(self.data_dir)
 
         with Static(id='board-header'):
             for status in active_statuses:
@@ -154,7 +148,13 @@ class KanbanView(Widget):
                         )
                         if (status, priority) not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
-                                yield TaskCard(task, self.data_dir, id=f'card-{idx}')
+                                yield TaskCard(
+                                    task,
+                                    self.data_dir,
+                                    idx,
+                                    notes_slug_set=slugs,
+                                    id=f'card-{idx}',
+                                )
 
         terminal_statuses = self._board_config.terminal_statuses
         parts = [f'{s} {self._count_for_status(s):>6}' for s in terminal_statuses]
@@ -195,8 +195,11 @@ class KanbanView(Widget):
         for card in old_cards:
             await card.remove()
         if not message.collapsed:
+            slugs = notes_slug_set(self.data_dir)
             new_cards = [
-                TaskCard(task, self.data_dir, id=f'card-{idx}')
+                TaskCard(
+                    task, self.data_dir, idx, notes_slug_set=slugs, id=f'card-{idx}'
+                )
                 for idx, task in self._tasks_for(status, priority)
             ]
             if new_cards:
@@ -212,11 +215,7 @@ class KanbanView(Widget):
         card = self._focused_card()
         if card is None:
             return None
-        card_id = card.id or ''
-        if card_id.startswith('card-'):
-            idx = int(card_id[5:])
-            return idx, self._tasks[idx]
-        return None
+        return card.task_index, self._tasks[card.task_index]
 
     def get_lane_context(self) -> tuple[str, str] | None:
         focused = self.app.focused
@@ -351,7 +350,7 @@ class KanbanView(Widget):
         )
 
     def action_open_notes(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         ft = self._focused_task()
         if ft is None:
@@ -360,7 +359,7 @@ class KanbanView(Widget):
         self._open_notes_for(task)
 
     def action_open_url(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         ft = self._focused_task()
         if ft is None:
@@ -375,7 +374,7 @@ class KanbanView(Widget):
         self.call_after_refresh(self.recompose)
 
     def action_mark_done(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         ft = self._focused_task()
         if ft is None:
@@ -426,15 +425,12 @@ class KanbanView(Widget):
             col_cards = self._get_cards_in_col(target_col)
             match_row = 0
             for i, card in enumerate(col_cards):
-                card_id = card.id or ''
-                if card_id.startswith('card-'):
-                    card_idx = int(card_id[5:])
-                    if (
-                        card_idx < len(self._tasks)
-                        and self._tasks[card_idx].title == title
-                    ):
-                        match_row = i
-                        break
+                if (
+                    card.task_index < len(self._tasks)
+                    and self._tasks[card.task_index].title == title
+                ):
+                    match_row = i
+                    break
             self._focused_col = target_col
             self._focused_row[target_col] = match_row
             self._focus_col_card()
@@ -471,13 +467,13 @@ class KanbanView(Widget):
         def _refocus() -> None:
             col_cards = self._get_cards_in_col(col)
             for i, card in enumerate(col_cards):
-                cid = card.id or ''
-                if cid.startswith('card-'):
-                    cidx = int(cid[5:])
-                    if cidx < len(self._tasks) and self._tasks[cidx].title == title:
-                        self._focused_row[col] = i
-                        self._focus_col_card()
-                        return
+                if (
+                    card.task_index < len(self._tasks)
+                    and self._tasks[card.task_index].title == title
+                ):
+                    self._focused_row[col] = i
+                    self._focus_col_card()
+                    return
 
         self.call_after_refresh(self.recompose)
         self.call_after_refresh(_refocus)

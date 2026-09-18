@@ -9,7 +9,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.widgets import Static
 
-from knbn.config import BoardConfig
 from knbn.model.store import delete_task, load_tasks
 from knbn.model.task import Task, display_date_only, parse_datetime
 from knbn.views._columns import format_row, header_text, title_col_width
@@ -35,14 +34,6 @@ class ClosedView(RowListView):
     BINDINGS = [
         Binding('delete', 'delete_task', 'Delete', show=False),
     ]
-
-    @property
-    def _board_config(self) -> BoardConfig:
-        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
-
-    @property
-    def _search_query(self) -> str:
-        return getattr(self.app, '_search_query', '')
 
     DEFAULT_CSS = """
     ClosedView {

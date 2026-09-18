@@ -145,6 +145,11 @@ def _existing_slugs(data_dir: Path) -> set[str]:
     return {p.stem for p in notes.iterdir() if p.suffix == '.md'}
 
 
+def notes_slug_set(data_dir: Path) -> set[str]:
+    """Return the set of note file stems (slugs) under data_dir/notes."""
+    return _existing_slugs(data_dir)
+
+
 def get_notes_path(data_dir: Path, task: Task) -> Path:
     notes = _notes_dir(data_dir)
     base_slug = make_slug(task.title)

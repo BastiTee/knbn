@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import replace
 from pathlib import Path
 
@@ -16,22 +15,15 @@ from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, ListItem, ListView, Static
 
-from knbn.config import BoardConfig, CategoryConfig, save_board_config
+from knbn.config import (
+    CATEGORY_COLOR_PALETTE,
+    HEX_COLOR_RE,
+    BoardConfig,
+    CategoryConfig,
+    save_board_config,
+)
 
-_HEX_RE = re.compile(r'^#[0-9a-f]{6}$')
-
-_PALETTE = [
-    '#e879a0',
-    '#f4a7b9',
-    '#7ec8e3',
-    '#5b9bd5',
-    '#4dbfbf',
-    '#f5a623',
-    '#cccccc',
-    '#a78bfa',
-    '#34d399',
-    '#fbbf24',
-]
+_PALETTE = CATEGORY_COLOR_PALETTE
 
 _PALETTE_COLS = 5
 _PALETTE_CELL_W = 4  # chars per cell
@@ -212,31 +204,29 @@ class PaletteGrid(Static, can_focus=True):
                 t.append('\n')
         return t
 
+    def _move_cursor(self, delta: int, *, wrap: bool = False) -> None:
+        new = self._cursor + delta
+        if wrap:
+            new = new % len(_PALETTE)
+        elif not (0 <= new < len(_PALETTE)):
+            return
+        self._cursor = new
+        self.refresh()
+        self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+
     async def _on_key(self, event: Key) -> None:
         if event.key == 'left':
             event.stop()
-            self._cursor = (self._cursor - 1) % len(_PALETTE)
-            self.refresh()
-            self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(-1, wrap=True)
         elif event.key == 'right':
             event.stop()
-            self._cursor = (self._cursor + 1) % len(_PALETTE)
-            self.refresh()
-            self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(1, wrap=True)
         elif event.key == 'up':
             event.stop()
-            new = self._cursor - _PALETTE_COLS
-            if new >= 0:
-                self._cursor = new
-                self.refresh()
-                self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(-_PALETTE_COLS)
         elif event.key == 'down':
             event.stop()
-            new = self._cursor + _PALETTE_COLS
-            if new < len(_PALETTE):
-                self._cursor = new
-                self.refresh()
-                self.post_message(PaletteGrid.Highlighted(_PALETTE[self._cursor]))
+            self._move_cursor(_PALETTE_COLS)
         elif event.key == 'enter':
             event.stop()
             self.post_message(PaletteGrid.Selected(_PALETTE[self._cursor]))
@@ -360,7 +350,7 @@ class ColorPickerOverlay(ModalScreen[str | None]):
         self.query_one('#palette-grid', PaletteGrid).focus()
 
     def _update_preview(self, hex_color: str) -> None:
-        if _HEX_RE.match(hex_color):
+        if HEX_COLOR_RE.match(hex_color):
             self.query_one('#preview-swatch', Static).styles.background = Color.parse(
                 hex_color
             )
@@ -380,7 +370,7 @@ class ColorPickerOverlay(ModalScreen[str | None]):
 
     def action_confirm_pick(self) -> None:
         hex_val = self.query_one('#hex-input', Input).value.strip()
-        if not _HEX_RE.match(hex_val):
+        if not HEX_COLOR_RE.match(hex_val):
             self.query_one('#picker-error', Static).update(
                 f'Must be #rrggbb (got {hex_val!r})'
             )
