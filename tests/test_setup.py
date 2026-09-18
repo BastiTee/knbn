@@ -227,6 +227,26 @@ def test_wizard_rejects_duplicate_free_text_label(tmp_path: Path) -> None:
     assert cfg.free_text_fields[1] == 'Links'
 
 
+def test_wizard_blank_field_skips_remaining_fields(tmp_path: Path) -> None:
+    # Blank for field 1 → fields 2 and 3 not prompted, all empty
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.free_text_fields == ['', '', '']
+
+
+def test_wizard_blank_field_2_skips_field_3(tmp_path: Path) -> None:
+    # Field 1 = 'Notes', blank for field 2 → field 3 not prompted
+    wizard_input = 'n\nTodo\nNow\n\nDone\n\nHi\n\nWork\n\nNotes\n\n'
+    runner = CliRunner()
+    result = runner.invoke(_invoke_wizard, [str(tmp_path)], input=wizard_input)
+    assert result.exit_code == 0
+    cfg = load_board_config(tmp_path)
+    assert cfg.free_text_fields == ['Notes', '', '']
+
+
 def test_wizard_preserves_existing_app_settings(tmp_path: Path) -> None:
     (tmp_path / 'settings.json').write_text(
         '{"app": {"theme": "nord"}, "board": {}}', encoding='utf-8'

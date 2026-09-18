@@ -55,14 +55,14 @@ def _collect_names(
 def _collect_free_text_fields() -> list[str]:
     fields: list[str] = []
     used_labels: set[str] = set()
-    click.echo('\nFree-text field labels (0–3, blank to leave slot unused):')
+    click.echo('\nFree-text field labels (0–3, blank to stop):')
     for i in range(3):
+        label = ''
         while True:
             label = click.prompt(
                 f'  Field {i + 1} label', default='', show_default=False
             ).strip()
             if not label:
-                fields.append('')
                 break
             if not (NAME_MIN <= len(label) <= NAME_MAX):
                 click.echo(f'  Error: label must be {NAME_MIN}–{NAME_MAX} characters.')
@@ -73,6 +73,10 @@ def _collect_free_text_fields() -> list[str]:
             used_labels.add(label)
             fields.append(label)
             break
+        if not label:
+            break
+    while len(fields) < 3:
+        fields.append('')
     return fields
 
 
