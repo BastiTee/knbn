@@ -148,7 +148,13 @@ class KanbanView(KnbnWidgetMixin, Widget):
                         )
                         if (status, priority) not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
-                                yield TaskCard(task, self.data_dir, idx, notes_slug_set=slugs, id=f'card-{idx}')
+                                yield TaskCard(
+                                    task,
+                                    self.data_dir,
+                                    idx,
+                                    notes_slug_set=slugs,
+                                    id=f'card-{idx}',
+                                )
 
         terminal_statuses = self._board_config.terminal_statuses
         parts = [f'{s} {self._count_for_status(s):>6}' for s in terminal_statuses]
@@ -191,7 +197,9 @@ class KanbanView(KnbnWidgetMixin, Widget):
         if not message.collapsed:
             slugs = notes_slug_set(self.data_dir)
             new_cards = [
-                TaskCard(task, self.data_dir, idx, notes_slug_set=slugs, id=f'card-{idx}')
+                TaskCard(
+                    task, self.data_dir, idx, notes_slug_set=slugs, id=f'card-{idx}'
+                )
                 for idx, task in self._tasks_for(status, priority)
             ]
             if new_cards:
