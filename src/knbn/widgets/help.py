@@ -7,7 +7,7 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
-from knbn.config import BoardConfig
+from knbn._mixin import KnbnWidgetMixin
 
 _HELP_GLOBAL = """\
 [bold]Global[/bold]
@@ -47,12 +47,8 @@ _HELP_KANBAN_TAIL = """\
 """
 
 
-class HelpOverlay(ModalScreen[None]):
+class HelpOverlay(KnbnWidgetMixin, ModalScreen[None]):
     """Key bindings help overlay."""
-
-    @property
-    def _board_config(self) -> BoardConfig:
-        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
     BINDINGS = [
         Binding('escape', 'dismiss', 'Close'),

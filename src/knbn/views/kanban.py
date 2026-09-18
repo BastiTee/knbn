@@ -14,7 +14,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
-from knbn.config import BoardConfig
+from knbn._mixin import KnbnWidgetMixin
 from knbn.model.store import (
     delete_task,
     load_tasks,
@@ -71,7 +71,7 @@ class LaneHeader(Static):
             )
 
 
-class KanbanView(Widget):
+class KanbanView(KnbnWidgetMixin, Widget):
     """Config-driven Kanban board view."""
 
     BINDINGS = [
@@ -112,10 +112,6 @@ class KanbanView(Widget):
         self._collapsed: set[tuple[str, str]] = set()
         self._focused_col = 0
         self._focused_row: dict[int, int] = {}
-
-    @property
-    def _board_config(self) -> BoardConfig:
-        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
     @property
     def _search_query(self) -> str:

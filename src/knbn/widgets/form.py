@@ -13,7 +13,7 @@ from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select, Static
 
-from knbn.config import BoardConfig
+from knbn._mixin import KnbnWidgetMixin
 from knbn.model.store import add_task, update_task
 from knbn.model.task import Task, now_str
 
@@ -35,7 +35,7 @@ class DueInput(Input):
             await super()._on_key(event)
 
 
-class TaskForm(ModalScreen[None]):
+class TaskForm(KnbnWidgetMixin, ModalScreen[None]):
     """Overlay form for creating or editing a task."""
 
     BINDINGS = [
@@ -79,10 +79,6 @@ class TaskForm(ModalScreen[None]):
 
     class TaskSaved(Message):
         """Posted after a task is successfully saved."""
-
-    @property
-    def _board_config(self) -> BoardConfig:
-        return self.app.board_config  # type: ignore[attr-defined,no-any-return]
 
     def __init__(
         self,
