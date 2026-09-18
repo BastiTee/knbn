@@ -16,22 +16,16 @@ from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, ListItem, ListView, Static
 
-from knbn.config import BoardConfig, CategoryConfig, save_board_config
+from knbn.config import (
+    CATEGORY_COLOR_PALETTE,
+    BoardConfig,
+    CategoryConfig,
+    save_board_config,
+)
 
 _HEX_RE = re.compile(r'^#[0-9a-f]{6}$')
 
-_PALETTE = [
-    '#e879a0',
-    '#f4a7b9',
-    '#7ec8e3',
-    '#5b9bd5',
-    '#4dbfbf',
-    '#f5a623',
-    '#cccccc',
-    '#a78bfa',
-    '#34d399',
-    '#fbbf24',
-]
+_PALETTE = CATEGORY_COLOR_PALETTE
 
 _PALETTE_COLS = 5
 _PALETTE_CELL_W = 4  # chars per cell
