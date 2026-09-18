@@ -7,6 +7,7 @@ from pathlib import Path
 
 from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
+from textual.events import Key
 from textual.reactive import reactive
 from textual.screen import Screen
 from textual.timer import Timer
@@ -23,6 +24,13 @@ from knbn.config import (
 )
 from knbn.model.store import ensure_data_dir, load_tasks
 from knbn.model.task import Task
+from knbn.widgets.search_bar import SearchBar
+
+# Keys that are printable characters but should pass through to their action
+# handlers in search mode rather than being typed into the search query.
+_SEARCH_PASSTHROUGH_KEYS: frozenset[str] = frozenset({
+    'question_mark',  # ? → action_help still fires; not added to query
+})
 
 _VIEW_ACTION = {
     'kanban': 'show_kanban',
@@ -101,6 +109,7 @@ class KnbnApp(App[None]):
         Binding('r', 'reload', 'Reload', show=True),
         Binding('a', 'add_task', 'Add', show=True),
         Binding('question_mark', 'help', 'Help', show=True),
+        Binding('ctrl+f', 'toggle_search', 'Find', show=True),
     ]
 
     def __init__(self, data_dir: Path, theme: str = 'textual-dark') -> None:
@@ -112,6 +121,8 @@ class KnbnApp(App[None]):
         self._preview_timer: Timer | None = None
         self.theme = theme
         self.board_config: BoardConfig = build_default_board_config()
+        self._search_active: bool = False
+        self._search_query: str = ''
 
     def on_mount(self) -> None:
         size = self.app.size
@@ -149,19 +160,86 @@ class KnbnApp(App[None]):
 
     def compose(self) -> ComposeResult:
         yield Static(id='view-container')
+        yield SearchBar(id='search-bar')
         yield KnbnFooter(self.data_dir)
 
+    async def _on_key(self, event: Key) -> None:
+        if self._search_active and len(self.screen_stack) == 1:
+            char = event.character
+            if event.key == 'escape':
+                self._deactivate_search()
+                event.stop()
+            elif event.key == 'backspace':
+                if self._search_query:
+                    self._search_query = self._search_query[:-1]
+                    self._update_search_bar()
+                    self._refilter_view()
+                event.stop()
+            elif (
+                char is not None
+                and char.isprintable()
+                and event.key not in _SEARCH_PASSTHROUGH_KEYS
+            ):
+                self._search_query += char
+                self._update_search_bar()
+                self._refilter_view()
+                event.stop()
+
+    def action_toggle_search(self) -> None:
+        if self._search_active:
+            self._deactivate_search()
+        else:
+            self._activate_search()
+
+    def _activate_search(self) -> None:
+        self._search_active = True
+        self._search_query = ''
+        bar = self.query_one('#search-bar', SearchBar)
+        bar.add_class('--active')
+        self._update_search_bar()
+
+    def _deactivate_search(self) -> None:
+        self._search_active = False
+        self._search_query = ''
+        bar = self.query_one('#search-bar', SearchBar)
+        bar.remove_class('--active')
+        bar.update('')
+        self._refilter_view()
+
+    def _update_search_bar(self) -> None:
+        text = f'/ {self._search_query}▇' if self._search_query else '/ ▇'
+        self.query_one('#search-bar', SearchBar).update(text)
+
+    def _refilter_view(self) -> None:
+        container = self.query_one('#view-container')
+        children = list(container.children)
+        if children:
+            self.call_after_refresh(children[0].recompose)
+
     def action_reload(self) -> None:
+        if self._search_active:
+            return
         self._show_view(self._current_view)
 
     def action_show_kanban(self) -> None:
+        if self._search_active:
+            return
         self._show_view('kanban')
 
     def action_show_tabular(self) -> None:
+        if self._search_active:
+            return
         self._show_view('tabular')
 
     def action_show_closed(self) -> None:
+        if self._search_active:
+            return
         self._show_view('closed')
+
+    async def action_quit(self) -> None:
+        if self._search_active:
+            return
+        self.exit()
 
     def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
         yield SystemCommand(
@@ -182,6 +260,8 @@ class KnbnApp(App[None]):
             )
 
     def action_add_task(self) -> None:
+        if self._search_active:
+            return
         from knbn.views.kanban import KanbanView
         from knbn.widgets.form import TaskForm
 
