@@ -18,7 +18,12 @@ from knbn.config import (
 )
 
 
-def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
+def _collect_names(
+    prompt: str,
+    min_count: int,
+    max_count: int,
+    forbidden: set[str] | None = None,
+) -> list[str]:
     while True:
         click.echo(
             f'\n{prompt} (one per line, blank line to finish, {min_count}–{max_count} items):'
@@ -30,6 +35,12 @@ def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
                 break
             if not (NAME_MIN <= len(name) <= NAME_MAX):
                 click.echo(f'  Error: name must be {NAME_MIN}–{NAME_MAX} characters.')
+                continue
+            if name in names:
+                click.echo(f'  Error: {name!r} is already in this list.')
+                continue
+            if forbidden and name in forbidden:
+                click.echo(f'  Error: {name!r} is already used as an active status.')
                 continue
             names.append(name)
             if len(names) >= max_count:
@@ -43,6 +54,7 @@ def _collect_names(prompt: str, min_count: int, max_count: int) -> list[str]:
 
 def _collect_free_text_fields() -> list[str]:
     fields: list[str] = []
+    used_labels: set[str] = set()
     click.echo('\nFree-text field labels (0–3, blank to leave slot unused):')
     for i in range(3):
         while True:
@@ -55,6 +67,10 @@ def _collect_free_text_fields() -> list[str]:
             if not (NAME_MIN <= len(label) <= NAME_MAX):
                 click.echo(f'  Error: label must be {NAME_MIN}–{NAME_MAX} characters.')
                 continue
+            if label in used_labels:
+                click.echo(f'  Error: {label!r} is already used as a field label.')
+                continue
+            used_labels.add(label)
             fields.append(label)
             break
     return fields
@@ -115,7 +131,9 @@ def run_setup_wizard(data_dir: Path) -> None:
     default_active = active_statuses[0]
     click.echo(f'  → Default active status: {default_active}')
 
-    terminal_statuses = _collect_names('Terminal (done/archived) statuses', 1, 3)
+    terminal_statuses = _collect_names(
+        'Terminal (done/archived) statuses', 1, 3, forbidden=set(active_statuses)
+    )
     if len(terminal_statuses) == 1:
         default_terminal = terminal_statuses[0]
     else:
