@@ -37,10 +37,11 @@ class TaskCard(KnbnWidgetMixin, Static):
     }
     """
 
-    def __init__(self, knbn_task: Task, data_dir: Path, **kwargs: object) -> None:
+    def __init__(self, knbn_task: Task, data_dir: Path, task_index: int, **kwargs: object) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self.knbn_task = knbn_task
         self.data_dir = data_dir
+        self.task_index = task_index
         self.can_focus = True
         self._title_static: Static | None = None
         self._tag_static: Static | None = None

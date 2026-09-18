@@ -146,7 +146,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
                         )
                         if (status, priority) not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
-                                yield TaskCard(task, self.data_dir, id=f'card-{idx}')
+                                yield TaskCard(task, self.data_dir, idx, id=f'card-{idx}')
 
         terminal_statuses = self._board_config.terminal_statuses
         parts = [f'{s} {self._count_for_status(s):>6}' for s in terminal_statuses]
@@ -188,7 +188,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
             await card.remove()
         if not message.collapsed:
             new_cards = [
-                TaskCard(task, self.data_dir, id=f'card-{idx}')
+                TaskCard(task, self.data_dir, idx, id=f'card-{idx}')
                 for idx, task in self._tasks_for(status, priority)
             ]
             if new_cards:
@@ -204,11 +204,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
         card = self._focused_card()
         if card is None:
             return None
-        card_id = card.id or ''
-        if card_id.startswith('card-'):
-            idx = int(card_id[5:])
-            return idx, self._tasks[idx]
-        return None
+        return card.task_index, self._tasks[card.task_index]
 
     def get_lane_context(self) -> tuple[str, str] | None:
         focused = self.app.focused
@@ -418,15 +414,12 @@ class KanbanView(KnbnWidgetMixin, Widget):
             col_cards = self._get_cards_in_col(target_col)
             match_row = 0
             for i, card in enumerate(col_cards):
-                card_id = card.id or ''
-                if card_id.startswith('card-'):
-                    card_idx = int(card_id[5:])
-                    if (
-                        card_idx < len(self._tasks)
-                        and self._tasks[card_idx].title == title
-                    ):
-                        match_row = i
-                        break
+                if (
+                    card.task_index < len(self._tasks)
+                    and self._tasks[card.task_index].title == title
+                ):
+                    match_row = i
+                    break
             self._focused_col = target_col
             self._focused_row[target_col] = match_row
             self._focus_col_card()
@@ -463,13 +456,13 @@ class KanbanView(KnbnWidgetMixin, Widget):
         def _refocus() -> None:
             col_cards = self._get_cards_in_col(col)
             for i, card in enumerate(col_cards):
-                cid = card.id or ''
-                if cid.startswith('card-'):
-                    cidx = int(cid[5:])
-                    if cidx < len(self._tasks) and self._tasks[cidx].title == title:
-                        self._focused_row[col] = i
-                        self._focus_col_card()
-                        return
+                if (
+                    card.task_index < len(self._tasks)
+                    and self._tasks[card.task_index].title == title
+                ):
+                    self._focused_row[col] = i
+                    self._focus_col_card()
+                    return
 
         self.call_after_refresh(self.recompose)
         self.call_after_refresh(_refocus)
