@@ -99,6 +99,16 @@ def resolve_data_dir() -> Path:
     return _DEFAULT_DIR
 
 
+def display_data_dir(data_dir: Path) -> str:
+    """Return a tilde-abbreviated path string for user-facing display."""
+    home = Path.home()
+    try:
+        rel = data_dir.relative_to(home)
+        return '~' if rel == Path() else f'~/{rel}'
+    except ValueError:
+        return str(data_dir)
+
+
 def load_settings(data_dir: Path) -> dict[str, Any]:
     settings_file = data_dir / _SETTINGS_FILENAME
     result: dict[str, Any] = {

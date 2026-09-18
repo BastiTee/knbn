@@ -18,6 +18,7 @@ from knbn.config import (
     BoardConfig,
     BoardConfigError,
     build_default_board_config,
+    display_data_dir,
     load_board_config,
     load_settings,
     save_settings,
@@ -46,12 +47,7 @@ class KnbnFooter(Footer):
 
     def __init__(self, data_dir: Path) -> None:
         super().__init__()
-        home = Path.home()
-        try:
-            rel = data_dir.relative_to(home)
-            self._data_dir_display = '~' if rel == Path() else f'~/{rel}'
-        except ValueError:
-            self._data_dir_display = str(data_dir)
+        self._data_dir_display = display_data_dir(data_dir)
 
     def compose(self) -> ComposeResult:
         yield from super().compose()

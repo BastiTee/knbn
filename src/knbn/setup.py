@@ -12,6 +12,7 @@ from knbn.config import (
     NAME_MAX,
     NAME_MIN,
     SETTINGS_DEFAULTS,
+    display_data_dir,
     load_default_board_config,
     save_settings,
 )
@@ -92,12 +93,7 @@ def _apply_board_cfg(data_dir: Path, board_cfg: dict) -> None:
 
 def run_setup_wizard(data_dir: Path) -> None:
     """Interactive first-run board setup wizard."""
-    home = Path.home()
-    try:
-        rel = data_dir.relative_to(home)
-        data_dir_display = '~' if rel == Path() else f'~/{rel}'
-    except ValueError:
-        data_dir_display = str(data_dir)
+    data_dir_display = display_data_dir(data_dir)
 
     click.echo("Welcome to knbn! Let's configure your board.")
     click.echo(f'Your data will be stored in {data_dir_display}')
