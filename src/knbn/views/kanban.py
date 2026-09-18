@@ -18,6 +18,7 @@ from knbn._mixin import KnbnWidgetMixin
 from knbn.model.store import (
     delete_task,
     load_tasks,
+    notes_slug_set,
     open_notes_in_editor,
     save_tasks,
     update_task,
@@ -128,6 +129,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
     def compose(self) -> ComposeResult:
         active_statuses = self._board_config.active_statuses
         priorities = self._board_config.priorities
+        slugs = notes_slug_set(self.data_dir)
 
         with Static(id='board-header'):
             for status in active_statuses:
@@ -146,7 +148,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
                         )
                         if (status, priority) not in self._collapsed:
                             for idx, task in self._tasks_for(status, priority):
-                                yield TaskCard(task, self.data_dir, idx, id=f'card-{idx}')
+                                yield TaskCard(task, self.data_dir, idx, notes_slug_set=slugs, id=f'card-{idx}')
 
         terminal_statuses = self._board_config.terminal_statuses
         parts = [f'{s} {self._count_for_status(s):>6}' for s in terminal_statuses]
@@ -187,8 +189,9 @@ class KanbanView(KnbnWidgetMixin, Widget):
         for card in old_cards:
             await card.remove()
         if not message.collapsed:
+            slugs = notes_slug_set(self.data_dir)
             new_cards = [
-                TaskCard(task, self.data_dir, idx, id=f'card-{idx}')
+                TaskCard(task, self.data_dir, idx, notes_slug_set=slugs, id=f'card-{idx}')
                 for idx, task in self._tasks_for(status, priority)
             ]
             if new_cards:

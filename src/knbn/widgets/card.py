@@ -11,6 +11,7 @@ from textual.widgets import Static
 
 from knbn._mixin import KnbnWidgetMixin
 from knbn.config import get_app_setting
+from knbn.model.slug import make_slug
 from knbn.model.task import Task, parse_datetime
 
 
@@ -37,19 +38,30 @@ class TaskCard(KnbnWidgetMixin, Static):
     }
     """
 
-    def __init__(self, knbn_task: Task, data_dir: Path, task_index: int, **kwargs: object) -> None:
+    def __init__(
+        self,
+        knbn_task: Task,
+        data_dir: Path,
+        task_index: int,
+        notes_slug_set: set[str] | None = None,
+        **kwargs: object,
+    ) -> None:
         super().__init__(**kwargs)  # type: ignore[arg-type]
         self.knbn_task = knbn_task
         self.data_dir = data_dir
         self.task_index = task_index
+        self._notes_slug_set = notes_slug_set
         self.can_focus = True
         self._title_static: Static | None = None
         self._tag_static: Static | None = None
 
     def _card_indicators(self) -> str:
-        from knbn.model.store import notes_exist
+        if self._notes_slug_set is not None:
+            has_notes = make_slug(self.knbn_task.title) in self._notes_slug_set
+        else:
+            from knbn.model.store import notes_exist
 
-        has_notes = notes_exist(self.data_dir, self.knbn_task)
+            has_notes = notes_exist(self.data_dir, self.knbn_task)
         has_link = bool(self.knbn_task.key_resource)
         if has_notes and has_link:
             return ' ☰ ※'
