@@ -35,10 +35,6 @@ class ClosedView(RowListView):
         Binding('delete', 'delete_task', 'Delete', show=False),
     ]
 
-    @property
-    def _search_query(self) -> str:
-        return getattr(self.app, '_search_query', '')
-
     DEFAULT_CSS = """
     ClosedView {
         height: 1fr;

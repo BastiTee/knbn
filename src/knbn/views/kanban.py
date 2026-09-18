@@ -113,10 +113,6 @@ class KanbanView(KnbnWidgetMixin, Widget):
         self._focused_col = 0
         self._focused_row: dict[int, int] = {}
 
-    @property
-    def _search_query(self) -> str:
-        return getattr(self.app, '_search_query', '')
-
     def _tasks_for(self, status: str, priority: str) -> list[tuple[int, Task]]:
         q = self._search_query
         return [
@@ -347,7 +343,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
         )
 
     def action_open_notes(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         ft = self._focused_task()
         if ft is None:
@@ -356,7 +352,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
         self._open_notes_for(task)
 
     def action_open_url(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         ft = self._focused_task()
         if ft is None:
@@ -371,7 +367,7 @@ class KanbanView(KnbnWidgetMixin, Widget):
         self.call_after_refresh(self.recompose)
 
     def action_mark_done(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         ft = self._focused_task()
         if ft is None:

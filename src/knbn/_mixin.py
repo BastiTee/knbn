@@ -15,3 +15,11 @@ class KnbnWidgetMixin:
     @property
     def _board_config(self) -> BoardConfig:
         return self.app.board_config  # type: ignore[attr-defined,no-any-return]
+
+    @property
+    def _search_query(self) -> str:
+        return self.app._search_query  # type: ignore[attr-defined,no-any-return]
+
+    @property
+    def _search_active(self) -> bool:
+        return self.app._search_active  # type: ignore[attr-defined,no-any-return]

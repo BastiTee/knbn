@@ -29,10 +29,6 @@ class TabularView(RowListView):
         Binding('delete', 'delete_task', 'Delete', show=False),
     ]
 
-    @property
-    def _search_query(self) -> str:
-        return getattr(self.app, '_search_query', '')
-
     DEFAULT_CSS = """
     TabularView {
         height: 1fr;
@@ -90,7 +86,7 @@ class TabularView(RowListView):
                 yield row
 
     def action_mark_done(self) -> None:
-        if getattr(self.app, '_search_active', False):
+        if self._search_active:
             return
         i = self._focused_index()
         if i < 0:
