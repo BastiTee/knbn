@@ -318,7 +318,9 @@ class KnbnApp(App[None]):
         if self._preview_timer is not None:
             self._preview_timer.stop()
             self._preview_timer = None
+        self._theme_preview_active = True  # prevent watch_theme from double-persisting
         self.theme = theme
+        self._theme_preview_active = False
         self._persist_theme(theme)
 
     def on_task_form_task_saved(self) -> None:
