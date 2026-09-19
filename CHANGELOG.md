@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Add live task search filter activated with Ctrl+F ([#16](https://github.com/BastiTee/knbn/pull/16))
+- Add category color editor with scheme picker to command palette ([#15](https://github.com/BastiTee/knbn/pull/15))
+- Improve setup wizard: stop prompting free-text fields once blank, reject duplicate names ([#17](https://github.com/BastiTee/knbn/pull/17))
+- Various internal refactors and performance improvements (deduplicated color/regex helpers, cached theme list and notes lookups, fixed double persist on theme confirm)
+
 ## 0.1.1
 
 - Fix kanban swimlane toggle to be per-cell, not board-wide ([#14](https://github.com/BastiTee/knbn/pull/14))
