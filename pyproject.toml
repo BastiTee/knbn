@@ -33,6 +33,7 @@ requires-python = ">=3.10,<3.15"
 dependencies = [
     "textual>=0.80.0",
     "click>=8.1.0",
+    "filelock>=3.0.0",
 ]
 
 [project.urls]
@@ -154,7 +155,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101"]       # allow assert in test files
 "**/__main__.py" = ["T201"]      # allow print() in CLI entry points
-"**/cli.py" = ["T201"]           # allow print() in CLI commands
+"**/cli.py" = ["T201", "PLR0912", "B904"]  # allow print(); many branches OK; suppress raise-from in click handlers
 
 [tool.ruff.format]
 quote-style = "preserve"
