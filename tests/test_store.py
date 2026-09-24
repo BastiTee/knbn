@@ -523,6 +523,8 @@ def test_ensure_data_dir_writes_agents_md(tmp_path: Path) -> None:
     content = agents_md.read_text()
     assert 'knbn' in content
     assert 'github.com/BastiTee/knbn' in content
+    assert 'db_version' in content
+    assert '--after' in content
 
 
 def test_ensure_data_dir_does_not_overwrite_agents_md(tmp_path: Path) -> None:

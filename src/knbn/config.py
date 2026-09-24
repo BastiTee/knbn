@@ -123,6 +123,8 @@ def load_settings(data_dir: Path) -> dict[str, Any]:
                 result['app'].update(raw['app'])
             if 'board' in raw:
                 result['board'] = raw['board']
+            if 'db_version' in raw:
+                result['db_version'] = raw['db_version']
     except (json.JSONDecodeError, OSError):
         pass
     return result

@@ -558,6 +558,7 @@ def test_config_outputs_valid_json(
         'categories',
         'free_text_fields',
         'data_dir',
+        'db_version',
     ]:
         assert key in payload
 

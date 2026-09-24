@@ -15,8 +15,9 @@ Example: if `db_version` is `0.2.1`, the README is at
 
 - `knbn --help` — list all available commands
 - `knbn config` — read the current board configuration as JSON (valid statuses,
-  priorities, categories, and free-text field labels)
+  priorities, categories, free-text field labels, and `db_version`)
 - `knbn list --json` — list active tasks as JSON (includes task IDs)
+- `knbn list --after YYYY-MM-DD --json` — limit output to tasks modified on or after a date (keeps context small)
 - `tasks.csv` — the task store (use the CLI; do not edit directly)
 - `settings.json` — board configuration
 

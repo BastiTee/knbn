@@ -409,8 +409,11 @@ def delete(task_id: str, yes: bool) -> None:
 @cli.command()
 def config() -> None:
     """Show the resolved board configuration as JSON."""
+    from knbn.config import load_settings
+
     data_dir = resolve_data_dir()
     board_config = load_board_config(data_dir)
+    settings = load_settings(data_dir)
     output: dict[str, Any] = {
         'active_statuses': board_config.active_statuses,
         'default_active_status': board_config.default_active_status,
@@ -422,5 +425,6 @@ def config() -> None:
         ],
         'free_text_fields': board_config.free_text_fields,
         'data_dir': str(data_dir),
+        'db_version': settings.get('db_version', ''),
     }
     print(json.dumps(output, indent=2))
