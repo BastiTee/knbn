@@ -142,8 +142,11 @@ def _ensure_ids(tasks: list[Task]) -> tuple[list[Task], bool]:
 def _write_db_version(data_dir: Path) -> None:
     from knbn.config import load_settings, save_settings
 
+    current = version('knbn')
     settings = load_settings(data_dir)
-    settings['db_version'] = version('knbn')
+    if settings.get('db_version') == current:
+        return
+    settings['db_version'] = current
     save_settings(data_dir, settings)
 
 
