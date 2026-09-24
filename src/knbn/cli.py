@@ -53,6 +53,7 @@ def _task_to_dict(task: Task) -> dict[str, Any]:
 
 
 @click.group(invoke_without_command=True)
+@click.version_option(None, '-V', '--version', package_name='knbn', prog_name='knbn')
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     if ctx.invoked_subcommand is None:
@@ -412,6 +413,7 @@ def config() -> None:
     from knbn.config import load_settings
 
     data_dir = resolve_data_dir()
+    ensure_data_dir(data_dir)
     board_config = load_board_config(data_dir)
     settings = load_settings(data_dir)
     output: dict[str, Any] = {

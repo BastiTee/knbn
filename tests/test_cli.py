@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+from importlib.metadata import version as pkg_version
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
 
-from knbn.cli import add, config, delete, edit, init, list_tasks
+from knbn.cli import add, cli, config, delete, edit, init, list_tasks
 from knbn.model.store import add_task, ensure_data_dir
 from knbn.model.task import Task
 
@@ -652,3 +653,42 @@ def test_list_after_invalid_date_exits_nonzero(
     runner = CliRunner()
     result = runner.invoke(list_tasks, ['--after', 'not-a-date'])
     assert result.exit_code != 0
+
+
+# --- --version flag ---
+
+
+def test_version_flag_long() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ['--version'])
+    assert result.exit_code == 0
+    expected_version = pkg_version('knbn')
+    assert f'knbn, version {expected_version}' in result.output
+
+
+def test_version_flag_short() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ['-V'])
+    assert result.exit_code == 0
+    expected_version = pkg_version('knbn')
+    assert f'knbn, version {expected_version}' in result.output
+
+
+# --- config refreshes db_version ---
+
+
+def test_config_refreshes_stale_db_version(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    ensure_data_dir(data_dir)
+    settings_file = data_dir / 'settings.json'
+    raw = json.loads(settings_file.read_text())
+    raw['db_version'] = '0.0.0'
+    settings_file.write_text(json.dumps(raw))
+
+    runner = CliRunner()
+    result = runner.invoke(config, [])
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload['db_version'] == pkg_version('knbn')
