@@ -3,9 +3,13 @@
 This directory is managed by **knbn**, a terminal-native personal Kanban board.
 
 For full documentation — CLI reference, task fields, configuration format, and
-typical agent workflows — see the project README:
+typical agent workflows — see the project README. The correct URL is version-specific:
 
-> https://github.com/BastiTee/knbn/blob/main/README.md
+1. Run `knbn config` and read the `db_version` field from the output.
+2. Navigate to `https://github.com/BastiTee/knbn/blob/<db_version>/README.md`
+
+Example: if `db_version` is `0.2.1`, the README is at
+`https://github.com/BastiTee/knbn/blob/0.2.1/README.md`.
 
 ## Quick orientation
 
