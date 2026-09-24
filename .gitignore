@@ -34,6 +34,9 @@ venv.bak/
 .DS_Store
 _temp_/
 
+# knbn store lock file (created by filelock on first write, persists permanently)
+*.lock
+
 # Ruff linter
 .ruff_cache/
 
