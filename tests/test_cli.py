@@ -571,3 +571,83 @@ def test_config_data_dir_is_absolute(
     assert result.exit_code == 0
     payload = json.loads(result.output)
     assert Path(payload['data_dir']).is_absolute()
+
+
+# --- list --after ---
+
+
+def test_list_after_filters_by_date_modified(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    ensure_data_dir(data_dir)
+    add_task(data_dir, _make_task(title='Old task', date_modified='2026-01-01 10:00'))
+    add_task(data_dir, _make_task(title='New task', date_modified='2026-09-15 10:00'))
+    runner = CliRunner()
+    result = runner.invoke(list_tasks, ['--after', '2026-09-01', '--json'])
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    titles = [t['title'] for t in payload]
+    assert 'New task' in titles
+    assert 'Old task' not in titles
+
+
+def test_list_after_inclusive_boundary(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    ensure_data_dir(data_dir)
+    add_task(
+        data_dir, _make_task(title='Boundary task', date_modified='2026-09-01 00:00')
+    )
+    runner = CliRunner()
+    result = runner.invoke(list_tasks, ['--after', '2026-09-01', '--json'])
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert any(t['title'] == 'Boundary task' for t in payload)
+
+
+def test_list_after_combined_with_status(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    ensure_data_dir(data_dir)
+    add_task(
+        data_dir,
+        _make_task(title='Recent Now', status='Now', date_modified='2026-09-15 10:00'),
+    )
+    add_task(
+        data_dir,
+        _make_task(
+            title='Recent Todo', status='Todo', date_modified='2026-09-15 10:00'
+        ),
+    )
+    runner = CliRunner()
+    result = runner.invoke(
+        list_tasks, ['--after', '2026-09-01', '--status', 'Now', '--json']
+    )
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert len(payload) == 1
+    assert payload[0]['title'] == 'Recent Now'
+
+
+def test_list_after_future_date_returns_empty(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    ensure_data_dir(data_dir)
+    add_task(data_dir, _make_task(title='Any task'))
+    runner = CliRunner()
+    result = runner.invoke(list_tasks, ['--after', '2099-01-01', '--json'])
+    assert result.exit_code == 0
+    assert json.loads(result.output) == []
+
+
+def test_list_after_invalid_date_exits_nonzero(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv('KNBN_DATA_DIR', str(data_dir))
+    runner = CliRunner()
+    result = runner.invoke(list_tasks, ['--after', 'not-a-date'])
+    assert result.exit_code != 0

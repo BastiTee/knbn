@@ -18,7 +18,7 @@ from knbn.model.store import (
     load_tasks,
     update_task_by_id,
 )
-from knbn.model.task import Task, now_str
+from knbn.model.task import Task, now_str, parse_datetime
 
 
 def _prompt_select(label: str, options: list[str], default: str) -> str:
@@ -206,15 +206,35 @@ def add(
 @click.option('--priority', '-p', multiple=True, help='Filter by priority (repeatable)')
 @click.option('--category', '-c', multiple=True, help='Filter by category (repeatable)')
 @click.option('--all', 'show_all', is_flag=True, help='Include terminal-status tasks')
+@click.option(
+    '--after',
+    'after_date',
+    default=None,
+    help='Show only tasks modified on or after DATE (YYYY-MM-DD or YYYY-MM-DD HH:MM)',
+)
 @click.option('--json', 'as_json', is_flag=True, help='Output as JSON array')
 def list_tasks(
     status: tuple[str, ...],
     priority: tuple[str, ...],
     category: tuple[str, ...],
     show_all: bool,
+    after_date: str | None,
     as_json: bool,
 ) -> None:
     """List tasks."""
+    from datetime import datetime
+
+    after_dt: datetime | None = None
+    if after_date is not None:
+        parsed = parse_datetime(after_date)
+        if parsed is None:
+            raise click.BadParameter(
+                f"'{after_date}' is not a recognised date. "
+                'Use YYYY-MM-DD or YYYY-MM-DD HH:MM.',
+                param_hint='--after',
+            )
+        after_dt, _ = parsed
+
     data_dir = resolve_data_dir()
     ensure_data_dir(data_dir)
     board_config = load_board_config(data_dir)
@@ -232,6 +252,12 @@ def list_tasks(
     if category:
         c_set = {v.lower() for v in category}
         tasks = [t for t in tasks if t.category.lower() in c_set]
+    if after_dt is not None:
+        tasks = [
+            t
+            for t in tasks
+            if (r := parse_datetime(t.date_modified)) is not None and r[0] >= after_dt
+        ]
 
     status_order = {s: i for i, s in enumerate(board_config.all_statuses())}
     priority_order = {pr: i for i, pr in enumerate(board_config.priorities)}
