@@ -56,7 +56,7 @@ source /path/to/cloned/folder/knbn-rc.sh
 
 Then `k` launches the board. See [knbn-rc.sh](knbn-rc.sh) for details.
 
-
+## Data storage
 
 Everything lives in one directory (default `~/.knbn`):
 
