@@ -514,3 +514,19 @@ def test_save_tasks_raises_store_locked_error(
     finally:
         proc.terminate()
         proc.wait()
+
+
+def test_ensure_data_dir_writes_agents_md(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    agents_md = tmp_path / 'AGENTS.md'
+    assert agents_md.exists()
+    content = agents_md.read_text()
+    assert 'knbn' in content
+    assert 'github.com/BastiTee/knbn' in content
+
+
+def test_ensure_data_dir_does_not_overwrite_agents_md(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    (tmp_path / 'AGENTS.md').write_text('custom agent instructions')
+    ensure_data_dir(tmp_path)
+    assert (tmp_path / 'AGENTS.md').read_text() == 'custom agent instructions'

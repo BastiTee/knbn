@@ -7,6 +7,7 @@ import os
 import subprocess
 from dataclasses import replace
 from importlib.metadata import version
+from importlib.resources import files
 from pathlib import Path
 
 from filelock import FileLock
@@ -162,6 +163,10 @@ def ensure_data_dir(data_dir: Path) -> None:
         save_settings(data_dir, settings)
     # Always ensure db_version is present and current
     _write_db_version(data_dir)
+    agents_md = data_dir / 'AGENTS.md'
+    if not agents_md.exists():
+        resource = files('knbn').joinpath('defaults/AGENTS.md')
+        agents_md.write_text(resource.read_text(encoding='utf-8'), encoding='utf-8')
     # Eagerly migrate legacy CSV schema so IDs are assigned on startup
     if csv_file.exists():
         try:
