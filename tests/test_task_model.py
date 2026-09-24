@@ -6,6 +6,7 @@ from datetime import datetime
 from knbn.model.task import (
     Task,
     display_date_only,
+    generate_id,
     now_str,
     parse_datetime,
 )
@@ -124,3 +125,26 @@ def test_display_date_only_legacy_format() -> None:
 
 def test_display_date_only_empty() -> None:
     assert display_date_only('') == ''
+
+
+def test_task_id_defaults_to_empty() -> None:
+    t = Task(
+        title='Test',
+        category='Ideas',
+        status='Todo',
+        priority='Medium',
+        date_created='2026-07-01 14:27',
+        date_modified='2026-07-01 14:27',
+    )
+    assert t.id == ''
+
+
+def test_generate_id_format() -> None:
+    task_id = generate_id()
+    assert len(task_id) == 8
+    assert all(c in '0123456789abcdef' for c in task_id)
+
+
+def test_generate_id_uniqueness() -> None:
+    ids = {generate_id() for _ in range(1000)}
+    assert len(ids) == 1000
