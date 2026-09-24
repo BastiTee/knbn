@@ -51,11 +51,6 @@ All JSON-emitting commands use a single serializer (`task_to_dict(task) -> dict`
 ### `knbn config` is read-only, no flags
 The command always dumps the full board config. Subkeys (e.g. `knbn config statuses`) would be useful but scope creep; agents can `jq` the output.
 
-### Data-directory README: copy-once, never overwrite
-The template lives at `src/knbn/defaults/README.md` and is read via `importlib.resources` (same pattern as `defaults/settings.json`). `ensure_data_dir` writes it only when `README.md` is absent. This mirrors the CLAUDE.md convention: knbn provides the starting point, the user owns the file from that point on.
-
-The template is written in plain Markdown so any agent or human can read it with a text editor or a `cat`. It is intentionally verbose rather than terse — the goal is that an agent with no prior knowledge of knbn can read the file and issue correct CLI commands without needing external documentation.
-
 ## Risks / Trade-offs
 
 **CSV migration is lazy (write-triggered)**
@@ -84,8 +79,7 @@ The template is written in plain Markdown so any agent or human can read it with
 10. Add `knbn list`, `knbn edit`, `knbn delete`, `knbn config` to `cli.py`.
 11. Add `--json` to `knbn add`.
 12. Update `tests/fixtures/tasks.csv` to add `ID` column with pre-generated IDs.
-13. Write bundled `src/knbn/defaults/README.md` template covering all task fields and CLI commands.
-14. Update `ensure_data_dir` to copy the template to the data directory (skip if already present).
-15. Update all affected tests; add new tests for the new CLI commands.
+13. Update `tests/fixtures/tasks.csv` to add `ID` column with pre-generated IDs.
+14. Update all affected tests; add new tests for the new CLI commands.
 
 Rollback: The CSV migration is backward-compatible. Old schema on disk is untouched until a mutation occurs. If rolling back to a pre-ID version, the old code will reject the new-schema file with a `ValueError` on `_validate_csv_schema` — users would need to remove the `ID` column manually. This is acceptable for a personal CLI tool.

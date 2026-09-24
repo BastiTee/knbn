@@ -56,13 +56,7 @@
 
 - [x] 10.1 Implement `knbn config` in `src/knbn/cli.py`; verify output is valid JSON containing all required keys (`active_statuses`, `default_active_status`, `terminal_statuses`, `default_terminal_status`, `priorities`, `categories`, `free_text_fields`, `data_dir`) and that repeated calls do not mutate `settings.json`
 
-## 11. Data directory README
+## 11. Final verification
 
-- [x] 11.1 Write `src/knbn/defaults/README.md` template covering: what knbn is, all twelve task fields with one-line descriptions, the five core CLI commands (`add`, `list`, `edit`, `delete`, `config`) with example invocations, a note about `settings.json` / `knbn config`, and a note that users can edit the file to add agent-visible context
-- [x] 11.2 Update `ensure_data_dir` in `src/knbn/model/store.py` to copy the bundled template to `<data_dir>/README.md` using `importlib.resources` (write only if the file does not already exist); verify with a unit test that a fresh init creates the file and a second call leaves an existing file unchanged
-
-## 12. Final verification
-
-- [x] 12.1 Run `make build` (full chain: tests + mypy + lint + format) and confirm it passes with no new type errors or lint violations
-- [x] 12.2 Run `knbn add --fast --title "Agent task" --json | jq .id` and verify a non-empty 8-char ID is printed; then run `knbn list --json | jq length` and verify the count increased
-- [x] 12.3 Cat `~/.knbn/README.md` and verify it contains all twelve field names and the five CLI command names
+- [x] 11.1 Run `make build` (full chain: tests + mypy + lint + format) and confirm it passes with no new type errors or lint violations
+- [x] 11.2 Run `knbn add --fast --title "Agent task" --json | jq .id` and verify a non-empty 8-char ID is printed; then run `knbn list --json | jq length` and verify the count increased

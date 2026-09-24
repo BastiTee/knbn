@@ -13,7 +13,6 @@ Agents increasingly use `knbn` to track their own tasks, letting users observe m
 - **CHANGED** `knbn add` gains `--json` flag to emit the created task (including its new ID) as JSON instead of the human-readable confirmation line.
 - **CHANGED** CSV schema gains a new `ID` column; existing CSVs are migrated on first write by assigning IDs to all rows that lack one.
 - **CHANGED** Store mutations acquire an advisory file lock before load+save to prevent clobbering under concurrent writers.
-- **NEW** `README.md` written to the data directory on init — boilerplate that explains knbn's CLI, data layout, and task fields so agents can discover how to interact with the store by reading the directory. Users can freely edit it, like a `CLAUDE.md`.
 
 ## Capabilities
 
@@ -26,7 +25,6 @@ Agents increasingly use `knbn` to track their own tasks, letting users observe m
 - `cli-config`: `knbn config` command — read-only JSON dump of board configuration.
 - `store-locking`: Advisory file lock around all store mutations for concurrent-writer safety.
 - `db-version`: `db_version` key in `settings.json` recording the last knbn version that mutated the store.
-- `data-dir-readme`: Boilerplate `README.md` written to the data directory on init; agent-readable, user-editable.
 
 ### Modified Capabilities
 
@@ -43,4 +41,3 @@ Agents increasingly use `knbn` to track their own tasks, letting users observe m
 - `src/knbn/defaults/settings.json` — no change (db_version is written dynamically).
 - `tests/fixtures/tasks.csv` — update canonical fixture with `ID` column.
 - New dependency: `filelock` (or stdlib `fcntl` on POSIX) for advisory locking — prefer `filelock` for cross-platform portability.
-- `src/knbn/defaults/README.md` — bundled template written to the data directory on `ensure_data_dir`; not overwritten if the user has already modified it.
