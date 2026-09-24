@@ -47,5 +47,6 @@
       "Feedback From",
       "Delegated To"
     ]
-  }
+  },
+  "db_version": "0.2.0"
 }

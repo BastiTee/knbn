@@ -1,25 +1,4 @@
-# task-store
-
-## Purpose
-
-Persistent storage layer: CSV I/O, data directory management, and slug generation.
-
-## Requirements
-
-### Requirement: Data directory initialization
-The system SHALL resolve the data directory from the `KNBN_DATA_DIR` environment variable if set, otherwise default to `~/.knbn/`. On first use, if the directory does not exist, the system SHALL create it, create `tasks.csv` with the canonical header row, and create the `notes/` subdirectory.
-
-#### Scenario: Default data directory
-- **WHEN** `KNBN_DATA_DIR` is not set
-- **THEN** the data directory resolves to `~/.knbn/`
-
-#### Scenario: Custom data directory via env var
-- **WHEN** `KNBN_DATA_DIR` is set to a valid path
-- **THEN** the data directory resolves to that path
-
-#### Scenario: Auto-initialization on first use
-- **WHEN** the resolved data directory does not exist
-- **THEN** the directory, `tasks.csv` (with header), and `notes/` subdirectory are created
+## MODIFIED Requirements
 
 ### Requirement: CSV schema
 The store SHALL use a CSV file (`tasks.csv`) with exactly twelve columns in this order: `ID`, `DateTimeCreated`, `DateTimeEdited`, `DateTimeDue`, `Status`, `Priority`, `Category`, `Name`, `FreeText1`, `FreeText2`, `FreeText3`, `KeyResource`. The column order is canonical and must not change. On reading an existing CSV, the store SHALL validate that the header row matches the expected columns exactly (name and order); if it does not match, the store SHALL raise a `ValueError` with a message showing both the expected and the found header, before any task rows are read.
@@ -43,13 +22,6 @@ The store SHALL use a CSV file (`tasks.csv`) with exactly twelve columns in this
 #### Scenario: Round-trip preserves all fields including ID
 - **WHEN** tasks with non-empty `id` values are saved with `save_tasks` and reloaded with `load_tasks`
 - **THEN** all twelve task fields, including `id`, are identical to the originals
-
-### Requirement: Atomic CSV writes
-The system SHALL write the CSV atomically by writing to a temporary file then renaming it, preventing data corruption if the process is interrupted during a write.
-
-#### Scenario: Atomic save
-- **WHEN** `save_tasks` is called
-- **THEN** the write goes to a `.tasks.csv.tmp` file first, then that file is renamed to `tasks.csv`
 
 ### Requirement: Task CRUD operations
 The store SHALL provide functions to add a new task (appends to CSV), update a task by ID (replaces row), delete a task by ID (removes row and its associated notes file), and load all tasks (returns list in file order). Index-based overloads are deprecated; all external callers SHALL use ID-based lookups.
@@ -109,28 +81,11 @@ The store SHALL expose a `find_task_by_id(data_dir, task_id) -> Task` function t
 - **WHEN** `find_task_by_id` is called with an ID that does not exist
 - **THEN** `TaskNotFoundError` is raised
 
+## ADDED Requirements
+
 ### Requirement: TaskNotFoundError
 The store module SHALL define a `TaskNotFoundError` exception class (subclass of `ValueError`) raised when a task lookup by ID fails.
 
 #### Scenario: TaskNotFoundError is raised on missing ID
 - **WHEN** any by-ID store function is called with an unknown ID
 - **THEN** `TaskNotFoundError` is raised with a message containing the unknown ID
-
-### Requirement: Notes file slug generation
-The system SHALL derive a filename slug from a task title by lowercasing, replacing spaces with hyphens, stripping non-alphanumeric-hyphen characters, and truncating to 60 characters. If the derived slug collides with an existing notes file, a numeric suffix (`-2`, `-3`, …) SHALL be appended.
-
-#### Scenario: Basic slug
-- **WHEN** the title is `"Research feedback models"`
-- **THEN** the slug is `"research-sbi-framework"`
-
-#### Scenario: Special character stripping
-- **WHEN** the title contains non-alphanumeric characters (e.g. `"Fix bug: 360° review"`)
-- **THEN** those characters are stripped and the result is a valid filename slug
-
-#### Scenario: Truncation at 60 characters
-- **WHEN** the title produces a slug longer than 60 characters
-- **THEN** the slug is truncated to 60 characters
-
-#### Scenario: Slug collision resolution
-- **WHEN** two tasks produce the same slug
-- **THEN** the second task's slug gets a `-2` suffix, the third gets `-3`, etc.

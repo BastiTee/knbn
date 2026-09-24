@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import secrets
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -49,6 +50,11 @@ def display_date_only(s: str) -> str:
     return dt.strftime(_NEW_DATE_FMT)
 
 
+def generate_id() -> str:
+    """Return a random 8-character lowercase hex task ID."""
+    return secrets.token_hex(4)
+
+
 @dataclass
 class Task:
     title: str
@@ -57,6 +63,7 @@ class Task:
     priority: str
     date_created: str
     date_modified: str
+    id: str = field(default='')
     due: str = field(default='')
     key_resource: str = field(default='')
     free_text_1: str = field(default='')

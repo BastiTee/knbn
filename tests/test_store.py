@@ -2,20 +2,27 @@
 
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 from knbn.model.store import (
+    StoreLockedError,
+    TaskNotFoundError,
     add_task,
     delete_task,
+    delete_task_by_id,
     ensure_data_dir,
+    find_task_by_id,
     get_notes_path,
     load_tasks,
     notes_exist,
     open_notes_in_editor,
     save_tasks,
     update_task,
+    update_task_by_id,
 )
 from knbn.model.task import Task
 
@@ -64,7 +71,7 @@ def test_csv_has_header_after_init(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
     content = (tmp_path / 'tasks.csv').read_text()
     assert content.startswith(
-        'DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name'
+        'ID,DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name'
     )
 
 
@@ -157,40 +164,39 @@ def test_delete_task(tmp_path: Path) -> None:
 
 def test_notes_path_returns_path(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Research feedback models')
-    path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Research feedback models'))
+    path = get_notes_path(tmp_path, saved)
     assert path.suffix == '.md'
-    assert 'research-feedback-models' in path.name
+    assert saved.id in path.name
 
 
 def test_notes_exist_false_when_absent(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='No notes here')
-    assert not notes_exist(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='No notes here'))
+    assert not notes_exist(tmp_path, saved)
 
 
 def test_notes_exist_true_when_present(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Has notes')
-    path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Has notes'))
+    path = get_notes_path(tmp_path, saved)
     path.write_text('# Notes')
-    assert notes_exist(tmp_path, task)
+    assert notes_exist(tmp_path, saved)
 
 
-def test_notes_path_consistent_for_existing_file(tmp_path: Path) -> None:
+def test_notes_path_stable_for_task(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='My task')
-    path1 = get_notes_path(tmp_path, task)
-    path1.write_text('# Notes')
-    path2 = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='My task'))
+    path1 = get_notes_path(tmp_path, saved)
+    path2 = get_notes_path(tmp_path, saved)
+    assert path1 == path2
     assert path1 == path2
 
 
 def test_delete_task_removes_notes_file(tmp_path: Path) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Task with notes')
-    add_task(tmp_path, task)
-    notes_path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Task with notes'))
+    notes_path = get_notes_path(tmp_path, saved)
     notes_path.write_text('# My notes')
     assert notes_path.exists()
     delete_task(tmp_path, 0)
@@ -209,14 +215,14 @@ def test_open_notes_in_editor_creates_file_and_calls_editor(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Editor task')
-    notes_path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Editor task'))
+    notes_path = get_notes_path(tmp_path, saved)
 
     def fake_run(cmd: list[str], **_: object) -> None:
         notes_path.write_text('some content')
 
     monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
-    open_notes_in_editor(tmp_path, task)
+    open_notes_in_editor(tmp_path, saved)
     assert notes_path.exists()
 
 
@@ -224,11 +230,11 @@ def test_open_notes_in_editor_deletes_new_file_if_empty(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Blank task')
-    notes_path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Blank task'))
+    notes_path = get_notes_path(tmp_path, saved)
 
     monkeypatch.setattr('knbn.model.store.subprocess.run', lambda *a, **kw: None)
-    open_notes_in_editor(tmp_path, task)
+    open_notes_in_editor(tmp_path, saved)
     assert not notes_path.exists()
 
 
@@ -236,14 +242,14 @@ def test_open_notes_in_editor_deletes_new_file_if_whitespace_only(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Whitespace task')
-    notes_path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Whitespace task'))
+    notes_path = get_notes_path(tmp_path, saved)
 
     def fake_run(cmd: list[str], **_: object) -> None:
         notes_path.write_text('  \n\t  ')
 
     monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
-    open_notes_in_editor(tmp_path, task)
+    open_notes_in_editor(tmp_path, saved)
     assert not notes_path.exists()
 
 
@@ -251,14 +257,14 @@ def test_open_notes_in_editor_keeps_new_file_with_content(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Content task')
-    notes_path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Content task'))
+    notes_path = get_notes_path(tmp_path, saved)
 
     def fake_run(cmd: list[str], **_: object) -> None:
         notes_path.write_text('hello\n')
 
     monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
-    open_notes_in_editor(tmp_path, task)
+    open_notes_in_editor(tmp_path, saved)
     assert notes_path.exists()
     assert notes_path.read_text().strip() == 'hello'
 
@@ -267,8 +273,8 @@ def test_open_notes_in_editor_preserves_existing_file_cleared_to_blank(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ensure_data_dir(tmp_path)
-    task = _make_task(title='Pre-existing task')
-    notes_path = get_notes_path(tmp_path, task)
+    saved = add_task(tmp_path, _make_task(title='Pre-existing task'))
+    notes_path = get_notes_path(tmp_path, saved)
     notes_path.parent.mkdir(parents=True, exist_ok=True)
     notes_path.write_text('original content')
 
@@ -276,5 +282,253 @@ def test_open_notes_in_editor_preserves_existing_file_cleared_to_blank(
         notes_path.write_text('')
 
     monkeypatch.setattr('knbn.model.store.subprocess.run', fake_run)
-    open_notes_in_editor(tmp_path, task)
+    open_notes_in_editor(tmp_path, saved)
     assert notes_path.exists()
+
+
+# --- New tests for IDs, locking, ID-based CRUD, db_version ---
+
+
+def test_fixture_tasks_have_ids() -> None:
+    tasks = load_tasks(FIXTURE_CSV.parent)
+    assert all(t.id for t in tasks), 'All fixture tasks should have non-empty IDs'
+
+
+def test_load_tasks_ids_are_8_chars() -> None:
+    tasks = load_tasks(FIXTURE_CSV.parent)
+    for task in tasks:
+        assert len(task.id) == 8
+
+
+def test_add_task_returns_task_with_id(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    saved = add_task(tmp_path, _make_task(title='ID task'))
+    assert saved.id
+    assert len(saved.id) == 8
+
+
+def test_save_tasks_assigns_ids_to_tasks_without_id(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    tasks = [_make_task(title='No ID')]
+    assert tasks[0].id == ''
+    saved = save_tasks(tmp_path, tasks)
+    assert saved[0].id
+    reloaded = load_tasks(tmp_path)
+    assert reloaded[0].id == saved[0].id
+
+
+def test_save_tasks_preserves_existing_ids(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    tasks = [_make_task(title='With ID')]
+    saved = save_tasks(tmp_path, tasks)
+    original_id = saved[0].id
+    saved2 = save_tasks(tmp_path, load_tasks(tmp_path))
+    assert saved2[0].id == original_id
+
+
+def test_round_trip_preserves_id(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    original = load_tasks(FIXTURE_CSV.parent)
+    save_tasks(tmp_path, original)
+    reloaded = load_tasks(tmp_path)
+    for orig, rl in zip(original, reloaded):
+        assert orig.id == rl.id
+
+
+def test_legacy_csv_gets_ids_on_first_write(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    legacy_header = 'DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource\n'
+    legacy_row = '2026-07-01 14:27,2026-07-01 14:27,,Todo,Medium,Ideas,Old task,,,,\n'
+    (tmp_path / 'tasks.csv').write_text(legacy_header + legacy_row)
+    tasks = load_tasks(tmp_path)
+    assert tasks[0].id == ''
+    save_tasks(tmp_path, tasks)
+    migrated = load_tasks(tmp_path)
+    assert migrated[0].id
+    assert len(migrated[0].id) == 8
+
+
+def test_notes_migration_renames_slug_file_to_id(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    # Write a legacy CSV and a slug-named notes file
+    legacy_header = 'DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource\n'
+    legacy_row = '2026-07-01 14:27,2026-07-01 14:27,,Todo,Medium,Ideas,Old task,,,,\n'
+    (tmp_path / 'tasks.csv').write_text(legacy_header + legacy_row)
+    notes_dir = tmp_path / 'notes'
+    notes_dir.mkdir(exist_ok=True)
+    slug_file = notes_dir / 'old-task.md'
+    slug_file.write_text('# Some notes')
+    # Trigger migration via ensure_data_dir
+    ensure_data_dir(tmp_path)
+    task = load_tasks(tmp_path)[0]
+    assert task.id
+    assert not slug_file.exists(), 'Slug-named file should have been renamed'
+    id_file = notes_dir / f'{task.id}.md'
+    assert id_file.exists(), 'ID-named file should exist after migration'
+    assert id_file.read_text() == '# Some notes'
+
+
+def test_notes_migration_skipped_when_no_notes_dir(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    legacy_header = 'DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource\n'
+    legacy_row = '2026-07-01 14:27,2026-07-01 14:27,,Todo,Medium,Ideas,No notes,,,,\n'
+    (tmp_path / 'tasks.csv').write_text(legacy_header + legacy_row)
+    (tmp_path / 'notes').rmdir()  # remove notes dir to hit the early-return branch
+    ensure_data_dir(tmp_path)  # must not raise
+    assert load_tasks(tmp_path)[0].id  # migration still happened for CSV
+
+
+def test_migrate_notes_handles_slug_collision(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    legacy_header = 'DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource\n'
+    # Two tasks with the same title — second one gets slug-2.md
+    row = '2026-07-01 14:27,2026-07-01 14:27,,Todo,Medium,Ideas,Same title,,,,\n'
+    (tmp_path / 'tasks.csv').write_text(legacy_header + row + row)
+    notes_dir = tmp_path / 'notes'
+    notes_dir.mkdir(exist_ok=True)
+    (notes_dir / 'same-title.md').write_text('first')
+    (notes_dir / 'same-title-2.md').write_text('second')
+    ensure_data_dir(tmp_path)
+    tasks = load_tasks(tmp_path)
+    assert tasks[0].id and tasks[1].id and tasks[0].id != tasks[1].id
+    assert (notes_dir / f'{tasks[0].id}.md').read_text() == 'first'
+    assert (notes_dir / f'{tasks[1].id}.md').read_text() == 'second'
+
+
+def test_ensure_data_dir_ignores_corrupt_schema(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    # Write a completely invalid CSV header — migration should not crash
+    (tmp_path / 'tasks.csv').write_text('Garbage,Header\n')
+    ensure_data_dir(tmp_path)  # must not raise
+
+
+def test_existing_slugs_empty_when_no_notes_dir(tmp_path: Path) -> None:
+    from knbn.model.store import notes_id_set
+
+    ensure_data_dir(tmp_path)
+    (tmp_path / 'notes').rmdir()
+    assert notes_id_set(tmp_path) == set()
+
+
+def test_find_task_by_id_found(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    saved = add_task(tmp_path, _make_task(title='Findable'))
+    found = find_task_by_id(tmp_path, saved.id)
+    assert found.title == 'Findable'
+
+
+def test_find_task_by_id_not_found(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    with pytest.raises(TaskNotFoundError, match='xxxxxxxx'):
+        find_task_by_id(tmp_path, 'xxxxxxxx')
+
+
+def test_update_task_by_id(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    ensure_data_dir(tmp_path)
+    saved = add_task(tmp_path, _make_task(title='Original'))
+    updated = replace(saved, title='Updated')
+    update_task_by_id(tmp_path, saved.id, updated)
+    assert find_task_by_id(tmp_path, saved.id).title == 'Updated'
+
+
+def test_update_task_by_id_not_found(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    with pytest.raises(TaskNotFoundError):
+        update_task_by_id(tmp_path, 'xxxxxxxx', _make_task())
+
+
+def test_delete_task_by_id(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    saved = add_task(tmp_path, _make_task(title='To delete'))
+    delete_task_by_id(tmp_path, saved.id)
+    assert load_tasks(tmp_path) == []
+
+
+def test_delete_task_by_id_removes_notes(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    saved = add_task(tmp_path, _make_task(title='Notes task'))
+    notes_path = get_notes_path(tmp_path, saved)
+    notes_path.write_text('# Notes')
+    delete_task_by_id(tmp_path, saved.id)
+    assert not notes_path.exists()
+
+
+def test_delete_task_by_id_not_found(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    with pytest.raises(TaskNotFoundError):
+        delete_task_by_id(tmp_path, 'xxxxxxxx')
+
+
+def test_ensure_data_dir_writes_db_version(tmp_path: Path) -> None:
+    import json
+
+    data_dir = tmp_path / 'knbn'
+    ensure_data_dir(data_dir)
+    settings = json.loads((data_dir / 'settings.json').read_text())
+    assert 'db_version' in settings
+    assert settings['db_version']
+
+
+def test_save_tasks_updates_db_version_on_migration(tmp_path: Path) -> None:
+    import json
+
+    ensure_data_dir(tmp_path)
+    legacy_header = 'DateTimeCreated,DateTimeEdited,DateTimeDue,Status,Priority,Category,Name,FreeText1,FreeText2,FreeText3,KeyResource\n'
+    legacy_row = '2026-07-01 14:27,2026-07-01 14:27,,Todo,Medium,Ideas,Old task,,,,\n'
+    (tmp_path / 'tasks.csv').write_text(legacy_header + legacy_row)
+    tasks = load_tasks(tmp_path)
+    save_tasks(tmp_path, tasks)
+    settings = json.loads((tmp_path / 'settings.json').read_text())
+    assert 'db_version' in settings
+
+
+def test_save_tasks_raises_store_locked_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import knbn.model.store as store_module
+
+    ensure_data_dir(tmp_path)
+    monkeypatch.setattr(store_module, '_LOCK_TIMEOUT', 0.2)
+
+    helper = (
+        'from filelock import FileLock\n'
+        'import sys, time\n'
+        f"lock = FileLock(r'{tmp_path}/tasks.csv.lock')\n"
+        'lock.acquire()\n'
+        "sys.stdout.write('locked\\n')\n"
+        'sys.stdout.flush()\n'
+        'time.sleep(10)\n'
+    )
+    proc = subprocess.Popen(  # noqa: S603
+        [sys.executable, '-c', helper],
+        stdout=subprocess.PIPE,
+    )
+    assert proc.stdout is not None
+    proc.stdout.readline()
+
+    try:
+        with pytest.raises(StoreLockedError):
+            save_tasks(tmp_path, [])
+    finally:
+        proc.terminate()
+        proc.wait()
+
+
+def test_ensure_data_dir_writes_agents_md(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    agents_md = tmp_path / 'AGENTS.md'
+    assert agents_md.exists()
+    content = agents_md.read_text()
+    assert 'knbn' in content
+    assert 'github.com/BastiTee/knbn' in content
+    assert 'db_version' in content
+    assert '--after' in content
+
+
+def test_ensure_data_dir_does_not_overwrite_agents_md(tmp_path: Path) -> None:
+    ensure_data_dir(tmp_path)
+    (tmp_path / 'AGENTS.md').write_text('custom agent instructions')
+    ensure_data_dir(tmp_path)
+    assert (tmp_path / 'AGENTS.md').read_text() == 'custom agent instructions'
