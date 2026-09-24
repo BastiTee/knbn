@@ -56,9 +56,7 @@ source /path/to/cloned/folder/knbn-rc.sh
 
 Then `k` launches the board. See [knbn-rc.sh](knbn-rc.sh) for details.
 
----
 
-## Data directory
 
 Everything lives in one directory (default `~/.knbn`):
 
@@ -69,7 +67,6 @@ Everything lives in one directory (default `~/.knbn`):
 | `notes/<id>.md` | Freeform Markdown notes attached to a task, keyed by task ID. |
 | `AGENTS.md` | Agent orientation file written on first init — edit freely to add project context. |
 
----
 
 ## Task fields
 
@@ -90,7 +87,6 @@ Every task has exactly 12 fields:
 | `date_created` | `DateTimeCreated` | ISO datetime of creation (`YYYY-MM-DD HH:MM`). Set automatically; never edited. |
 | `date_modified` | `DateTimeEdited` | ISO datetime of last update (`YYYY-MM-DD HH:MM`). Updated automatically on every save. |
 
----
 
 ## CLI reference
 
@@ -221,7 +217,6 @@ knbn config
 
 Output includes: `active_statuses`, `default_active_status`, `terminal_statuses`, `default_terminal_status`, `priorities`, `categories` (with hex colors), `free_text_fields` (labels), `data_dir`.
 
----
 
 ## Board configuration
 
@@ -247,7 +242,6 @@ Key fields under the `board` key:
 
 Run `knbn config` to read the current configuration as JSON at any time.
 
----
 
 ## Agent workflow
 
@@ -270,7 +264,6 @@ knbn list --after 2026-09-01 --json
 knbn edit "$TASK_ID" --status Done
 ```
 
----
 
 ## License
 
