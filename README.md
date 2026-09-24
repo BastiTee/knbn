@@ -67,6 +67,26 @@ Everything lives in one directory (default `~/.knbn`):
 | `notes/<id>.md` | Freeform Markdown notes attached to a task, keyed by task ID. |
 | `AGENTS.md` | Agent orientation file written on first init — edit freely to add project context. |
 
+You don't edit tasks.csv directly — always go through the CLI. The CSV is the canonical store but the CLI owns writes to it.
+
+### Using a non-default data directory
+
+To use a different directory — for example a project-embedded board like `__knbn__/` — set the `KNBN_DATA_DIR` environment variable before any command:
+
+```bash
+export KNBN_DATA_DIR=/path/to/your/board
+
+knbn list --json      # operates on that directory
+knbn add --fast --title "My task" --json
+```
+
+Verify the active directory at any time:
+
+```bash
+knbn config           # output includes "data_dir"
+```
+
+When working as an agent, always confirm data_dir in knbn config output matches the folder containing tasks.csv before issuing write commands.
 
 ## Task fields
 
