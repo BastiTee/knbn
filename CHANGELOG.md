@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Add `--version` flag and keep `db_version` in sync with the package version ([#19](https://github.com/BastiTee/knbn/pull/19))
+
 ## 0.3.0
 
 - Add agent-facing CLI with stable task IDs, file locking, and ID-based notes ([#18](https://github.com/BastiTee/knbn/pull/18))
