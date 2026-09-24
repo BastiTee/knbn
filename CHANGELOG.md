@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Add agent-facing CLI with stable task IDs, file locking, and ID-based notes ([#18](https://github.com/BastiTee/knbn/pull/18))
+- Write `AGENTS.md` orientation file to the data directory on `knbn init` ([#18](https://github.com/BastiTee/knbn/pull/18))
+- Add `--after DATE` filter to `knbn list` ([#18](https://github.com/BastiTee/knbn/pull/18))
+- Fix: skip `db_version` write when version is already current ([#18](https://github.com/BastiTee/knbn/pull/18))
+
 ## 0.2.0
 
 - Add live task search filter activated with Ctrl+F ([#16](https://github.com/BastiTee/knbn/pull/16))
