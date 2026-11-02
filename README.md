@@ -20,7 +20,7 @@
 
 ## Installation
 
-Requires Python 3.10+.
+Requires Python 3.11+.
 The default data directory is `~/.knbn`. Override with the `KNBN_DATA_DIR` environment variable.
 
 ### From PyPI
